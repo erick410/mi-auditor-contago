@@ -1,0 +1,375 @@
+<template>
+    <div class="q-pa-md">
+
+        <q-dialog v-model="dialogLista69B" persistent transition-show="scale" transition-hide="scale" maximized>
+            <q-card>
+                <q-bar class="bg-primary">
+                    <q-icon color="white" name="mdi-account-search" />
+                    <div class="text-white">Lista 69B</div>
+
+                    <q-space />
+                    <q-btn dense color="white" flat icon="close" v-close-popup>
+                        <q-tooltip>Close</q-tooltip>
+                    </q-btn>
+                </q-bar>
+                <q-card-section>
+                    <lista69></lista69>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
+
+        <!-- DIALOG PARA VER LOS PDF -->
+        <q-dialog v-model="dialogDetalles" persistent transition-show="scale" transition-hide="scale" maximized>
+            <visor-pdf @CloseDialogPdf="CloseDialogPdf"></visor-pdf>
+        </q-dialog>
+
+        <!-- DIALOG LOADING -->
+        <q-dialog v-model="dialog" persistent transition-show="scale" transition-hide="scale">
+            <q-card style="width: 200px">
+                <q-card-section>
+                    <div class="row justify-center">
+                        <span>{{ dialogtext }}</span>
+                        <q-spinner-dots color="primary" size="lg" />
+                    </div>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
+
+        <!-- SELECCIONA AÑO Y MES, BOTON DE BUSCAR Y EXPORTAR A EXCEL -->
+        <div class="row no-wrap items-center q-mt-md q-pa-sm">
+            <q-space />
+
+            <q-input v-model="fehaIMasked" label="Fecha Inicial" class="q-mr-sm" name="event">
+                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                    <q-date v-model="fechaI" @input="UltimoDiaMes">
+                        <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Ok" color="primary" flat />
+                        </div>
+                    </q-date>
+                </q-popup-proxy>
+            </q-input>
+
+            <q-input v-model="fechaFMasked" label="Fecha Final" class="q-mr-xs">
+                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
+                    <q-date v-model="fechaF">
+                        <div class="row items-center justify-end">
+                            <q-btn v-close-popup label="Ok" color="primary" flat />
+                        </div>
+                    </q-date>
+                </q-popup-proxy>
+            </q-input>
+
+            <q-btn push color="amber-9" @click="GetReporte" icon="mdi-text-box-search-outline" rounded flat size="18px"
+                padding="xs">
+                <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                    :offset="[10, 10]">Consultar</q-tooltip>
+            </q-btn>
+            <q-btn push color="green-10" @click="ExportExcel" icon="mdi-file-excel-box-outline" rounded flat size="18px"
+                padding="xs">
+                <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                    :offset="[10, 10]">Exportar Excel</q-tooltip>
+            </q-btn>
+            <q-btn push color="red-10" @click="abrirDialogLista69B" icon="mdi-account-search" rounded flat size="18px"
+                padding="xs">
+                <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                    :offset="[10, 10]">Lista 69B</q-tooltip>
+            </q-btn>
+            <q-space />
+        </div>
+
+        <!-- TABLA DE IVA -->
+        <q-table title="Reporte ISR" :data="dataIva" :columns="columns" :rows-per-page-options="[10]" :filter="filter">
+            <template v-slot:top>
+                <span class="text-body1" content-style="font-size: 20px">IVA Acreditado Facturado</span>
+                <q-space />
+                <q-input borderless dense debounce="300" v-model="filter" placeholder="Buscar">
+                    <template v-slot:append>
+                        <q-icon name="mdi-magnify" />
+                    </template>
+                </q-input>
+                <q-btn push color="blue-7" @click="OpenNotas(1)" icon="mdi-information-outline" rounded flat size="18px"
+                    padding="xs">
+                    <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                        :offset="[10, 10]">Información</q-tooltip>
+                </q-btn>
+            </template>
+
+            <template v-slot:body="props">
+                <q-tr :props="props">
+                    <q-td auto-width>
+                        <q-btn size="md" color="red-14" rounded flat dense @click="VerComprobante(props.row)"
+                            icon="mdi-file-pdf-box">
+                            <q-tooltip transition-show="flip-right" transition-hide="flip-left"
+                                content-style="font-size: 14px" :offset="[10, 10]">Ver Comprobante</q-tooltip>
+                        </q-btn>
+                    </q-td>
+
+                    <q-td key="serie" :props="props">{{ props.row.serie }}</q-td>
+                    <q-td key="folio" :props="props">{{ props.row.folio }}</q-td>
+                    <q-td key="fecha" :props="props">{{ props.row.fecha }}</q-td>
+                    <q-td key="rfc" :props="props">{{ props.row.rfc }}</q-td>
+                    <q-td key="nombre" :props="props">{{ props.row.nombre }}</q-td>
+                    <q-td key="metodoPago" :props="props">{{ props.row.metodoPago }}</q-td>
+                    <q-td key="formaPago" :props="props">{{ props.row.formaPago }}</q-td>
+                    <q-td key="impuesto" :props="props">{{ props.row.impuesto }}</q-td>
+
+                    <q-td key="base_" :props="props">{{ FormatCurrency(props.row.base_) }}</q-td>
+                    <q-td key="tipoFactor" :props="props">{{ props.row.tipoFactor }}</q-td>
+                    <q-td key="tasaOCuota" :props="props">{{ formatNumber(props.row.tasaOCuota) }}</q-td>
+                    <q-td key="importe" :props="props">{{ FormatCurrency(props.row.importe) }}</q-td>
+                    <q-td key="subTotal" :props="props">{{ FormatCurrency(props.row.subTotal) }}</q-td>
+                    <q-td key="descuento" :props="props">{{ FormatCurrency(props.row.descuento) }}</q-td>
+                    <q-td key="total" :props="props">{{ FormatCurrency(props.row.total) }}</q-td>
+
+                    <q-td key="moneda" :props="props">{{ props.row.moneda }}</q-td>
+                    <q-td key="tipoCambio" :props="props">{{ FormatCurrency(props.row.tipoCambio) }}</q-td>
+                    <q-td key="tipoComprobante" :props="props">{{ props.row.tipoComprobante }}</q-td>
+                    <q-td key="folioFiscal" :props="props">{{ props.row.folioFiscal }}</q-td>
+                </q-tr>
+            </template>
+        </q-table>
+
+        <q-markup-table separator="vertical" v-if="dataIva.length != 0">
+            <thead>
+                <tr>
+                    <th class="text-center">Total Base</th>
+                    <th class="text-center">Total Importe</th>
+                    <th class="text-center">SubTotal</th>
+                    <th class="text-center">Total Descuento</th>
+                    <th class="text-center">Total</th>
+                </tr>
+            </thead>
+            <tbody style="background: rgb(255, 190, 190)">
+                <tr>
+                    <td class="text-right">{{ FormatCurrency(totalBase) }}</td>
+                    <td class="text-right">{{ FormatCurrency(totalImporte) }}</td>
+                    <td class="text-right">{{ FormatCurrency(totalSubTotal) }}</td>
+                    <td class="text-right">{{ FormatCurrency(totalDescuento) }}</td>
+                    <td class="text-right">{{ FormatCurrency(totalTotal) }}</td>
+                </tr>
+            </tbody>
+        </q-markup-table>
+    </div>
+</template>
+<script>
+    import axios from 'axios'
+    import moment from 'moment'
+    import visorPdf from '../Pdf/VisorPdf.vue'
+    import { ComprobanteBase64 } from '../Pdf/ComprobanteBase64.js'
+    import { generarCodigoQR } from '../Pdf/qrcodeGenerator';
+    import * as xlsx from 'xlsx';
+    import { format } from 'date-fns';
+    import { es } from 'date-fns/locale';
+    import lista69 from '../Lista69B/Lista69B.vue'
+
+    export default {
+        components: {
+            visorPdf,
+            lista69
+        },
+        data() {
+            return {
+                totalBase: 0,
+                totalImporte: 0,
+                totalSubTotal: 0,
+                totalDescuento: 0,
+                totalTotal: 0,
+
+                columns: [
+                    { name: 'actions', align: 'left', label: 'Acciones', field: 'actions' },
+                    { name: 'serie', align: 'left', label: 'Serie', field: 'serie', sortable: true },
+                    { name: 'folio', align: 'left', label: 'Folio', field: 'folio', sortable: true },
+                    { name: 'fecha', align: 'left', label: 'Fecha', field: 'fecha', sortable: true },
+                    { name: 'rfc', align: 'left', label: 'RFC', field: 'rfc', sortable: true },
+                    { name: 'nombre', align: 'left', label: 'Nombre', field: 'nombre', sortable: true },
+                    { name: 'metodoPago', align: 'left', label: 'Método de Pago', field: 'metodoPago', sortable: true },
+                    { name: 'formaPago', align: 'left', label: 'Forma de Pago', field: 'formaPago', sortable: true },
+                    { name: 'impuesto', align: 'left', label: 'Impuesto', field: 'impuesto', sortable: true },
+                    { name: 'base_', align: 'right', label: 'Base', field: 'base_', sortable: true },
+                    { name: 'tipoFactor', align: 'left', label: 'Tipo de Factor', field: 'tipoFactor', sortable: true },
+                    { name: 'tasaOCuota', align: 'right', label: 'Tasa O Cuota', field: 'tasaOCuota', sortable: true },
+                    { name: 'importe', align: 'right', label: 'Importe', field: 'importe', sortable: true },
+                    { name: 'subTotal', align: 'right', label: 'Subtotal', field: 'subTotal', sortable: true },
+                    { name: 'descuento', align: 'right', label: 'Descuento', field: 'descuento', sortable: true },
+                    { name: 'total', align: 'right', label: 'Total', field: 'total', sortable: true },
+                    { name: 'moneda', align: 'left', label: 'Moneda', field: 'moneda', sortable: true },
+                    { name: 'tipoCambio', align: 'right', label: 'Tipo de Cambio', field: 'tipoCambio', sortable: true },
+                    { name: 'tipoComprobante', align: 'left', label: 'Tipo de Comprobante', field: 'tipoComprobante', sortable: true },
+                    { name: 'folioFiscal', align: 'left', label: 'Folio Fiscal', field: 'folioFiscal', sortable: true },
+                ],
+                dataIva: [],
+                fechaI: new Date(),
+                fechaF: new Date(),
+                filter: '',
+
+                //LOADING
+                dialog: false,
+                dialogtext: '',
+
+                //DETALLES
+                dialogDetalles: false,
+                dialogLista69B: false
+            }
+        },
+        computed: {
+            token() {
+                return this.$store.state.usuario;
+            },
+
+            fehaIMasked() {
+                moment.locale('es-mx');
+                return this.fechaI ? moment(this.fechaI).format('DD/MMMM/yyyy') : ''
+            },
+
+            fechaFMasked() {
+                moment.locale('es-mx');
+                return this.fechaF ? moment(this.fechaF).format('DD/MMMM/yyyy') : ''
+            },
+
+            rutaAxios() {
+                return this.$store.state.rutaMongoStore
+            }
+
+        },
+        created() {
+
+        },
+        methods: {
+            calcularTotales() {
+                this.totalBase = this.dataIva.reduce((acumulador, objeto) => acumulador + objeto.base_, 0)
+                this.totalImporte = this.dataIva.reduce((acumulador, objeto) => acumulador + objeto.importe, 0)
+                this.totalSubTotal = this.dataIva.reduce((acumulador, objeto) => acumulador + objeto.subTotal, 0)
+                this.totalDescuento = this.dataIva.reduce((acumulador, objeto) => acumulador + objeto.descuento, 0)
+                this.totalTotal = this.dataIva.reduce((acumulador, objeto) => acumulador + objeto.total, 0)
+            },
+            async GetReporte() {
+                this.dialog = true;
+                this.dialogtext = 'Consultando, espere...'
+                let fI = moment(this.fechaI).format('YYYY-MM-DD')
+                let fF = moment(this.fechaF).format('YYYY-MM-DD')
+
+                try {
+                    let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaAcreditadoFacturadoAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
+                    this.dataIva = response.data;
+                    this.calcularTotales()
+                    this.dialog = false;
+                } catch (error) {
+                    console.log(error)
+                    this.dialog = false;
+                }
+            },
+
+            FormatCurrency(value) {
+                return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            },
+
+            formatNumber(value) {
+                return value.toLocaleString('en-US');
+            },
+
+            // ExportExcel() {
+            //     let fi_ = new Date(this.fechaI);
+            //     let ff_ = new Date(this.fechaF);
+
+            //     let fI = format(fi_, 'dd-MMMM-yyyy', { locale: es })
+            //     let fF = format(ff_, 'dd-MMMM-yyyy', { locale: es })
+
+            //     const workbook = XLSX.utils.book_new();
+            //     const sheetTrabajadores = XLSX.utils.json_to_sheet(this.dataIva);
+            //     XLSX.utils.book_append_sheet(workbook, sheetTrabajadores, 'IVA FACTURADO');
+            //     XLSX.writeFile(workbook, 'IVA ACREDITADO FACTURADO DEL ' + fI + ' AL ' + fF + '.xlsx');
+            // },
+
+            ExportExcel() {
+            let reporte = 'REPORTE DE IVA ACREDITADO FACTURADO'
+            let empresa = this.$store.state.empresaStore.nombre
+            let rfc = this.$store.state.empresaStore.rfc
+            let fi_ = new Date(this.fechaI);
+                let ff_ = new Date(this.fechaF);
+
+                let fI = format(fi_, 'dd-MMMM-yyyy', { locale: es })
+                let fF = format(ff_, 'dd-MMMM-yyyy', { locale: es })
+
+            let periodo = fI + ' AL ' + fF 
+
+            const workbook = xlsx.utils.book_new();
+
+            const cabecera = [
+                [reporte],
+                ["EMPRESA:", empresa.toUpperCase()],
+                ["RFC:", rfc.toUpperCase()],
+                ["PERIODO:",periodo.toUpperCase()],
+                // ["FECHA REPORTE:", new Date()],
+                [],
+            ];
+
+            const columnasExcel = this.columns.filter(
+                col => col.name !== "actions"
+            );
+
+            const dataExcel = this.dataIva.map(row => {
+                const obj = {};
+                columnasExcel.forEach(col => {
+                obj[col.label] = row[col.field];
+                });
+                return obj;
+            });
+
+            const sheet = xlsx.utils.aoa_to_sheet(cabecera);
+
+            xlsx.utils.sheet_add_json(sheet, dataExcel, {
+                origin: "A6", 
+                skipHeader: false,
+            });
+
+            sheet["!merges"] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: columnasExcel.length - 1 } },
+                { s: { r: 1, c: 1 }, e: { r: 1, c: columnasExcel.length - 1 } },
+                { s: { r: 2, c: 1 }, e: { r: 2, c: columnasExcel.length - 1 } },
+                { s: { r: 3, c: 1 }, e: { r: 3, c: columnasExcel.length - 1 } },
+            ];
+
+            sheet["!cols"] = columnasExcel.map(() => ({ wch: 20 }));
+
+            // const fechaCell = sheet["B4"];
+            // if (fechaCell) fechaCell.z = "dd/mm/yyyy";
+
+            xlsx.utils.book_append_sheet(workbook, sheet, "IVA FACTURADO");
+
+            xlsx.writeFile(
+                workbook,
+                rfc + ' - ' + empresa +  ' - REPORTE DE IVA ACREDITADO FACTURADO DEL ' + periodo.toUpperCase() + '.xlsx'
+            );
+            },
+
+            UltimoDiaMes() {
+                const fecha = new Date(this.fechaI);
+                console.log(this.fechaI)
+                const ultimoDia = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
+                let formato = moment(ultimoDia).format('YYYY-MM-DD')
+                this.fechaF = formato;
+            },
+
+            async VerComprobante(item) {
+                try {
+                    this.$store.state.vistaPreviaStore.folioFiscal = item.folioFiscal;
+                    this.$store.state.vistaPreviaStore.color = "19775C"
+                    this.$store.state.vistaPreviaStore.tipoComprobanteInterno = "FACTURA"
+                    this.$store.state.vistaPreviaStore.tipo = "R"
+                    this.$store.state.vistaPreviaStore.rfc = this.token.rfc
+                    this.dialogDetalles = true;
+                } catch (error) {
+                    console.log(error)
+                }
+            },
+
+            CloseDialogPdf() {
+                this.dialogDetalles = false;
+            },
+
+            abrirDialogLista69B() {
+                this.dialogLista69B = true
+            }
+        },
+    }
+</script>
