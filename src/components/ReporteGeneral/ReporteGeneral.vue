@@ -1377,6 +1377,7 @@ export default {
         },
       ],
       comentarios: "",
+      comparativaFlujo: [],
     };
   },
 
@@ -1417,7 +1418,7 @@ export default {
       if (!section || !section.items) return false;
 
       return section.items.every(
-        (item) => this.mostrarConcentradosReporte[item.key] === true,
+        (item) => this.mostrarConcentradosReporte[item.key] === true
       );
     },
 
@@ -1435,7 +1436,7 @@ export default {
       if (!section || !section.items) return false;
 
       return section.items.every(
-        (item) => this.mostrarSeccionesReporte[item.key] === true,
+        (item) => this.mostrarSeccionesReporte[item.key] === true
       );
     },
 
@@ -1530,6 +1531,50 @@ export default {
       this.dataReporte.flujoRecibido = flujo.flujoRecibido;
       this.dataReporte.metodosDePagoRecibidos = flujo.metodosDePagoRecibidos;
       this.dataReporte.metodosDePagoEmitidos = flujo.metodosDePagoEmitidos;
+
+      const resumen = this.compararPUEPorMes(
+        this.dataReporte.flujoEmitido,
+        this.dataReporte.flujoRecibido
+      );
+      this.comparativaFlujo = resumen;
+      console.log("resumen", resumen);
+    },
+
+    compararPUEPorMes(emitidos, recibidos) {
+      const resultado = {};
+
+      const procesar = (lista, campo) => {
+        lista.forEach((item) => {
+          Object.keys(item).forEach((moneda) => {
+            item[moneda].forEach((reg) => {
+              if (reg.metodoPago !== "PUE") return;
+
+              const key = `${moneda}_${reg.mes}`;
+
+              if (!resultado[key]) {
+                resultado[key] = {
+                  moneda,
+                  mes: reg.mes,
+                  totalEPUE: 0,
+                  totalRPUE: 0,
+                };
+              }
+
+              resultado[key][campo] += reg.importePesos;
+            });
+          });
+        });
+      };
+
+      procesar(emitidos, "totalEPUE");
+      procesar(recibidos, "totalRPUE");
+
+      Object.values(resultado).forEach(item => {
+    item.diferenciaPUE = item.totalEPUE - item.totalRPUE
+  })
+
+  
+      return Object.values(resultado);
     },
 
     async GetReporteFlujoGeneral() {
@@ -1572,7 +1617,7 @@ export default {
             "R",
             año,
             mesI,
-            mesF,
+            mesF
           );
         }
 
@@ -1583,7 +1628,7 @@ export default {
             "E",
             año,
             mesI,
-            mesF,
+            mesF
           );
         }
 
@@ -1626,7 +1671,7 @@ export default {
             "I",
             año,
             mesI,
-            mesF,
+            mesF
           ),
           this.GetReporteContador(
             rfc,
@@ -1634,7 +1679,7 @@ export default {
             "E",
             año,
             mesI,
-            mesF,
+            mesF
           ),
           this.GetReporteContador(
             rfc,
@@ -1642,7 +1687,7 @@ export default {
             "I",
             año,
             mesI,
-            mesF,
+            mesF
           ),
           this.GetReporteContador(
             rfc,
@@ -1650,7 +1695,7 @@ export default {
             "E",
             año,
             mesI,
-            mesF,
+            mesF
           ),
           this.GetReporteContador(
             rfc,
@@ -1658,7 +1703,7 @@ export default {
             "N",
             año,
             mesI,
-            mesF,
+            mesF
           ),
         ];
         // const resultadosContador = await Promise.all(tareasContador);
@@ -1681,8 +1726,8 @@ export default {
               año,
               mesI,
               mesF,
-              this.clientesConcentrados,
-            ),
+              this.clientesConcentrados
+            )
           );
         } else {
           tareasRFc.push([]);
@@ -1696,8 +1741,8 @@ export default {
               año,
               mesI,
               mesF,
-              this.proveedoresConcentrados,
-            ),
+              this.proveedoresConcentrados
+            )
           );
         } else {
           tareasRFc.push([]);
@@ -1723,7 +1768,7 @@ export default {
               "I",
               año,
               mesI,
-              mesF,
+              mesF
             ),
             this.GetReporteImportes(
               rfc,
@@ -1731,8 +1776,8 @@ export default {
               "E",
               año,
               mesI,
-              mesF,
-            ),
+              mesF
+            )
           );
         } else {
           tareasImportes.push([]);
@@ -1746,7 +1791,7 @@ export default {
               "I",
               año,
               mesI,
-              mesF,
+              mesF
             ),
             this.GetReporteImportes(
               rfc,
@@ -1754,8 +1799,8 @@ export default {
               "E",
               año,
               mesI,
-              mesF,
-            ),
+              mesF
+            )
           );
         } else {
           tareasImportes.push([]);
@@ -1816,8 +1861,8 @@ export default {
               "comprobantes_nomina",
               año,
               mesI,
-              mesF,
-            ),
+              mesF
+            )
           );
         } else {
           tareasImportesN.push([]);
@@ -1825,7 +1870,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarNominaGeneral) {
           tareasImportesN.push(
-            this.GetReporteNominaGeneral(rfc, año, mesI, mesF),
+            this.GetReporteNominaGeneral(rfc, año, mesI, mesF)
           );
         } else {
           tareasImportesN.push([]);
@@ -1833,7 +1878,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarNominaTrabajadores == true) {
           tareasImportesN.push(
-            this.GetReporteNominaTrabajador(rfc, año, mesI, mesF),
+            this.GetReporteNominaTrabajador(rfc, año, mesI, mesF)
           );
         } else {
           tareasImportesN.push([]);
@@ -1841,7 +1886,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarNominaConceptos) {
           tareasImportesN.push(
-            this.GetReporteNominaConceptos(rfc, año, mesI, mesF),
+            this.GetReporteNominaConceptos(rfc, año, mesI, mesF)
           );
         } else {
           tareasImportesN.push([]);
@@ -1849,7 +1894,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarNominaDuplicadoO) {
           tareasImportesN.push(
-            this.GetReporteNominaDuplicadaAsync(rfc, "O", año, mesI, mesF),
+            this.GetReporteNominaDuplicadaAsync(rfc, "O", año, mesI, mesF)
           );
         } else {
           tareasImportesN.push([]);
@@ -1857,7 +1902,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarNominaDuplicadoE) {
           tareasImportesN.push(
-            this.GetReporteNominaDuplicadaAsync(rfc, "E", año, mesI, mesF),
+            this.GetReporteNominaDuplicadaAsync(rfc, "E", año, mesI, mesF)
           );
         } else {
           tareasImportesN.push([]);
@@ -1912,7 +1957,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarPue99Recibido) {
           tareasUsoPUE.push(
-            this.GetReportePue99Async(rfc, "R", año, mesI, mesF), // RECIBIDOS
+            this.GetReportePue99Async(rfc, "R", año, mesI, mesF) // RECIBIDOS
           );
         } else {
           tareasUsoPUE.push([]);
@@ -1920,7 +1965,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarPue99Emitido) {
           tareasUsoPUE.push(
-            this.GetReportePue99Async(rfc, "E", año, mesI, mesF), // EMITDOS - LA API NO DEVUELVE NADA
+            this.GetReportePue99Async(rfc, "E", año, mesI, mesF) // EMITDOS - LA API NO DEVUELVE NADA
           );
         } else {
           tareasUsoPUE.push([]);
@@ -1928,7 +1973,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarPue30Recibido) {
           tareasUsoPUE.push(
-            this.GetReportePue30Async(rfc, "R", año, mesI, mesF), // RECIBIDOS
+            this.GetReportePue30Async(rfc, "R", año, mesI, mesF) // RECIBIDOS
           );
         } else {
           tareasUsoPUE.push([]);
@@ -1936,7 +1981,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarPue30Emitido) {
           tareasUsoPUE.push(
-            this.GetReportePue30Async(rfc, "E", año, mesI, mesF), // EMITIDOS
+            this.GetReportePue30Async(rfc, "E", año, mesI, mesF) // EMITIDOS
           );
         } else {
           tareasUsoPUE.push([]);
@@ -1963,7 +2008,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarSinImpuestosRecibidos) {
           tareasReporteSinImpuestos.push(
-            this.GetReporteSinImpuestosAsync(rfc, "R", año, mesI, mesF),
+            this.GetReporteSinImpuestosAsync(rfc, "R", año, mesI, mesF)
           );
         } else {
           tareasReporteSinImpuestos.push([]);
@@ -1971,7 +2016,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarSinImpuestosEmitidos) {
           tareasReporteSinImpuestos.push(
-            this.GetReporteSinImpuestosAsync(rfc, "E", año, mesI, mesF),
+            this.GetReporteSinImpuestosAsync(rfc, "E", año, mesI, mesF)
           );
         } else {
           tareasReporteSinImpuestos.push([]);
@@ -1982,7 +2027,7 @@ export default {
         //   this.GetReporteSinImpuestosAsync(rfc, "E", año, mesI, mesF), // EMITIDOS
         // ];
         const resultadosReporteSinImpuestos = await Promise.all(
-          tareasReporteSinImpuestos,
+          tareasReporteSinImpuestos
         );
 
         this.$q.loading.show({
@@ -1997,7 +2042,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarRiesgoArrendamiento) {
           tareasReporteRiesgos.push(
-            this.GetReporteRiesgoArrendamientoAsync(rfc, año, mesI, mesF),
+            this.GetReporteRiesgoArrendamientoAsync(rfc, año, mesI, mesF)
           );
         } else {
           tareasReporteRiesgos.push([]);
@@ -2005,7 +2050,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarRiesgoConceptosEmitidos) {
           tareasReporteRiesgos.push(
-            this.GetReporteRiesgoConceptosAsync(rfc, "E", año, mesI, mesF),
+            this.GetReporteRiesgoConceptosAsync(rfc, "E", año, mesI, mesF)
           );
         } else {
           tareasReporteRiesgos.push([]);
@@ -2013,7 +2058,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarSinImpuestosRecibidos) {
           tareasReporteRiesgos.push(
-            this.GetReporteRiesgoConceptosAsync(rfc, "R", año, mesI, mesF),
+            this.GetReporteRiesgoConceptosAsync(rfc, "R", año, mesI, mesF)
           );
         } else {
           tareasReporteRiesgos.push([]);
@@ -2021,7 +2066,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarRiesgoFacturadoGlobal) {
           tareasReporteRiesgos.push(
-            this.GetReporteRiesgoFacturaGlobalAsync(rfc, año, mesI, mesF),
+            this.GetReporteRiesgoFacturaGlobalAsync(rfc, año, mesI, mesF)
           );
         } else {
           tareasReporteRiesgos.push([]);
@@ -2035,7 +2080,7 @@ export default {
         // ];
 
         const resultadosReporteRiesgos = await Promise.all(
-          tareasReporteRiesgos,
+          tareasReporteRiesgos
         );
 
         this.$q.loading.show({
@@ -2050,7 +2095,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarGastosEfectivo) {
           tareasReporteGastos.push(
-            this.GetReporteGastosEfectivoAsync(rfc, año, mesI, mesF),
+            this.GetReporteGastosEfectivoAsync(rfc, año, mesI, mesF)
           );
         } else {
           tareasReporteGastos.push([]);
@@ -2058,7 +2103,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarConsumoCombustibleEmitido) {
           tareasReporteGastos.push(
-            this.GetReporteConsumoCombustibleAsync(rfc, "E", año, mesI, mesF),
+            this.GetReporteConsumoCombustibleAsync(rfc, "E", año, mesI, mesF)
           );
         } else {
           tareasReporteGastos.push([]);
@@ -2066,7 +2111,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarConsumoCombustibleRecibido) {
           tareasReporteGastos.push(
-            this.GetReporteConsumoCombustibleAsync(rfc, "R", año, mesI, mesF),
+            this.GetReporteConsumoCombustibleAsync(rfc, "R", año, mesI, mesF)
           );
         } else {
           tareasReporteGastos.push([]);
@@ -2074,7 +2119,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarNotasSinRelacion) {
           tareasReporteGastos.push(
-            this.GetReporteNotasSinRelacionAsync(rfc, año, mesI, mesF),
+            this.GetReporteNotasSinRelacionAsync(rfc, año, mesI, mesF)
           );
         } else {
           tareasReporteGastos.push([]);
@@ -2101,7 +2146,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarPagoFueraDeTiempoRecibidos) {
           tareasPagos.push(
-            this.GetReportePagoFueraDeTiempoAsync(rfc, "R", año, mesI, mesF),
+            this.GetReportePagoFueraDeTiempoAsync(rfc, "R", año, mesI, mesF)
           );
         } else {
           tareasPagos.push([]);
@@ -2109,7 +2154,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarPagoFueraDeTiempoEmitidos) {
           tareasPagos.push(
-            this.GetReportePagoFueraDeTiempoAsync(rfc, "E", año, mesI, mesF),
+            this.GetReportePagoFueraDeTiempoAsync(rfc, "E", año, mesI, mesF)
           );
         } else {
           tareasPagos.push([]);
@@ -2124,8 +2169,8 @@ export default {
               "R",
               año,
               mesI,
-              mesF,
-            ),
+              mesF
+            )
           );
         } else {
           tareasPagos.push([]);
@@ -2140,8 +2185,8 @@ export default {
               "E",
               año,
               mesI,
-              mesF,
-            ),
+              mesF
+            )
           );
         } else {
           tareasPagos.push([]);
@@ -2182,7 +2227,7 @@ export default {
         if (this.mostrarSeccionesReporte.mostrarReporteIva) {
           tareasImpuestos.push(
             this.GetReporteIvaAsync(rfc, "R", año, mesI, mesF),
-            this.GetReporteIvaAsync(rfc, "E", año, mesI, mesF),
+            this.GetReporteIvaAsync(rfc, "E", año, mesI, mesF)
           );
         } else {
           tareasImpuestos.push([]);
@@ -2190,7 +2235,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarIvaRetRecibidos) {
           tareasImpuestos.push(
-            this.GetReporteIvaRetAsync(rfc, "R", año, mesI, mesF),
+            this.GetReporteIvaRetAsync(rfc, "R", año, mesI, mesF)
           );
         } else {
           tareasImpuestos.push([]);
@@ -2198,7 +2243,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarIvaRetEmitidos) {
           tareasImpuestos.push(
-            this.GetReporteIvaRetAsync(rfc, "E", año, mesI, mesF),
+            this.GetReporteIvaRetAsync(rfc, "E", año, mesI, mesF)
           );
         } else {
           tareasImpuestos.push([]);
@@ -2206,7 +2251,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarIsrNomina) {
           tareasImpuestos.push(
-            this.GetReporteIsrNominaAsync(rfc, año, mesI, mesF),
+            this.GetReporteIsrNominaAsync(rfc, año, mesI, mesF)
           );
         } else {
           tareasImpuestos.push([]);
@@ -2214,7 +2259,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarRetencionesIsr) {
           tareasImpuestos.push(
-            this.GetRetencionesIsrAsync(rfc, año, mesI, mesF),
+            this.GetRetencionesIsrAsync(rfc, año, mesI, mesF)
           );
         } else {
           tareasImpuestos.push([]);
@@ -2252,7 +2297,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarCuentasPendientesEmitidos) {
           tareasCuentasPendientes.push(
-            this.GetReporteCuentasPendientesAsync(rfc, "E", año, mesI, mesF),
+            this.GetReporteCuentasPendientesAsync(rfc, "E", año, mesI, mesF)
           );
         } else {
           tareasCuentasPendientes.push([]);
@@ -2260,7 +2305,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarCuentasPendientesRecibidos) {
           tareasCuentasPendientes.push(
-            this.GetReporteCuentasPendientesAsync(rfc, "R", año, mesI, mesF),
+            this.GetReporteCuentasPendientesAsync(rfc, "R", año, mesI, mesF)
           );
         } else {
           tareasCuentasPendientes.push([]);
@@ -2272,7 +2317,7 @@ export default {
         // ];
 
         const resultadosCuentasPendientes = await Promise.all(
-          tareasCuentasPendientes,
+          tareasCuentasPendientes
         );
 
         this.$q.loading.show({
@@ -2287,7 +2332,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarAnticiposEmitidos) {
           tareasImpuestos.push(
-            this.GetReporteAnticipoAsync(rfc, "E", año, mesI, mesF),
+            this.GetReporteAnticipoAsync(rfc, "E", año, mesI, mesF)
           );
         } else {
           tareasAnticipos.push([]);
@@ -2295,7 +2340,7 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarAnticiposRecibidos) {
           tareasImpuestos.push(
-            this.GetReporteAnticipoAsync(rfc, "R", año, mesI, mesF),
+            this.GetReporteAnticipoAsync(rfc, "R", año, mesI, mesF)
           );
         } else {
           tareasAnticipos.push([]);
@@ -2343,7 +2388,7 @@ export default {
           for (let x = 0; x < tope; x++) {
             //EMITIDOS
             const nombreMes = this.obtenerNombreMes(
-              resultadosImportes[0][x].mes,
+              resultadosImportes[0][x].mes
             );
             var objEmitidos = {
               mes: nombreMes,
@@ -2387,7 +2432,7 @@ export default {
           const topeNomina = mesF - mesI + 1;
           for (let x = 0; x < topeNomina; x++) {
             const nombreMes = this.obtenerNombreMes(
-              resultadosImportesN[0][x].mes,
+              resultadosImportesN[0][x].mes
             );
 
             //NOMINA
@@ -2410,7 +2455,7 @@ export default {
           for (let i = 0; i < tablaNominaGeneral.length; i++) {
             if (tablaNominaGeneral[i]?.mes) {
               tablaNominaGeneral[i].mes = this.obtenerNombreMes(
-                tablaNominaGeneral[i].mes,
+                tablaNominaGeneral[i].mes
               );
             }
           }
@@ -2485,7 +2530,7 @@ export default {
     async GetReporteImportes(rfc, coleccion, tipo, año, mesI, mesF) {
       try {
         const response = await axios.get(
-          `${this.rutaAxios}/ReporteGeneral/GetReporteImportesAsync/${rfc}/${coleccion}/${tipo}/${año}/${mesI}/${mesF}`,
+          `${this.rutaAxios}/ReporteGeneral/GetReporteImportesAsync/${rfc}/${coleccion}/${tipo}/${año}/${mesI}/${mesF}`
         );
         return response.data;
       } catch (error) {
@@ -2497,7 +2542,7 @@ export default {
     async GetReporteImportesNomina(rfc, coleccion, año, mesI, mesF) {
       try {
         const response = await axios.get(
-          `${this.rutaAxios}/ReporteGeneral/GetReporteImportesNominaAsync/${rfc}/${coleccion}/${año}/${mesI}/${mesF}`,
+          `${this.rutaAxios}/ReporteGeneral/GetReporteImportesNominaAsync/${rfc}/${coleccion}/${año}/${mesI}/${mesF}`
         );
         return response.data;
       } catch (error) {
@@ -2509,7 +2554,7 @@ export default {
     async GetReporteRFc(rfc, coleccion, año, mesI, mesF, concentrado) {
       try {
         const response = await axios.get(
-          `${this.rutaAxios}/ReporteGeneral/GetReporteRfcAsync/${rfc}/${coleccion}/${año}/${mesI}/${mesF}/${concentrado}`,
+          `${this.rutaAxios}/ReporteGeneral/GetReporteRfcAsync/${rfc}/${coleccion}/${año}/${mesI}/${mesF}/${concentrado}`
         );
         return response.data;
       } catch (error) {
@@ -2521,7 +2566,7 @@ export default {
     async GetReporteFlujo(rfc, tipo, año, mesI, mesF) {
       try {
         const response = await axios.get(
-          `${this.rutaAxios}/ReporteGeneral/GetReporteFormaPagoFlujoAsync/${rfc}/${tipo}/${año}/${mesI}/${mesF}`,
+          `${this.rutaAxios}/ReporteGeneral/GetReporteFormaPagoFlujoAsync/${rfc}/${tipo}/${año}/${mesI}/${mesF}`
         );
 
         const data = response.data;
@@ -2547,6 +2592,7 @@ export default {
             datosFinales.push(datosPorMoneda);
           }
         });
+        console.log("flujo_" + tipo, datosFinales);
 
         return datosFinales;
       } catch (error) {
@@ -2558,7 +2604,7 @@ export default {
     async GetReporteMetodoPagoAsync(rfc, tipo, año, mesI, mesF) {
       try {
         const response = await axios.get(
-          `${this.rutaAxios}/ReporteGeneral/GetReporteMetodoPagoAsync/${rfc}/${tipo}/${año}/${mesI}/${mesF}`,
+          `${this.rutaAxios}/ReporteGeneral/GetReporteMetodoPagoAsync/${rfc}/${tipo}/${año}/${mesI}/${mesF}`
         );
 
         const data = response.data;
@@ -2986,18 +3032,28 @@ export default {
         const curl = `${this.rutaAxios}ReporteGeneral/GetReportePagoFueraDeTiempoAsync/${rfc}/${tipo}/${año}/${mesI}/${mesF}`;
         const response = await axios.get(curl);
 
+        console.log("fuera de tiempo", response);
         const objetoDatos = {};
 
         response.data.map((dato) => {
           try {
             // Extraer manualmente las partes de la fecha usando regex o split
             const fechaStr = dato.fecha;
+            const fechaP = dato.fechaPago;
 
             // Asumiendo formato ISO: "YYYY-MM-DDTHH:MM:SSZ"
             const partes = fechaStr.split("T")[0].split("-");
             const año = parseInt(partes[0], 10);
             const mes = parseInt(partes[1], 10);
             const nombreMes = this.obtenerNombreMes(mes);
+
+            const partesP = fechaP.split("T")[0].split("-");
+            const añoP = parseInt(partesP[0], 10);
+            const mesP = parseInt(partesP[1], 10);
+
+            if (año === añoP && mes === mesP) {
+              return;
+            }
 
             if (!objetoDatos[nombreMes]) {
               objetoDatos[nombreMes] = [];
@@ -3247,7 +3303,7 @@ export default {
 
         // Procesamos y filtramos los datos
         const datosConDetalles = data.filter(
-          (datoMes) => datoMes.detalles && datoMes.detalles.length > 0,
+          (datoMes) => datoMes.detalles && datoMes.detalles.length > 0
         );
 
         // Convertimos los nombres de los meses para los datos que quedaron
@@ -3502,6 +3558,13 @@ export default {
               esMensual:
                 !this.mostrarConcentradosReporte.mostrarMetodosPagoRecibidos &&
                 esMensual,
+              colorOverride: coloresScheme.recibidos,
+            },
+            {
+              titulo: "Comparativa Flujo Emitido - Recibido",
+              contenido: this.comparativaFlujo,
+              esMensual: false,
+              // Override color scheme for this specific section
               colorOverride: coloresScheme.recibidos,
             },
           ],
@@ -3812,7 +3875,7 @@ export default {
             mesI: this.itemsMes[this.opcionesReporte.mesInicial - 1].label,
             mesF: this.itemsMes[this.opcionesReporte.mesFinal - 1].label,
             anio: this.opcionesReporte.anio,
-          },
+          }
         );
 
         // Descargar el PDF
@@ -3986,7 +4049,7 @@ export default {
         this.comentarios,
         this.$store.state.empresaStore.nombre,
         base64Logo,
-        this.$store.state.usuario.nombre,
+        this.$store.state.usuario.nombre
       );
       this.$q.loading.hide();
     },
@@ -4016,7 +4079,7 @@ export default {
         let ivaRetenido = await this.GetIvaRetenido();
         let comparativa = await this.GetComparativaIva(
           this.selectedAnio,
-          "IVA",
+          "IVA"
         );
         let ObjIva = {};
         for (let x = 0; x < this.selectedMesF.value; x++) {
@@ -4073,51 +4136,51 @@ export default {
 
           baseIvaTrasladado: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
-            0,
+            0
           ),
           importeIvaTrasladado: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
-            0,
+            0
           ),
           detallesTrasladado: [],
 
           baseIvaAcreditado: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
-            0,
+            0
           ),
           importeIvaAcreditado: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
-            0,
+            0
           ),
           detallesAcreditado: [],
 
           ivaRetenidoAnterior: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
-            0,
+            0
           ),
           ivaRetenido: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.ivaRetenido,
-            0,
+            0
           ),
           ivaCargo: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.ivaCargo,
-            0,
+            0
           ),
           ivaFavor: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.ivaFavor,
-            0,
+            0
           ),
           cargoRegistrado: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
-            0,
+            0
           ),
           favorRegistrado: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.favorRegistrado,
-            0,
+            0
           ),
           comparativa: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.comparativa,
-            0,
+            0
           ),
         };
 
@@ -4246,51 +4309,51 @@ export default {
 
         baseIvaTrasladado: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
-          0,
+          0
         ),
         importeIvaTrasladado: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
-          0,
+          0
         ),
         detallesTrasladado: [],
 
         baseIvaAcreditado: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
-          0,
+          0
         ),
         importeIvaAcreditado: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
-          0,
+          0
         ),
         detallesAcreditado: [],
 
         ivaRetenidoAnterior: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
-          0,
+          0
         ),
         ivaRetenido: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.ivaRetenido,
-          0,
+          0
         ),
         ivaCargo: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.ivaCargo,
-          0,
+          0
         ),
         ivaFavor: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.ivaFavor,
-          0,
+          0
         ),
         cargoRegistrado: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
-          0,
+          0
         ),
         favorRegistrado: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.favorRegistrado,
-          0,
+          0
         ),
         comparativa: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.comparativa,
-          0,
+          0
         ),
       };
 
@@ -4315,7 +4378,7 @@ export default {
             fechaF,
           {
             timeout: 240000, // 120 segundos
-          },
+          }
         );
         this.$q.loading.hide();
         return response.data;
@@ -4336,7 +4399,7 @@ export default {
             "/" +
             fechaI +
             "/" +
-            fechaF,
+            fechaF
         );
         return response.data;
       } catch (error) {
@@ -4357,7 +4420,7 @@ export default {
             "/" +
             fechaI +
             "/" +
-            fechaF,
+            fechaF
         );
         return response.data;
       } catch (error) {
@@ -4369,7 +4432,7 @@ export default {
       try {
         const response = await axios.get(
           this.rutaAxios +
-            `Ingresos/GetReporteIvaCompletoAsync/${rfc}/${fechaI}/${fechaF}`,
+            `Ingresos/GetReporteIvaCompletoAsync/${rfc}/${fechaI}/${fechaF}`
         );
         return response.data;
       } catch (error) {
@@ -4382,7 +4445,7 @@ export default {
       try {
         const response = await axios.get(
           this.rutaAxios +
-            `Gastos/GetReporteIvaCompletoAsync/${rfc}/${fechaI}/${fechaF}`,
+            `Gastos/GetReporteIvaCompletoAsync/${rfc}/${fechaI}/${fechaF}`
         );
         return response.data;
       } catch (error) {
@@ -4405,7 +4468,7 @@ export default {
             fechaF,
           {
             timeout: 240000, // 120 segundos
-          },
+          }
         );
         return response.data;
       } catch (error) {
@@ -4436,7 +4499,7 @@ export default {
             "/" +
             año +
             "/" +
-            tipo,
+            tipo
         );
         respuesta = response.data.comparativa;
         return respuesta;
@@ -4467,7 +4530,7 @@ export default {
         let ivaRetenido = [];
         let comparativaIva = await this.GetComparativa(
           this.selectedAnio,
-          "IVARetenido",
+          "IVARetenido"
         );
 
         console.log(comparativaIva);
@@ -4482,7 +4545,7 @@ export default {
             "/" +
             fechaI +
             "/" +
-            fechaF,
+            fechaF
         );
         ivaRetenido = response.data;
         let mesFin = this.selectedMesF.value;
@@ -4505,15 +4568,15 @@ export default {
           mes: "Total",
           importeIva: this.dataIvaRetenido.reduce(
             (acumulador, objeto) => acumulador + objeto.importeIva,
-            0,
+            0
           ),
           comparativa: this.dataIvaRetenido.reduce(
             (acumulador, objeto) => acumulador + objeto.comparativa,
-            0,
+            0
           ),
           diferencia: this.dataIvaRetenido.reduce(
             (acumulador, objeto) => acumulador + objeto.diferencia,
-            0,
+            0
           ),
           detalles: [],
         };
@@ -4547,7 +4610,7 @@ export default {
             "/" +
             año +
             "/" +
-            tipo,
+            tipo
         );
         respuesta = response.data.comparativa;
         return respuesta;
@@ -4574,15 +4637,15 @@ export default {
         //CONSULTANOS LAS COMPARATIVAS
         let comparativaSueldos = await this.GetComparativa(
           this.selectedAnio,
-          "Sueldos",
+          "Sueldos"
         );
         let comparativaAsimilados = await this.GetComparativa(
           this.selectedAnio,
-          "Asimilados",
+          "Asimilados"
         );
         let comparativaOtros = await this.GetComparativa(
           this.selectedAnio,
-          "SueldosOtros",
+          "SueldosOtros"
         );
 
         let fechaI = this.selectedAnio + "-01-01";
@@ -4594,7 +4657,7 @@ export default {
             "/" +
             fechaI +
             "/" +
-            fechaF,
+            fechaF
         );
         let res = response.data;
         this.dataSueldos = res[0];
@@ -4627,15 +4690,15 @@ export default {
           mes: "Total",
           importe: this.dataSueldos.reduce(
             (acumulador, objeto) => acumulador + objeto.importe,
-            0,
+            0
           ),
           comparativa: this.dataSueldos.reduce(
             (acumulador, objeto) => acumulador + objeto.comparativa,
-            0,
+            0
           ),
           diferencia: this.dataSueldos.reduce(
             (acumulador, objeto) => acumulador + objeto.diferencia,
-            0,
+            0
           ),
         };
 
@@ -4644,15 +4707,15 @@ export default {
           mes: "Total",
           importe: this.dataAsimilados.reduce(
             (acumulador, objeto) => acumulador + objeto.importe,
-            0,
+            0
           ),
           comparativa: this.dataAsimilados.reduce(
             (acumulador, objeto) => acumulador + objeto.comparativa,
-            0,
+            0
           ),
           diferencia: this.dataAsimilados.reduce(
             (acumulador, objeto) => acumulador + objeto.diferencia,
-            0,
+            0
           ),
         };
         let totalesOtros = {
@@ -4660,15 +4723,15 @@ export default {
           mes: "Total",
           importe: this.dataOtros.reduce(
             (acumulador, objeto) => acumulador + objeto.importe,
-            0,
+            0
           ),
           comparativa: this.dataOtros.reduce(
             (acumulador, objeto) => acumulador + objeto.comparativa,
-            0,
+            0
           ),
           diferencia: this.dataOtros.reduce(
             (acumulador, objeto) => acumulador + objeto.diferencia,
-            0,
+            0
           ),
         };
         this.dataSueldos.push(totalesSueldos);
@@ -4692,11 +4755,11 @@ export default {
         //CONSULTANOS LAS COMPARATIVAS
         let comparativaArrendamientos = await this.GetComparativa(
           this.selectedAnio,
-          "Arrendamientos",
+          "Arrendamientos"
         );
         let comparativaHonorarios = await this.GetComparativa(
           this.selectedAnio,
-          "Honorarios",
+          "Honorarios"
         );
 
         let fechaI = this.selectedAnio + "-01-01";
@@ -4708,7 +4771,7 @@ export default {
             "/" +
             fechaI +
             "/" +
-            fechaF,
+            fechaF
         );
 
         this.dataArrendamientos = response.data[0];
@@ -4737,15 +4800,15 @@ export default {
           mes: "Total",
           importe: this.dataArrendamientos.reduce(
             (acumulador, objeto) => acumulador + objeto.importe,
-            0,
+            0
           ),
           comparativa: this.dataArrendamientos.reduce(
             (acumulador, objeto) => acumulador + objeto.comparativa,
-            0,
+            0
           ),
           diferencia: this.dataArrendamientos.reduce(
             (acumulador, objeto) => acumulador + objeto.diferencia,
-            0,
+            0
           ),
         };
         let totalesHonorarios = {
@@ -4753,15 +4816,15 @@ export default {
           mes: "Total",
           importe: this.dataHonorarios.reduce(
             (acumulador, objeto) => acumulador + objeto.importe,
-            0,
+            0
           ),
           comparativa: this.dataHonorarios.reduce(
             (acumulador, objeto) => acumulador + objeto.comparativa,
-            0,
+            0
           ),
           diferencia: this.dataHonorarios.reduce(
             (acumulador, objeto) => acumulador + objeto.diferencia,
-            0,
+            0
           ),
         };
         this.dataArrendamientos.push(totalesArrendamientos);
@@ -4794,7 +4857,7 @@ export default {
             "/" +
             año +
             "/" +
-            tipo,
+            tipo
         );
         respuesta = response.data.comparativa;
         return respuesta;
@@ -4924,7 +4987,7 @@ export default {
         let response = await axios.get(
           this.rutaAxios +
             "PagosProvisionales/GetRegimenEmpresaAsync/erp_" +
-            this.token.rfc,
+            this.token.rfc
         );
         let x = [...response.data];
         this.añosRegimen = [...x];
@@ -5082,7 +5145,7 @@ export default {
             "/" +
             año +
             "/" +
-            mes,
+            mes
         );
         // console.log(response.data);
         this.dataComprobantesP = [...response.data];
@@ -5194,36 +5257,36 @@ export default {
           mes: "Total",
           ingresosPorMes: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.ingresosPorMes,
-            0,
+            0
           ),
           detalles: [],
           ingresosAcumulados: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.ingresosAcumulados,
-            0,
+            0
           ),
           utilidadFiscal: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.utilidadFiscal,
-            0,
+            0
           ),
           basePagoProvisional: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.basePagoProvisional,
-            0,
+            0
           ),
           pagoProvisional: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.pagoProvisional,
-            0,
+            0
           ),
           impuestoCargo: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.impuestoCargo,
-            0,
+            0
           ),
           impuestoregistrado: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.impuestoregistrado,
-            0,
+            0
           ),
           comparativa: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.comparativa,
-            0,
+            0
           ),
         };
         this.dataComprobantesP.push(objetoTotales);
@@ -5342,7 +5405,7 @@ export default {
 
         let tablas = await this.GetTablas(
           "personas_fisicas_actividad_empresarial",
-          "mensual",
+          "mensual"
         );
         // console.log(tablas[0].enero)
         let ingresos = await this.GetIngresosCobrados();
@@ -5446,13 +5509,13 @@ export default {
           mes: "Total",
           ingresosPorMes: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.ingresosPorMes,
-            0,
+            0
           ),
           detalles: [],
           ingresosAcumulados: "---",
           gastosPorMes: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.gastosPorMes,
-            0,
+            0
           ),
           detallesG: [],
           gastosAcumulados: "---",
@@ -5466,15 +5529,15 @@ export default {
           pagosAnteriores: "---",
           isrCargo: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.isrCargo,
-            0,
+            0
           ),
           impuestoregistrado: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.impuestoregistrado,
-            0,
+            0
           ),
           comparativa: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.comparativa,
-            0,
+            0
           ),
         };
         this.dataComprobantesP.push(objetoTotales);
@@ -5566,21 +5629,21 @@ export default {
           mes: "Total",
           ingresosPorMes: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.ingresosPorMes,
-            0,
+            0
           ),
           detalles: [],
           tasaAplicable: "---",
           importeIsr: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.importeIsr,
-            0,
+            0
           ),
           impuestoregistrado: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.impuestoregistrado,
-            0,
+            0
           ),
           comparativa: this.dataComprobantesP.reduce(
             (acumulador, objeto) => acumulador + objeto.comparativa,
-            0,
+            0
           ),
         };
         this.dataComprobantesP.push(objetoTotales);
@@ -5785,7 +5848,7 @@ export default {
             "/" +
             fechaI +
             "/" +
-            fechaF,
+            fechaF
         );
         return response.data;
       } catch (error) {
@@ -5805,7 +5868,7 @@ export default {
             "/" +
             fechaI +
             "/" +
-            fechaF,
+            fechaF
         );
         return response.data;
       } catch (error) {
@@ -5825,7 +5888,7 @@ export default {
             "/" +
             fechaI +
             "/" +
-            fechaF,
+            fechaF
         );
         return response.data;
       } catch (error) {
@@ -5845,7 +5908,7 @@ export default {
             "/" +
             fechaI +
             "/" +
-            fechaF,
+            fechaF
         );
         return response.data;
       } catch (error) {
@@ -5865,7 +5928,7 @@ export default {
             "/" +
             fechaI +
             "/" +
-            fechaF,
+            fechaF
         );
         return response.data;
       } catch (error) {
@@ -5885,7 +5948,7 @@ export default {
             "/" +
             fechaI +
             "/" +
-            fechaF,
+            fechaF
         );
         return response.data;
       } catch (error) {
@@ -5902,7 +5965,7 @@ export default {
             "/" +
             tipo +
             "/" +
-            periodicidad,
+            periodicidad
         );
         return response.data;
       } catch (error) {
@@ -5932,7 +5995,7 @@ export default {
             this.token.rfc +
             "/" +
             this.selectedAnio +
-            "/Coeficiente",
+            "/Coeficiente"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -5965,7 +6028,7 @@ export default {
             this.token.rfc +
             "/" +
             this.selectedAnio +
-            "/Perdida",
+            "/Perdida"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -5998,7 +6061,7 @@ export default {
             this.token.rfc +
             "/" +
             this.selectedAnio +
-            "/RegistradosPPIsr",
+            "/RegistradosPPIsr"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -6084,15 +6147,15 @@ export default {
       //AGREGAMOS LOS TOTALES
       let sumaEmitidos = this.itemsReporte.reduce(
         (acumulador, objeto) => acumulador + objeto.emitidos,
-        0,
+        0
       );
       let sumaRecibidos = this.itemsReporte.reduce(
         (acumulador, objeto) => acumulador + objeto.recibidos,
-        0,
+        0
       );
       let sumaNomina = this.itemsReporte.reduce(
         (acumulador, objeto) => acumulador + objeto.nomina,
-        0,
+        0
       );
 
       let objTotales = {
@@ -6118,10 +6181,10 @@ export default {
         const ultimoDia = new Date(
           this.selectedAnio,
           this.selectedMesF.value,
-          0,
+          0
         ).getDate();
         const fF = `${this.selectedAnio}-${String(
-          this.selectedMesF.value,
+          this.selectedMesF.value
         ).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
 
         let response = await axios.get(
@@ -6131,7 +6194,7 @@ export default {
             "/" +
             fI +
             "/" +
-            fF,
+            fF
         );
         return response.data;
       } catch (error) {
@@ -6146,10 +6209,10 @@ export default {
         const ultimoDia = new Date(
           this.selectedAnio,
           this.selectedMesF.value,
-          0,
+          0
         ).getDate();
         const fF = `${this.selectedAnio}-${String(
-          this.selectedMesF.value,
+          this.selectedMesF.value
         ).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
 
         let response = await axios.get(
@@ -6159,7 +6222,7 @@ export default {
             "/" +
             fI +
             "/" +
-            fF,
+            fF
         );
         return response.data;
       } catch (error) {
@@ -6174,10 +6237,10 @@ export default {
         const ultimoDia = new Date(
           this.selectedAnio,
           this.selectedMesF.value,
-          0,
+          0
         ).getDate();
         const fF = `${this.selectedAnio}-${String(
-          this.selectedMesF.value,
+          this.selectedMesF.value
         ).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
 
         let response = await axios.get(
@@ -6187,7 +6250,7 @@ export default {
             "/" +
             fI +
             "/" +
-            fF,
+            fF
         );
         return response.data;
       } catch (error) {
@@ -6243,7 +6306,7 @@ export default {
         });
 
         const response = await axios.get(
-          `${this.rutaAxios}Gasolineros/GetVentasGasolinasAsync/erp_${this.token.rfc}/${r.inicio}/${r.fin}`,
+          `${this.rutaAxios}Gasolineros/GetVentasGasolinasAsync/erp_${this.token.rfc}/${r.inicio}/${r.fin}`
         );
         this.$q.loading.hide();
         let x = [];
@@ -6254,26 +6317,26 @@ export default {
           producto: "Total",
           cantidad: x.reduce(
             (acumulador, objeto) => acumulador + objeto.cantidad,
-            0,
+            0
           ),
           subTotal: x.reduce(
             (acumulador, objeto) => acumulador + objeto.subTotal,
-            0,
+            0
           ),
           descuento: x.reduce(
             (acumulador, objeto) => acumulador + objeto.descuento,
-            0,
+            0
           ),
           iva: x.reduce((acumulador, objeto) => acumulador + objeto.iva, 0),
           ieps: x.reduce((acumulador, objeto) => acumulador + objeto.ieps, 0),
           total: x.reduce((acumulador, objeto) => acumulador + objeto.total, 0),
           ventas: x.reduce(
             (acumulador, objeto) => acumulador + objeto.ventas,
-            0,
+            0
           ),
           comprobantes: x.reduce(
             (acumulador, objeto) => acumulador + objeto.comprobantes,
-            0,
+            0
           ),
         };
         x.push(objetoTotales);
@@ -6308,7 +6371,7 @@ export default {
         });
 
         const response = await axios.get(
-          `${this.rutaAxios}Gasolineros/GetComprasGasolineriasAsync/erp_${this.token.rfc}/${r.inicio}/${r.fin}`,
+          `${this.rutaAxios}Gasolineros/GetComprasGasolineriasAsync/erp_${this.token.rfc}/${r.inicio}/${r.fin}`
         );
         this.$q.loading.hide();
         let x = [];
@@ -6319,26 +6382,26 @@ export default {
           producto: "Total",
           cantidad: x.reduce(
             (acumulador, objeto) => acumulador + objeto.cantidad,
-            0,
+            0
           ),
           subTotal: x.reduce(
             (acumulador, objeto) => acumulador + objeto.subTotal,
-            0,
+            0
           ),
           descuento: x.reduce(
             (acumulador, objeto) => acumulador + objeto.descuento,
-            0,
+            0
           ),
           iva: x.reduce((acumulador, objeto) => acumulador + objeto.iva, 0),
           ieps: x.reduce((acumulador, objeto) => acumulador + objeto.ieps, 0),
           total: x.reduce((acumulador, objeto) => acumulador + objeto.total, 0),
           ventas: x.reduce(
             (acumulador, objeto) => acumulador + objeto.ventas,
-            0,
+            0
           ),
           comprobantes: x.reduce(
             (acumulador, objeto) => acumulador + objeto.comprobantes,
-            0,
+            0
           ),
         };
         x.push(objetoTotales);
@@ -6411,10 +6474,10 @@ export default {
         ) {
           //MAGNA
           let BuscaMagnaV = ventas.find(
-            (f) => f.mes == a && f.producto === "MAGNA",
+            (f) => f.mes == a && f.producto === "MAGNA"
           );
           let BuscaMagnaC = compras.find(
-            (f) => f.mes == a && f.producto === "MAGNA",
+            (f) => f.mes == a && f.producto === "MAGNA"
           );
           let buscaMagnaM = mermaMagna.detalle[a - 1].litros;
           let buscaMagnaR = comparativaMagna.detalle[a - 1].litros;
@@ -6453,10 +6516,10 @@ export default {
 
           //PREMIUM
           let BuscaPremiumV = ventas.find(
-            (f) => f.mes == a && f.producto === "PREMIUM",
+            (f) => f.mes == a && f.producto === "PREMIUM"
           );
           let BuscaPremiumC = compras.find(
-            (f) => f.mes == a && f.producto === "PREMIUM",
+            (f) => f.mes == a && f.producto === "PREMIUM"
           );
           let buscaPremiumM = mermaPremium.detalle[a - 1].litros;
           let buscaPremiumR = comparativaPremium.detalle[a - 1].litros;
@@ -6496,10 +6559,10 @@ export default {
 
           //DIESEL
           let BuscaDieselV = ventas.find(
-            (f) => f.mes == a && f.producto === "DIESEL",
+            (f) => f.mes == a && f.producto === "DIESEL"
           );
           let BuscaDieselC = compras.find(
-            (f) => f.mes == a && f.producto === "DIESEL",
+            (f) => f.mes == a && f.producto === "DIESEL"
           );
           let buscaDieselM = mermaDiesel.detalle[a - 1].litros;
           let buscaDieselR = comparativaDiesel.detalle[a - 1].litros;
@@ -6544,16 +6607,16 @@ export default {
           inventarioInicial: "---",
           litrosComprados: this.dataMagna.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosComprados,
-            0,
+            0
           ),
           litrosDisponibles: "---",
           litrosVendidos: this.dataMagna.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosVendidos,
-            0,
+            0
           ),
           mermas: this.dataMagna.reduce(
             (acumulador, objeto) => acumulador + objeto.mermas,
-            0,
+            0
           ),
           inventarioTeorico: "---",
           registrado: "---",
@@ -6566,16 +6629,16 @@ export default {
           inventarioInicial: "---",
           litrosComprados: this.dataPremium.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosComprados,
-            0,
+            0
           ),
           litrosDisponibles: "---",
           litrosVendidos: this.dataPremium.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosVendidos,
-            0,
+            0
           ),
           mermas: this.dataPremium.reduce(
             (acumulador, objeto) => acumulador + objeto.mermas,
-            0,
+            0
           ),
           inventarioTeorico: "---",
           registrado: "---",
@@ -6588,16 +6651,16 @@ export default {
           inventarioInicial: "---",
           litrosComprados: this.dataDiesel.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosComprados,
-            0,
+            0
           ),
           litrosDisponibles: "---",
           litrosVendidos: this.dataDiesel.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosVendidos,
-            0,
+            0
           ),
           mermas: this.dataDiesel.reduce(
             (acumulador, objeto) => acumulador + objeto.mermas,
-            0,
+            0
           ),
           inventarioTeorico: "---",
           registrado: "---",
@@ -6627,7 +6690,7 @@ export default {
             "/" +
             fI +
             "/" +
-            fF,
+            fF
         );
         let x = response.data;
         return x;
@@ -6647,7 +6710,7 @@ export default {
             "/" +
             fI +
             "/" +
-            fF,
+            fF
         );
         let x = response.data;
         return x;
@@ -6671,7 +6734,7 @@ export default {
             "/" +
             this.selectedAnio +
             "/Inicial/" +
-            item,
+            item
         );
         let x = response.data;
         return x;
@@ -6708,7 +6771,7 @@ export default {
             "/" +
             this.selectedAnio +
             "/Merma/" +
-            item,
+            item
         );
         let x = response.data;
         return x;
@@ -6761,10 +6824,10 @@ export default {
         ) {
           //MAGNA
           let BuscaMagnaV = ventas.find(
-            (f) => f.mes == a && f.producto === "MAGNA",
+            (f) => f.mes == a && f.producto === "MAGNA"
           );
           let BuscaMagnaC = compras.find(
-            (f) => f.mes == a && f.producto === "MAGNA",
+            (f) => f.mes == a && f.producto === "MAGNA"
           );
           let ObjMagna = {
             nombreMes: meses[a - 1],
@@ -6821,10 +6884,10 @@ export default {
 
           //PREMIUM
           let BuscaPremiumV = ventas.find(
-            (f) => f.mes == a && f.producto === "PREMIUM",
+            (f) => f.mes == a && f.producto === "PREMIUM"
           );
           let BuscaPremiumC = compras.find(
-            (f) => f.mes == a && f.producto === "PREMIUM",
+            (f) => f.mes == a && f.producto === "PREMIUM"
           );
           let ObjPremium = {
             nombreMes: meses[a - 1],
@@ -6883,10 +6946,10 @@ export default {
 
           //DIESEL
           let BuscaDieselV = ventas.find(
-            (f) => f.mes == a && f.producto === "DIESEL",
+            (f) => f.mes == a && f.producto === "DIESEL"
           );
           let BuscaDieselC = compras.find(
-            (f) => f.mes == a && f.producto === "DIESEL",
+            (f) => f.mes == a && f.producto === "DIESEL"
           );
           let ObjDiesel = {
             nombreMes: meses[a - 1],
@@ -6949,42 +7012,42 @@ export default {
           nombreMes: "Total_Magna",
           litrosVentas: this.dataMagnaU.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosVentas,
-            0,
+            0
           ),
           importeVentas: this.dataMagnaU.reduce(
             (acumulador, objeto) => acumulador + objeto.importeVentas,
-            0,
+            0
           ),
           descuentoVentas: this.dataMagnaU.reduce(
             (acumulador, objeto) => acumulador + objeto.descuentoVentas,
-            0,
+            0
           ),
           subTotalVentas: this.dataMagnaU.reduce(
             (acumulador, objeto) => acumulador + objeto.subTotalVentas,
-            0,
+            0
           ),
           promedioVentas: "---",
           litrosCompras: this.dataMagnaU.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosCompras,
-            0,
+            0
           ),
           importeCompras: this.dataMagnaU.reduce(
             (acumulador, objeto) => acumulador + objeto.importeCompras,
-            0,
+            0
           ),
           descuentoCompras: this.dataMagnaU.reduce(
             (acumulador, objeto) => acumulador + objeto.descuentoCompras,
-            0,
+            0
           ),
           subTotalCompras: this.dataMagnaU.reduce(
             (acumulador, objeto) => acumulador + objeto.subTotalCompras,
-            0,
+            0
           ),
           promedioCompras: "---",
           porcentajeUtilidad: "---",
           utilidadPeriodo: this.dataMagnaU.reduce(
             (acumulador, objeto) => acumulador + objeto.utilidadPeriodo,
-            0,
+            0
           ),
         };
         this.dataMagnaU.push(SumMagna);
@@ -6993,42 +7056,42 @@ export default {
           nombreMes: "Total_Premium",
           litrosVentas: this.dataPremiumU.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosVentas,
-            0,
+            0
           ),
           importeVentas: this.dataPremiumU.reduce(
             (acumulador, objeto) => acumulador + objeto.importeVentas,
-            0,
+            0
           ),
           descuentoVentas: this.dataPremiumU.reduce(
             (acumulador, objeto) => acumulador + objeto.descuentoVentas,
-            0,
+            0
           ),
           subTotalVentas: this.dataPremiumU.reduce(
             (acumulador, objeto) => acumulador + objeto.subTotalVentas,
-            0,
+            0
           ),
           promedioVentas: "---",
           litrosCompras: this.dataPremiumU.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosCompras,
-            0,
+            0
           ),
           importeCompras: this.dataPremiumU.reduce(
             (acumulador, objeto) => acumulador + objeto.importeCompras,
-            0,
+            0
           ),
           descuentoCompras: this.dataPremiumU.reduce(
             (acumulador, objeto) => acumulador + objeto.descuentoCompras,
-            0,
+            0
           ),
           subTotalCompras: this.dataPremiumU.reduce(
             (acumulador, objeto) => acumulador + objeto.subTotalCompras,
-            0,
+            0
           ),
           promedioCompras: "---",
           porcentajeUtilidad: "---",
           utilidadPeriodo: this.dataPremiumU.reduce(
             (acumulador, objeto) => acumulador + objeto.utilidadPeriodo,
-            0,
+            0
           ),
         };
         this.dataPremiumU.push(SumPremium);
@@ -7037,42 +7100,42 @@ export default {
           nombreMes: "Total_Diesel",
           litrosVentas: this.dataDieselU.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosVentas,
-            0,
+            0
           ),
           importeVentas: this.dataDieselU.reduce(
             (acumulador, objeto) => acumulador + objeto.importeVentas,
-            0,
+            0
           ),
           descuentoVentas: this.dataDieselU.reduce(
             (acumulador, objeto) => acumulador + objeto.descuentoVentas,
-            0,
+            0
           ),
           subTotalVentas: this.dataDieselU.reduce(
             (acumulador, objeto) => acumulador + objeto.subTotalVentas,
-            0,
+            0
           ),
           promedioVentas: 0,
           litrosCompras: this.dataDieselU.reduce(
             (acumulador, objeto) => acumulador + objeto.litrosCompras,
-            0,
+            0
           ),
           importeCompras: this.dataDieselU.reduce(
             (acumulador, objeto) => acumulador + objeto.importeCompras,
-            0,
+            0
           ),
           descuentoCompras: this.dataDieselU.reduce(
             (acumulador, objeto) => acumulador + objeto.descuentoCompras,
-            0,
+            0
           ),
           subTotalCompras: this.dataDieselU.reduce(
             (acumulador, objeto) => acumulador + objeto.subTotalCompras,
-            0,
+            0
           ),
           promedioCompras: "---",
           porcentajeUtilidad: "---",
           utilidadPeriodo: this.dataDieselU.reduce(
             (acumulador, objeto) => acumulador + objeto.utilidadPeriodo,
-            0,
+            0
           ),
         };
         this.dataDieselU.push(SumDiesel);
@@ -7098,7 +7161,7 @@ export default {
             "/" +
             fI +
             "/" +
-            fF,
+            fF
         );
         let x = response.data;
         console.log(x);
@@ -7119,7 +7182,7 @@ export default {
             "/" +
             fI +
             "/" +
-            fF,
+            fF
         );
         let x = response.data;
         return x;
@@ -7156,7 +7219,7 @@ export default {
             "/" +
             this.selectedAnio +
             "/Comparativa/" +
-            item,
+            item
         );
         let x = response.data;
         return x;
@@ -7386,7 +7449,7 @@ export default {
           totalImpuestosTrasladados: 0,
           totalImpuestosRetenidos: 0,
           total: 0,
-        },
+        }
       );
 
       // 5. Agregar total general al final
@@ -7429,7 +7492,7 @@ export default {
           rfc: "TOTAL",
           nombre: "",
           impPagado: 0,
-        },
+        }
       );
 
       // 5. Agregar total general al final
@@ -7524,6 +7587,7 @@ function rgbToHex(r, g, b) {
   padding-left: 25px 30px !important;
   font-weight: 500;
 }
+
 .encabezado-2 {
   border-left: 6px solid #e54646;
 }

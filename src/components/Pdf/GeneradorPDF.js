@@ -208,6 +208,24 @@ const generarReporteEmpresarial = async (token, secciones, opciones = {}) => {
               );
               break;
 
+              case "Comparativa Flujo Emitido - Recibido":
+                if (!contenido || !tieneContenidoValido(contenido)) break;
+  
+                if (contenido.length == 0) break;
+                // if (!bandera.flujo) {
+                //   await agregaSubPortada(doc, 2);
+                //   bandera.flujo = true;
+                // }
+                await agregarPaginaFlujoComparativa(
+                  doc,
+                  colores,
+                  "Comparativa Flujo Emitido - Recibido",
+                  contenido,
+                  seccion.esMensual
+                );
+                break;
+
+
             case "metodosDePagoRecibidos":
               if (!contenido || !tieneContenidoValido(contenido)) break;
 
@@ -3373,6 +3391,78 @@ const agregarPaginaFlujo = async (
   }
 };
 
+function generarContenidoTabla(items) {
+  return items.map(i => ([
+    i.mes,
+    i.totalEPUE.toLocaleString('es-MX', { minimumFractionDigits: 2 }),
+    i.totalRPUE.toLocaleString('es-MX', { minimumFractionDigits: 2 }),
+    i.diferenciaPUE.toLocaleString('es-MX', { minimumFractionDigits: 2 })
+  ]))
+}
+
+function agruparPorMoneda(data) {
+  return data.reduce((acc, item) => {
+    if (!acc[item.moneda]) acc[item.moneda] = []
+    acc[item.moneda].push(item)
+    return acc
+  }, {})
+}
+
+const agregarPaginaFlujoComparativa = async (
+  doc,
+  colores,
+  titulo,
+  resumen,
+  esMensual
+) => {
+
+  const agrupado = agruparPorMoneda(resumen)
+
+  Object.keys(agrupado).forEach(moneda => {
+  
+    doc.addPage()
+  
+    const contenido = generarContenidoTabla(agrupado[moneda])
+  
+    let header = [
+      'Mes',
+      'Total Emitidos PUE',
+      'Total Recibidos PUE',
+      'Diferencia'
+    ]
+  
+    let columnStyles = {
+      0: { halign: "left" },
+      1: { halign: "right" },
+      2: { halign: "right" },
+      3: { halign: "right" }
+    }
+  
+    doc.autoTable({
+      head: [header],
+      body: contenido,
+      startY: 10,
+      margin: { left: 20, right: 10 },
+      theme: "grid",
+      headStyles: {
+        fillColor: colores.primario,
+        textColor: [255, 255, 255],
+        fontSize: 12,
+      },
+      columnStyles,
+      didDrawPage: function () {
+        agregarPaginaSeccion(
+          doc,
+          `${titulo} - ${moneda}`,
+          colores.primario,
+          "flujo_cobrado"
+        )
+      }
+    })
+  })
+  
+};
+
 /**
  * Generar pagina para metodos de pago
  * @param {jsPDF} doc - Documento PDF
@@ -4068,20 +4158,21 @@ const agregarPaginaPue = async (doc, colores, titulo, contenido, esMensual) => {
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 290, 130);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 290, 130);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -4224,20 +4315,21 @@ const agregarPaginaPue = async (doc, colores, titulo, contenido, esMensual) => {
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 300, 140);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 300, 140);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text("Distribución de Totales por RFC", 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("Distribución de Totales por RFC", 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -4451,20 +4543,21 @@ const agregarPaginaRSinImpuestos = async (
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 290, 130);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 290, 130);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -4605,20 +4698,21 @@ const agregarPaginaRSinImpuestos = async (
         ],
       };
 
-      doc.addPage();
+      // ELIMINADO
+      // doc.addPage();
 
-      let imgData = await generarGraficaPastel(datos);
-      doc.addImage(imgData, "PNG", 0, 40, 300, 140);
+      // let imgData = await generarGraficaPastel(datos);
+      // doc.addImage(imgData, "PNG", 0, 40, 300, 140);
 
-      doc.setFontSize(16);
-      doc.setTextColor(0, 0, 0);
-      doc.text("Distribución de Totales por RFC", 150, 20, {
-        align: "center",
-      });
+      // doc.setFontSize(16);
+      // doc.setTextColor(0, 0, 0);
+      // doc.text("Distribución de Totales por RFC", 150, 20, {
+      //   align: "center",
+      // });
 
-      doc.setFontSize(8);
-      doc.setTextColor(0, 0, 0);
-      doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+      // doc.setFontSize(8);
+      // doc.setTextColor(0, 0, 0);
+      // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
     }
   }
 };
@@ -4838,20 +4932,21 @@ const agregarPaginaRiesgoArrendamiento = async (
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 290, 130);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 290, 130);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -4991,20 +5086,21 @@ const agregarPaginaRiesgoArrendamiento = async (
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 300, 140);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 300, 140);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text("Distribución de Totales por RFC", 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("Distribución de Totales por RFC", 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -5184,20 +5280,21 @@ const agregarPaginaRiesgoConceptos = async (
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 290, 130);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 290, 130);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -5466,20 +5563,21 @@ const agregarPaginaGastosEfectivo = async (
           ],
         };
 
-        doc.addPage();
+      // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 290, 130);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 290, 130);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -5619,20 +5717,21 @@ const agregarPaginaGastosEfectivo = async (
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 300, 140);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 300, 140);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text("Distribución de Totales por RFC", 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("Distribución de Totales por RFC", 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -6192,20 +6291,21 @@ const agregarPaginaNotasSinRelacion = async (
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 290, 130);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 290, 130);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -6345,20 +6445,21 @@ const agregarPaginaNotasSinRelacion = async (
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 300, 140);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 300, 140);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text("Distribución de Totales por RFC", 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("Distribución de Totales por RFC", 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -6534,20 +6635,21 @@ const agregarPaginaPagoFueraDeTiempo = async (
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 290, 130);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 290, 130);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -6660,20 +6762,21 @@ const agregarPaginaPagoFueraDeTiempo = async (
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 300, 140);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 300, 140);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text("Distribución de Importes Pagados por RFC", 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("Distribución de Importes Pagados por RFC", 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -7978,20 +8081,21 @@ const agregarPaginaIvaRet = async (
           ],
         };
 
-        doc.addPage();
+        // ELIMINADO
+        // doc.addPage();
 
-        let imgData = await generarGraficaPastel(datos);
-        doc.addImage(imgData, "PNG", 0, 40, 290, 130);
+        // let imgData = await generarGraficaPastel(datos);
+        // doc.addImage(imgData, "PNG", 0, 40, 290, 130);
 
-        doc.setFontSize(16);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
-          align: "center",
-        });
+        // doc.setFontSize(16);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text(`Distribución por RFC - ${nombreMes}`, 150, 20, {
+        //   align: "center",
+        // });
 
-        doc.setFontSize(8);
-        doc.setTextColor(0, 0, 0);
-        doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+        // doc.setFontSize(8);
+        // doc.setTextColor(0, 0, 0);
+        // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
       }
     }
   }
@@ -8442,20 +8546,21 @@ const agregarPaginaRetencionesIsr = async (
         ],
       };
 
-      doc.addPage();
+      // ELIMINADO
+      // doc.addPage();
 
-      let imgData = await generarGraficaPastel(datos);
-      doc.addImage(imgData, "PNG", 0, 40, 290, 130);
+      // let imgData = await generarGraficaPastel(datos);
+      // doc.addImage(imgData, "PNG", 0, 40, 290, 130);
 
-      doc.setFontSize(16);
-      doc.setTextColor(0, 0, 0);
-      doc.text(`Distribución por mes`, 150, 20, {
-        align: "center",
-      });
+      // doc.setFontSize(16);
+      // doc.setTextColor(0, 0, 0);
+      // doc.text(`Distribución por mes`, 150, 20, {
+      //   align: "center",
+      // });
 
-      doc.setFontSize(8);
-      doc.setTextColor(0, 0, 0);
-      doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
+      // doc.setFontSize(8);
+      // doc.setTextColor(0, 0, 0);
+      // doc.text("* Solo se muestran los valores mayores al 5%", 225, 205);
     }
   }
 };
