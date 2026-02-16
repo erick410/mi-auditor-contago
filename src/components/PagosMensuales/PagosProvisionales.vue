@@ -1047,6 +1047,7 @@
             },
 
             async GetResicoFisica() {
+
                 this.ShowLoadingGet();
                 try {
                     let columnas = [
@@ -1065,6 +1066,8 @@
                     let ingresos_ = await this.GetIngresosCobrados();
                     let registrados = await this.GetRegistrados();
 
+                    console.log(ingresos_);
+
                     let ListComprobantes = [];
                     let contador = 0;
                     for (let x of ingresos_) {
@@ -1080,12 +1083,17 @@
                                 if (diferencia < menorDiferencia) {
                                     menorDiferencia = diferencia;
                                     tasaAplicable = elemento;
-                                    // console.log(elemento.hasta, ingresos, tasaAplicable)
                                 }
                             }
+                            else{
+                                tasaAplicable.tasa = 2.5
+                            }
                         }
-                        let importeIsr = ingresos * (tasaAplicable.tasa / 100);
-                        // console.log(tasaAplicable.tasa, importeIsr)
+
+                        let importeIsr = 0;
+                        if(ingresos != 0){
+                            importeIsr = ingresos * (tasaAplicable.tasa / 100);
+                        }
 
                         let ObjIngresos = {
                             mes: x.mes,
