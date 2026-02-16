@@ -301,6 +301,31 @@
           </div>
         </span>
       </div>
+
+       
+
+
+      <div class="col-xs-12 col-sm-4 col-md-1 text-center" style="width: auto">
+        <span
+          @click="irConceptos()"
+          class="q-pa-lg shadow-6 mb-3 inline-block surface-card"
+          style="
+            background: #e74747;
+            border-radius: 10px;
+            cursor: pointer;
+            width: 160px;
+          "
+        >
+          <q-icon
+            name="mdi-format-list-checkbox"
+            style="color: aliceblue; font-size: 4em"
+          />
+          <div class="text-h5 text-weight-bolder" style="color: aliceblue">
+            Conceptos
+          </div>
+        </span>
+      </div>
+
     </div>
   </div>
 </template>
@@ -369,6 +394,10 @@ export default {
     },
     irSustitucionCFDI() {
       this.$router.push({ name: "MainSustitucion" });
+    },
+    irConceptos(){
+      this.$router.push({ name: "Conceptos" });
+
     },
 
     DescargaHerramienta() {

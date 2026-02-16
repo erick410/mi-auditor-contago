@@ -91,10 +91,31 @@
             </template>
         </q-table>
 
+<!-- TABLA DE SUELDOS Y SALARIOS -->
+<q-table title="IVA Retenido Emitido" :data="dataIvaRetenidoNeteado" :columns="columns" row-key="mes" hide-bottom
+            :rows-per-page-options="[0]" class="q-mt-md">
+           
+            <template v-slot:body="props">
+                <q-tr :props="props" :class="'clase-total-' + props.row.mes">
+                    <q-td auto-width>
+                        <q-btn size="md" color="primary" rounded flat dense @click="VerDetalles(props.row, 'IVA Retenido Recibidos')"
+                            icon="mdi-format-list-bulleted" v-if="props.row.detalles.length != 0">
+                            <q-tooltip transition-show="flip-right" transition-hide="flip-left"
+                                content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
+                        </q-btn>
+                    </q-td>
+                    <q-td key="mes" :props="props">{{ props.row.mes }}</q-td>
+                    <q-td key="importeIva" :props="props">{{ formatCurrency(props.row.importeIva) }}</q-td>
+                    <q-td key="comparativa" :props="props">{{ formatCurrency(props.row.comparativa) }}</q-td>
+                    <q-td key="diferencia" :props="props">{{ formatCurrency(props.row.diferencia) }}</q-td>
+                </q-tr>
+            </template>
+        </q-table>
+
         <!-- GRAFICA-->
-        <q-card style="width: 100%; " class="full-width q-mt-lg">
+        <!-- <q-card style="width: 100%; " class="full-width q-mt-lg">
             <chart-component :chartData="chartData" :chartTitle="charTitleE"  ></chart-component>
-        </q-card>
+        </q-card> -->
     </div>
 </template>
 <script>
@@ -159,6 +180,8 @@ export default {
 
             charTitleE: 'Retenciones de IVA',
             chartData: null,
+
+            dataIvaRetenidoNeteado:[]
         }
     },
     computed: {
@@ -190,6 +213,7 @@ export default {
             }
             this.dialog = true;
             await this.GetReporteIVARetenido();
+            await this.GetReporteIVARetenidoNeteado();
             this.dialog = false;
         },
 
@@ -236,6 +260,50 @@ export default {
                 console.log(error);
             }
         },
+
+        async GetReporteIVARetenidoNeteado() {
+            try {
+                //CONSULTANOS LAS COMPARATIVAS
+                this.dataIvaRetenidoNeteado = [];
+                let ivaRetenido = [];
+                let comparativaIva = await this.GetComparativa(this.selectedAnio, 'IVARetenido');
+                this.dialogtext = 'Calculando IVA Retenido'
+                let añoSel = this.selectedAnio - 1
+                let fechaI = añoSel + '-' + '12' + '-01';
+                let fechaF = this.selectedAnio + '-' + this.selectedMes.value + '-01';
+                let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
+                ivaRetenido = response.data;
+                let mesFin = this.selectedMes.value;
+console.log(response)
+                //ASIGNAMOS LAS COMPARATIVAS
+                for (let a = 1; a <= mesFin; a++) {
+                    let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe
+                    let objIva = {
+                        mes: ivaRetenido[a].mes,
+                        importeIva: ivaRetenido[a].importeIva,
+                        comparativa: comparativaIva[a - 1].importe,
+                        diferencia: diferencia,
+                        detalles: ivaRetenido[a].detalles,
+                    }
+                    this.dataIvaRetenidoNeteado.push(objIva);
+                    objIva = {};
+                }
+
+                let totales = {
+                    mes: 'Total',
+                    importeIva: this.dataIvaRetenidoNeteado.reduce((acumulador, objeto) => acumulador + objeto.importeIva, 0),
+                    comparativa: this.dataIvaRetenidoNeteado.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
+                    diferencia: this.dataIvaRetenidoNeteado.reduce((acumulador, objeto) => acumulador + objeto.diferencia, 0),
+                    detalles: [],
+                }
+
+                this.dataIvaRetenidoNeteado.push(totales)
+
+            } catch (error) {
+                console.log(error);
+            }
+        },
+
 
         async GenerarGrafica(data){
             const meses = data.map((item) => item.mes);

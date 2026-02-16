@@ -268,6 +268,40 @@
             </template>
         </q-table>
 
+        <!-- TABLA DE DEMAS INGRESOS -->
+        <q-table title="Reporte ISR" :data="dataISRRetenidoFavor" :columns="columnsISRAfavor" row-key="mes" hide-bottom
+            :rows-per-page-options="[0]">
+            <template v-slot:top>
+                <span class="text-body1">ISR Retenido a favor</span>
+                <q-space />
+                <!-- <q-btn push color="blue-7" @click="OpenNotas(3)" icon="mdi-information-outline" rounded flat size="18px"
+                    padding="xs">
+                    <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                        :offset="[10, 10]">Información</q-tooltip>
+                </q-btn>
+                <q-btn push color="green-14" @click="OpenComparativa(6)" icon="mdi-compare" rounded flat size="18px"
+                    padding="xs">
+                    <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                        :offset="[10, 10]">Comparativa</q-tooltip>
+                </q-btn> -->
+            </template>
+            <template v-slot:body="props">
+                <q-tr :props="props" :class="'clase-total-' + props.row.mes">
+                    <q-td auto-width>
+                        <q-btn size="md" color="primary" rounded flat dense @click="VerDetallesIsr(props.row, 'ISR Retenido a Favor')"
+                            icon="mdi-format-list-bulleted" v-if="props.row.detalles.length != 0">
+                            <q-tooltip transition-show="flip-right" transition-hide="flip-left"
+                                content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
+                        </q-btn>
+                    </q-td>
+                    <q-td key="mes" :props="props">{{ mesNumeroALetra(props.row.mes) }}</q-td>
+                    <q-td key="importe" :props="props">{{ formatCurrency(props.row.importe) }}</q-td>
+                    <!-- <q-td key="comparativa" :props="props">{{ formatCurrency(props.row.comparativa) }}</q-td> -->
+                    <!-- <q-td key="diferencia" :props="props">{{ formatCurrency(props.row.diferencia) }}</q-td> -->
+                </q-tr>
+            </template>
+        </q-table>
+
         <!-- GRAFICA-->
         <q-card style="width: 100%; " class="full-width q-mt-lg">
             <chart-component :chartData="chartData1" :chartTitle="charTitleE1"  ></chart-component>
@@ -323,6 +357,12 @@ export default {
                 { name: 'comparativa', align: 'right', label: 'Comparativa', field: 'comparativa' },
                 { name: 'diferencia', align: 'right', label: 'Diferencia', field: 'diferencia' },
             ],
+
+            columnsISRAfavor: [
+                { name: 'actions', align: 'left', label: 'Acciones', field: 'actions' },
+                { name: 'mes', align: 'left', label: 'Mes', field: 'mes' },
+                { name: 'importe', align: 'right', label: 'Importe', field: 'importe' },
+            ],
             dataSueldos: [],
             dataAsimilados: [],
             dataOtros: [],
@@ -330,7 +370,7 @@ export default {
             dataArrendamientos: [],
             dataHonorarios: [],
             dataDemasIngresos: [],
-
+            dataISRRetenidoFavor:[],
             //DATOS DE CARGANDO
             dialog: false,
             dialogtext: '',
@@ -395,6 +435,12 @@ export default {
             return resultado;
         },
 
+        sumaisrfavor() {
+            let suma = this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.importe, 0);
+            let resultado = this.formatCurrency(suma);
+            return resultado;
+        },
+
         comparativa() {
             return this.$store.state.comparativaStore;
         },
@@ -420,6 +466,7 @@ export default {
             this.dialog = true;
             await this.GetReporteNomina();
             await this.GetReporteIsr();
+            await this.GetReporteIsrEmitidoAsync()
             this.dialog = false;
         },
 
@@ -881,6 +928,58 @@ export default {
                 return respuesta;
             }
         },
+
+        async GetReporteIsrEmitidoAsync() {
+            try {
+                let fechaI = this.selectedAnio + "-01-01";
+                let fechaF = this.selectedAnio + "-" + this.selectedMes.value + "-01";
+
+                let response = await axios.get(
+                    this.rutaAxios +
+                    "Ingresos/ReporteIsrEmitidoAsync/erp_" +
+                    this.token.rfc +
+                    "/" +
+                    fechaI +
+                    "/" +
+                    fechaF
+                );
+                console.log("isr emitido", response);
+                this.dataISRRetenidoFavor= response.data;
+
+                let totales = {
+                    detalles: [],
+                    mes: 'Total',
+                    importe: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.importe, 0),
+                }
+                this.dataISRRetenidoFavor.push(totales)
+
+            } catch (error) {
+                console.log(error);
+                this.$q.loading.hide();
+            }
+        },
+
+        mesNumeroALetra(mes) {
+            const meses = [
+                "ENERO",
+                "FEBRERO",
+                "MARZO",
+                "ABRIL",
+                "MAYO",
+                "JUNIO",
+                "JULIO",
+                "AGOSTO",
+                "SEPTIEMBRE",
+                "OCTUBRE",
+                "NOVIEMBRE",
+                "DICIEMBRE",
+            ];
+
+            if (mes < 1 || mes > 12) return "";
+
+            return meses[mes - 1];
+        },
+
     },
 }
 </script>

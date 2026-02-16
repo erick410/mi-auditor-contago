@@ -230,8 +230,8 @@
 
                     <q-td key="ivaRetenido" :props="props">{{ FormatCurrency(props.row.ivaRetenido)
                         }}</q-td>
-                    <q-td key="ivaRetenidoAnterior" :props="props">{{ FormatCurrency(props.row.ivaRetenidoAnterior)
-                        }}</q-td>
+                    <!-- <q-td key="ivaRetenidoAnterior" :props="props">{{ FormatCurrency(props.row.ivaRetenidoAnterior)
+                        }}</q-td> -->
 
                     <q-td key="ivaCargo" :props="props">{{ FormatCurrency(props.row.ivaCargo) }}</q-td>
                     <q-td key="ivaFavor" :props="props">{{ FormatCurrency(props.row.ivaFavor) }}</q-td>
@@ -275,7 +275,6 @@
                     <q-td key="cuentaIvaP" :props="props">{{ props.row.cuentaIvaP }}</q-td>
                     <q-td key="totalP" :props="props">{{ FormatCurrency(props.row.totalP) }}</q-td>
                     <q-td key="folioFiscalP" :props="props">{{ props.row.folioFiscalP }}</q-td>
-                    </q-td>
                 </q-tr>
             </template>
 
@@ -337,7 +336,7 @@
                     { name: 'importeIvaAcreditado', align: 'right', label: 'Importe IVA Acreditado', field: 'importeIvaAcreditado' },
                     { name: 'accionesA', align: 'left', label: 'Acciones', field: 'accionesA' },
                     { name: 'ivaRetenido', align: 'right', label: 'IVA Retenido', field: 'ivaRetenido' },
-                    { name: 'ivaRetenidoAnterior', align: 'right', label: 'IVA Retenido Anterior', field: 'ivaRetenidoAnterior' },
+                    // { name: 'ivaRetenidoAnterior', align: 'right', label: 'IVA Retenido Anterior', field: 'ivaRetenidoAnterior' },
                     { name: 'ivaCargo', align: 'right', label: 'IVA a Cargo', field: 'ivaCargo', headerClasses: 'bg-primary text-white', classes: 'bg-red-2 text-black text-right ellipsis ' },
                     { name: 'ivaFavor', align: 'right', label: 'IVA a Favor', field: 'ivaFavor', headerClasses: 'bg-primary text-white', classes: 'bg-red-2 text-black text-right ellipsis ' },
                     { name: 'cargoRegistrado', align: 'right', label: 'Cargo Registrado', field: 'cargoRegistrado', headerClasses: 'bg-green-14 text-white', classes: 'bg-green-2 text-black text-right ellipsis ' },
@@ -505,6 +504,9 @@
 
             async GetReporteIva(ivaCargo) {
                 try {
+
+                    console.log('ivaCargo')
+
                     this.columns = [...this.columnsDefault]
                     this.dataComprobantes = [];
                     this.$q.loading.show({
@@ -534,18 +536,22 @@
                         ObjIva.importeIvaAcreditado = ivaAcreditable[x].importeIva
                         ObjIva.detallesAcreditado = ivaAcreditable[x].detalles;
 
-                        ObjIva.ivaRetenidoAnterior = ivaRetenido[x].importeIva
+                        // ObjIva.ivaRetenidoAnterior = ivaRetenido[x].importeIva
                         ObjIva.ivaRetenido = ivaRetenido[x + 1].importeIva
-                        // ObjIva.ivaRetenidoAnterior = 0
-                        // ObjIva.ivaRetenido = 0
+                        ObjIva.ivaRetenidoAnterior = 0
 
                         let ivaCargo_ = ivaCargo[x].importeIva;
                         let ivaAcreditado_ = ivaAcreditable[x].importeIva
-                        let ivaRetenido_ = ivaRetenido[x].importeIva
+                        
+                        // let ivaRetenido_ = ivaRetenido[x].importeIva
+                        let ivaRetenido_ = ObjIva.ivaRetenido
                         let ivaRetenidoAnterior_ = ivaRetenido[x + 1].importeIva
-                        // let ivaRetenido_ = 0
-                        // let ivaRetenidoAnterior_ = 0
-                        let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_
+
+
+                        // let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_
+                        let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_ 
+                        console.log(ivaCargo_ + ' - ' + ivaAcreditado_ + ' - ' + ivaRetenido_)
+                        console.log(calculo)
                         if (calculo > 0) {
                             ObjIva.ivaCargo = calculo
                             ObjIva.ivaFavor = 0
@@ -654,6 +660,8 @@
 
             async GetReporteIvaExento(ivaCargo) {
                 try {
+                    console.log('GetReporteIvaExento')
+
                     this.columns = [...this.columnsExento];
 
                     this.dataComprobantes = [];
@@ -685,14 +693,21 @@
                         ObjIva.importeIvaAcreditado = ivaAcreditable[x].importeIva
                         ObjIva.detallesAcreditado = ivaAcreditable[x].detalles;
 
-                        ObjIva.ivaRetenidoAnterior = ivaRetenido[x].importeIva
+                        // ObjIva.ivaRetenidoAnterior = ivaRetenido[x].importeIva
+                        ObjIva.ivaRetenidoAnterior = 0
+
                         ObjIva.ivaRetenido = ivaRetenido[x + 1].importeIva
 
                         let ivaCargo_ = ivaCargo[x].importeIva;
                         let ivaAcreditado_ = ivaAcreditable[x].importeIva
-                        let ivaRetenido_ = ivaRetenido[x].importeIva
+
+                        let ivaRetenido_ = ObjIva.ivaRetenido
+                        // let ivaRetenido_ = ivaRetenido[x].importeIva
+
                         let ivaRetenidoAnterior_ = ivaRetenido[x + 1].importeIva
-                        let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_
+
+                        // let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_
+                        let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_  
                         if (calculo > 0) {
                             ObjIva.ivaCargo = calculo
                             ObjIva.ivaFavor = 0
@@ -797,7 +812,8 @@
                     let fechaI = añoSel + '-' + '12' + '-01';
                     let fechaF = this.selectedAnio + '-' + this.selectedMes.value + '-01';
 
-                    let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
+                    let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
+                    console.log('nueva', response)
                     return response.data;
                 } catch (error) {
                     console.log(error)
@@ -1191,11 +1207,12 @@
                         .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio)
                         .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-                    const ivaRetenidoAnterior = ivaRet[x]?.importeIva || 0;
+                    const ivaRetenidoAnterior =   [x]?.importeIva || 0;
 
                     let ivaCargo = 0;
                     let ivaFavor = 0;
-                    const calculo = importeIvaTrasladado - importeIvaAcreditado + ivaRetenido - ivaRetenidoAnterior;
+                    // const calculo = importeIvaTrasladado - importeIvaAcreditado + ivaRetenido - ivaRetenidoAnterior;
+                    const calculo = importeIvaTrasladado - importeIvaAcreditado - ivaRetenido ;
 
                     if (calculo > 0) {
                         ivaCargo = calculo;

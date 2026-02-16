@@ -103,6 +103,10 @@ import SolicitudCancelacion from "../components/SolicitudCancelacion/SolicitudCa
 import MainSustitucion from "../components/Sustitucion/MainSustitucion.vue";
 
 import ViewReporteGeneral from "../components/ReporteGeneral/ViewReporteGeneral.vue";
+
+import MainConceptos from "../components/Conceptos/MainConceptos.vue"
+import Conceptos from "../components/Conceptos/ListaConceptos.vue"
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -762,6 +766,19 @@ const routes = [
     meta: { Administrador: true, Gasolinero: true, PerfilA: true },
     children: [
 
+    ],
+  },
+  {
+    path: "/MainConceptos",
+    component: MainConceptos,
+    meta: { Administrador: true, Gasolinero: true, PerfilA: true },
+    children: [
+      {
+        path: "Conceptos",
+        component: Conceptos,
+        name: "Conceptos",
+        meta: { Administrador: true, Gasolinero: true },
+      },
     ],
   },
 ];

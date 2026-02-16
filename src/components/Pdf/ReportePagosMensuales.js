@@ -35,6 +35,9 @@ function FormatoPorcentaje(numero) {
   }
 }
 
+
+
+ 
 function FormatoCantidad(numero) {
   if (numero === "---") {
     return "";
@@ -47,6 +50,122 @@ function FormatoCantidad(numero) {
 function FormatoMiles(numero) {
   return numero.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
+
+function generarContenidoTabla(items) {
+  return items.map(i => ([
+    i.mes,
+    i.totalEPUE.toLocaleString('es-MX', { minimumFractionDigits: 2 }),
+    i.totalRPUE.toLocaleString('es-MX', { minimumFractionDigits: 2 }),
+    i.diferenciaPUE.toLocaleString('es-MX', { minimumFractionDigits: 2 })
+  ]))
+}
+
+function agruparPorMoneda(data) {
+  return data.reduce((acc, item) => {
+    if (!acc[item.moneda]) acc[item.moneda] = []
+    acc[item.moneda].push(item)
+    return acc
+  }, {})
+}
+
+const agregarPaginaFlujoComparativa = async (
+  doc,
+  resumen,
+  y 
+) => {
+
+  doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      y = agregarTextoConSaltos(doc, "COMPARATIVA FLUJO EMITIDO - RECIBIDO", 40, y, 520, 14);
+      y += 5; // espacio entre secciones
+
+  const agrupado = agruparPorMoneda(resumen)
+
+  Object.keys(agrupado).forEach(moneda => {
+  
+  
+    const contenido = generarContenidoTabla(agrupado[moneda])
+
+    let totalE = 0
+    let totalR = 0
+    let totalD = 0
+  
+    contenido.forEach(row => {
+      totalE += parseFloat(row[1].toString().replace(/,/g, ''))
+      totalR += parseFloat(row[2].toString().replace(/,/g, ''))
+      totalD += parseFloat(row[3].toString().replace(/,/g, ''))
+    })
+  
+    contenido.push([
+      'TOTAL',
+      totalE.toLocaleString('es-MX', { minimumFractionDigits: 2 }),
+      totalR.toLocaleString('es-MX', { minimumFractionDigits: 2 }),
+      totalD.toLocaleString('es-MX', { minimumFractionDigits: 2 })
+    ])
+
+    let header = [
+      'Mes',
+      'Total Emitidos PUE',
+      'Total Recibidos PUE',
+      'Diferencia'
+    ]
+  
+    let columnStyles = {
+      0: { halign: "left" },
+      1: { halign: "right" },
+      2: { halign: "right" },
+      3: { halign: "right" }
+    }
+  
+    doc.autoTable({
+      head: [header],
+      body: contenido,
+      startY: y,
+      theme: "grid",
+      headStyles: {
+        fillColor: "#E74747",
+        textColor: "#FFF",
+        fontSize: 6,
+        halign: "center",
+        valign: "middle",
+      },
+      styles: {
+        fontSize: 6,
+        cellPadding: 3,
+      },
+      columnStyles,
+      didParseCell: function (data) {
+
+        if (data.section === 'body' && data.column.index === 3) {
+          const valor = parseFloat(data.cell.raw.toString().replace(/,/g, ''))
+      
+          if (valor > 0) {
+            data.cell.styles.textColor = [0, 150, 0]
+            data.cell.styles.fontStyle = 'bold'
+          } else if (valor < 0) {
+            data.cell.styles.textColor = [200, 0, 0]
+            data.cell.styles.fontStyle = 'bold'
+          }
+        }
+      
+        if (
+          data.section === 'body' &&
+          data.row.index === data.table.body.length - 1
+        ) {
+          data.cell.styles.textColor = [0, 0, 0]
+          data.cell.styles.fillColor = "#F7C1C1"
+          data.cell.styles.fontStyle = 'bold'
+        }
+      },
+      
+    })
+
+    y = doc.lastAutoTable.finalY + 20;
+
+  })
+  
+};
+
 
 // --- JUSTIFICAR TEXTO ---
 function textJustify(doc, text, x, y, maxWidth, lineHeight) {
@@ -174,8 +293,28 @@ function justificarLinea(doc, line, x, y, maxWidth) {
     cursorX += doc.getTextWidth(w) + espacioExtra;
   });
 }
+function mesNumeroALetra(mes) {
+  const meses = [
+      "ENERO",
+      "FEBRERO",
+      "MARZO",
+      "ABRIL",
+      "MAYO",
+      "JUNIO",
+      "JULIO",
+      "AGOSTO",
+      "SEPTIEMBRE",
+      "OCTUBRE",
+      "NOVIEMBRE",
+      "DICIEMBRE",
+  ];
 
-export function generarReporte(
+  if (mes < 1 || mes > 12) return "";
+
+  return meses[mes - 1];
+}
+
+export async function  generarReporte(
   anio,
   mesI,
   mesF,
@@ -203,7 +342,10 @@ export function generarReporte(
   comentarios,
   empresa,
   logoBase64,
-  usuario
+  usuario,
+  flujoComparativa,
+  dataIvaRetenidoNeteado,
+  dataISRRetenidoFavor
 ) {
   const doc = new jsPDF({
     orientation: "portrait",
@@ -263,7 +405,7 @@ export function generarReporte(
         "Base IVA Acreditado",
         "Importe IVA Acreditado",
         "IVA Retenido",
-        "IVA Retenido Anterior",
+        // "IVA Retenido Anterior",
         "IVA Cargo",
         "IVA Favor",
         "Cargo Registrado",
@@ -278,7 +420,7 @@ export function generarReporte(
       formatoPesos(x.baseIvaAcreditado),
       formatoPesos(x.importeIvaAcreditado),
       formatoPesos(x.ivaRetenido),
-      formatoPesos(x.ivaRetenidoAnterior),
+      // formatoPesos(x.ivaRetenidoAnterior),
       formatoPesos(x.ivaCargo),
       formatoPesos(x.ivaFavor),
       formatoPesos(x.cargoRegistrado),
@@ -307,7 +449,7 @@ export function generarReporte(
       8: { halign: "right" },
       9: { halign: "right" },
       10: { halign: "right" },
-      11: { halign: "right" },
+      // 11: { halign: "right" },
     },
 
     didParseCell: function (data) {
@@ -466,6 +608,62 @@ export function generarReporte(
     mesAnterior(mesF).toUpperCase() +
     " se entera a más tardar el 17 de " +
     mesF;
+
+    y += 10;  
+  
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("IVA RETENIDO EMITIDO", 40, y);
+
+    y += 5; // espacio entre secciones
+
+    console.log('data', dataIvaRetenidoNeteado)
+    autoTable(doc, {
+      startY: y,
+      head: [["Mes", "Importe IVA", "Comparativa", "Diferencia"]],
+      body: dataIvaRetenidoNeteado.map((x) => [
+        x.mes,
+        formatoPesos(x.importeIva),
+        formatoPesos(x.comparativa),
+        formatoPesos(x.diferencia),
+      ]),
+      headStyles: {
+        fillColor: "#E74747",
+        textColor: "#FFF",
+        fontSize: 6,
+        halign: "center",
+        valign: "middle",
+      },
+      styles: {
+        fontSize: 6,
+        cellPadding: 3,
+      },
+      columnStyles: {
+        1: { halign: "right" },
+        2: { halign: "right" },
+        3: { halign: "right" },
+      },
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          if (data.row.index === dataIvaRetenidoNeteado.length - 1) {
+            data.cell.styles.fillColor = "#F7C1C1";
+            data.cell.styles.textColor = [0, 0, 0];
+            data.cell.styles.fontStyle = "bold";
+          }
+        }
+      },
+      didDrawPage: function (data) {
+        // Pie de página
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
+          align: "center",
+        });
+      },
+    });
+
+  y = doc.lastAutoTable.finalY += 20;
+
 
   if (esAñoActual(anio) == false) {
     condicion33 = "";
@@ -1127,6 +1325,66 @@ export function generarReporte(
     );
   }
 
+  console.log('dataISRRetenidoFavor', dataISRRetenidoFavor)
+  let suma6 = dataISRRetenidoFavor.reduce(
+    (acumulador, objeto) => acumulador + objeto.importe,
+    0
+  );
+
+  if (suma6 > 0) {
+    y += 10; // espacio entre secciones
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "ISR RETENIDO A FAVOR", 40, y, 520, 14);
+
+    y += 5; // espacio entre secciones
+
+    autoTable(doc, {
+      startY: y,
+      head: [["Mes", "Importe" ]],
+      body: dataISRRetenidoFavor.map((x) => [
+        mesNumeroALetra(x.mes),
+        formatoPesos(x.importe),
+      ]),
+      headStyles: {
+        fillColor: "#E74747",
+        textColor: "#FFF",
+        fontSize: 6,
+        halign: "center",
+        valign: "middle",
+      },
+      styles: {
+        fontSize: 6,
+        cellPadding: 3,
+      },
+      columnStyles: {
+        1: { halign: "right" },
+        2: { halign: "right" },
+        3: { halign: "right" },
+      },
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          if (data.row.index === dataISRRetenidoFavor.length - 1) {
+            data.cell.styles.fillColor = "#F7C1C1";
+            data.cell.styles.textColor = [0, 0, 0];
+            data.cell.styles.fontStyle = "bold";
+          }
+        }
+      },
+      didDrawPage: function (data) {
+        // Pie de página
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
+          align: "center",
+        });
+      },
+    });
+    y = doc.lastAutoTable.finalY += 10;
+
+  }
+
   y += 10; // espacio entre secciones
 
   doc.setFontSize(11);
@@ -1148,11 +1406,29 @@ export function generarReporte(
 
   y += 10; // espacio entre secciones
 
+  const columnasOcultables = ["ptuPagada", "perdidasFiscalesPorAplicar", "accionesD"];
+
+  const filaTotales = provisionalesISR[provisionalesISR.length - 1];
+
+  const ocultarColumnas = columnasOcultables.every(
+    (field) => Number(filaTotales[field] || 0) === 0
+  );
+  
+  let columnasFinales = columnas;
+
+  console.log(columnas);
+if (ocultarColumnas) {
+  columnasFinales = columnas.filter(
+    (c) => !columnasOcultables.includes(c.field)
+  );
+}
+
+
   // Construir el encabezado dinámico
-  const head = [columnas.map((c) => c.label)];
+  const head = [columnasFinales.map((c) => c.label)];
 
   const body = provisionalesISR.map((row) =>
-    columnas.map((c) => {
+    columnasFinales.map((c) => {
       let value = row[c.field];
       // Si es número, aplicamos formato pesos
       if (typeof value === "number") {
@@ -1164,7 +1440,7 @@ export function generarReporte(
 
   // ColumnStyles dinámico SOLO para campos que van a la derecha
   let columnStyles = {};
-  columnas.forEach((c, idx) => {
+  columnasFinales.forEach((c, idx) => {
     if (c.align === "right") {
       columnStyles[idx] = { halign: "right" };
     }
@@ -1178,12 +1454,12 @@ export function generarReporte(
     headStyles: {
       fillColor: "#E74747",
       textColor: "#FFF",
-      fontSize: 6,
+      fontSize: 4,
       halign: "center",
       valign: "middle",
     },
     styles: {
-      fontSize: 6,
+      fontSize: 5,
       cellPadding: 3,
     },
     columnStyles: columnStyles,
@@ -2162,24 +2438,30 @@ if(comentarios.trim() != ''){
   }
 
 
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  y = agregarTextoConSaltos(doc, "RIESGO FISCAL", 40, y, 520, 14);
-  y += 5; // espacio entre secciones
+   doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      y = agregarTextoConSaltos(doc, "RIESGO FISCAL", 40, y, 520, 14);
+      y += 5; // espacio entre secciones
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  y = agregarTextoConSaltos(
-    doc,
-    "A continuación se relacionan los comprobantes que no cumplan con el anexo 20 de la RMF por lo que puede la autoridad rechazarlos.",
-    40,
-    y,
-    520,
-    14
-  );
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      y = agregarTextoConSaltos(
+        doc,
+        "A continuación se relacionan los comprobantes que no cumplan con el anexo 20 de la RMF por lo que puede la autoridad rechazarlos.",
+        40,
+        y,
+        520,
+        14
+      );
+ 
 
   for (let tab of datosRiesgoFiscal) {
     if (tab.datos.length != 0) {
+     
+      y += 5; // espacio entre secciones
+    
+     
+
       if (
         tab.titulo ==
         "CONCENTRADO - RIESGO CONCEPTOS CON CLAVE 01010101 EMTIDOS"
@@ -2365,6 +2647,7 @@ if(comentarios.trim() != ''){
   for (let tab of datosRiesgoFiscalPagos) {
     if (tab.datos.length != 0) {
       y += 10; // espacio entre secciones
+ 
 
       doc.setFontSize(9);
       doc.setFont("helvetica", "bold");
@@ -2417,7 +2700,36 @@ if(comentarios.trim() != ''){
     }
   }
 
-  y = doc.lastAutoTable.finalY + 40;
+  y = doc.lastAutoTable.finalY + 20;
+  
+
+  await agregarPaginaFlujoComparativa(
+    doc,
+    flujoComparativa,
+    y
+  );
+  
+
+  y = doc.lastAutoTable.finalY + 50;
+
+ 
+ 
+
+// Altura total de la página
+const pageHeight = doc.internal.pageSize.height;
+
+// Margen inferior que quieres respetar
+const bottomMargin = 40;
+
+// Función helper para validar espacio
+function checkAddPage(extraSpace = 0) {
+  if (y + extraSpace > pageHeight - bottomMargin) {
+    doc.addPage();
+    y = 40; // margen superior de la nueva página
+  }
+}
+
+  checkAddPage(80);
 
   // Texto centrado: "Atentamente"
   doc.setFontSize(10);
@@ -2426,7 +2738,7 @@ if(comentarios.trim() != ''){
   });
 
   // Espacio para la firma
-  y += 25; // espacio en blanco
+  y += 35; // espacio en blanco
   doc.text(
     "______________________________",
     doc.internal.pageSize.width / 2,

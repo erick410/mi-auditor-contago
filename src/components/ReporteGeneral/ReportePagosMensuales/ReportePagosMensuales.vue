@@ -2454,7 +2454,1004 @@ export default {
       }, 200);
     },
             
-            
+            // comparativa flujo
+            async GetReporteDos() {
+      this.dataReporteComparativaFlujo = null;
+    
+      const facturado = await this.GetReporteFacturado();
+      this.dataReporteComparativaFlujo = facturado;
+
+      // const rfc = this.token.rfc;
+      // const rfc = "gep8501011s6";
+      const flujo = await this.GetReporteFlujoGeneral();
+      this.dataReporteComparativaFlujo.flujoEmitido = flujo.flujoEmitido;
+      this.dataReporteComparativaFlujo.flujoRecibido = flujo.flujoRecibido;
+      this.dataReporteComparativaFlujo.metodosDePagoRecibidos = flujo.metodosDePagoRecibidos;
+      this.dataReporteComparativaFlujo.metodosDePagoEmitidos = flujo.metodosDePagoEmitidos;
+
+      const resumen = this.compararPUEPorMes(
+        this.dataReporteComparativaFlujo.flujoEmitido,
+        this.dataReporteComparativaFlujo.flujoRecibido
+      );
+      this.comparativaFlujo = resumen;
+      console.log("resumen", resumen);
+    },
+
+    compararPUEPorMes(emitidos, recibidos) {
+      const resultado = {};
+
+      const procesar = (lista, campo) => {
+        lista.forEach((item) => {
+          Object.keys(item).forEach((moneda) => {
+            item[moneda].forEach((reg) => {
+              if (reg.metodoPago !== "PUE") return;
+
+              const key = `${moneda}_${reg.mes}`;
+
+              if (!resultado[key]) {
+                resultado[key] = {
+                  moneda,
+                  mes: reg.mes,
+                  totalEPUE: 0,
+                  totalRPUE: 0,
+                };
+              }
+
+              resultado[key][campo] += reg.importePesos;
+            });
+          });
+        });
+      };
+
+      procesar(emitidos, "totalEPUE");
+      procesar(recibidos, "totalRPUE");
+
+      Object.values(resultado).forEach(item => {
+    item.diferenciaPUE = item.totalEPUE - item.totalRPUE
+  })
+
+  
+      return Object.values(resultado);
+    },
+
+    async GetReporteFlujoGeneral() {
+      const rfc = this.token.rfc;
+      // const rfc = "gep8501011s6";
+      const año = this.selectedAnio;
+      const mesI = this.opcionesReporte.mesInicial;
+      const mesF = this.opcionesReporte.mesFinal;
+      try {
+        let flujoEmitido = [];
+        if (this.mostrarSeccionesReporte.mostrarFlujoEmitido) {
+          this.$q.loading.show({
+            spinner: QSpinnerCube,
+            spinnerColor: "white",
+            spinnerSize: 120,
+            message: "Obteniendo Flujo Emitido...",
+            messageColor: "white",
+          });
+
+          flujoEmitido = await this.GetReporteFlujo(rfc, "E", año, mesI, mesF);
+        }
+
+        let flujoRecibido = [];
+        if (this.mostrarSeccionesReporte.mostrarFlujoRecibido) {
+          this.$q.loading.show({
+            spinner: QSpinnerCube,
+            spinnerColor: "white",
+            spinnerSize: 120,
+            message: "Obteniendo Flujo Recibido...",
+            messageColor: "white",
+          });
+
+          flujoRecibido = await this.GetReporteFlujo(rfc, "R", año, mesI, mesF);
+        }
+
+        let metodosDePagoRecibidos = [];
+        if (this.mostrarSeccionesReporte.mostrarMetodosPagoRecibidos) {
+          metodosDePagoRecibidos = await this.GetReporteMetodoPagoAsync(
+            rfc,
+            "R",
+            año,
+            mesI,
+            mesF
+          );
+        }
+
+        let metodosDePagoEmitidos = [];
+        if (this.mostrarSeccionesReporte.mostrarMetodosPagoEmitidos) {
+          metodosDePagoEmitidos = await this.GetReporteMetodoPagoAsync(
+            rfc,
+            "E",
+            año,
+            mesI,
+            mesF
+          );
+        }
+
+        return {
+          flujoEmitido,
+          flujoRecibido,
+          metodosDePagoRecibidos,
+          metodosDePagoEmitidos,
+        };
+      } catch (error) {
+        console.error(`Error en el reporte general ${error}`);
+        this.$q.loading.hide();
+      }
+    },
+
+    async GetReporteFacturado() {
+      const rfc = this.token.rfc;
+      // const rfc = "gep8501011s6";
+      const año = this.selectedAnio;
+      const mesI = this.opcionesReporte.mesInicial;
+      const mesF = this.opcionesReporte.mesFinal;
+
+      console.log(this.mostrarSeccionesReporte);
+
+      this.$q.loading.show({
+        spinner: QSpinnerCube,
+        spinnerColor: "white",
+        spinnerSize: 120,
+        message: "Contando comprobantes...",
+        messageColor: "white",
+      });
+
+      try {
+        const inicio = performance.now();
+        // HACEMOS LAS CONSULTAS
+        const tareasContador = [
+          this.GetReporteContador(
+            rfc,
+            "comprobantes_emitidos",
+            "I",
+            año,
+            mesI,
+            mesF
+          ),
+          this.GetReporteContador(
+            rfc,
+            "comprobantes_emitidos",
+            "E",
+            año,
+            mesI,
+            mesF
+          ),
+          this.GetReporteContador(
+            rfc,
+            "comprobantes_recibidos",
+            "I",
+            año,
+            mesI,
+            mesF
+          ),
+          this.GetReporteContador(
+            rfc,
+            "comprobantes_recibidos",
+            "E",
+            año,
+            mesI,
+            mesF
+          ),
+          this.GetReporteContador(
+            rfc,
+            "comprobantes_nomina",
+            "N",
+            año,
+            mesI,
+            mesF
+          ),
+        ];
+        // const resultadosContador = await Promise.all(tareasContador);
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Calculando rfc...",
+          messageColor: "white",
+        });
+
+        const tareasRFc = [];
+
+        if (this.mostrarSeccionesReporte.mostrarEmitidos) {
+          tareasRFc.push(
+            this.GetReporteRFc(
+              rfc,
+              "comprobantes_emitidos",
+              año,
+              mesI,
+              mesF,
+              this.clientesConcentrados
+            )
+          );
+        } else {
+          tareasRFc.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarRecibidos) {
+          tareasRFc.push(
+            this.GetReporteRFc(
+              rfc,
+              "comprobantes_recibidos",
+              año,
+              mesI,
+              mesF,
+              this.proveedoresConcentrados
+            )
+          );
+        } else {
+          tareasRFc.push([]);
+        }
+
+        const resultadosRfc = await Promise.all(tareasRFc);
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Calculando importes...",
+          messageColor: "white",
+        });
+
+        const tareasImportes = [];
+
+        if (this.mostrarSeccionesReporte.mostrarEmitidos) {
+          tareasImportes.push(
+            this.GetReporteImportes(
+              rfc,
+              "comprobantes_emitidos",
+              "I",
+              año,
+              mesI,
+              mesF
+            ),
+            this.GetReporteImportes(
+              rfc,
+              "comprobantes_emitidos",
+              "E",
+              año,
+              mesI,
+              mesF
+            )
+          );
+        } else {
+          tareasImportes.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarRecibidos) {
+          tareasImportes.push(
+            this.GetReporteImportes(
+              rfc,
+              "comprobantes_recibidos",
+              "I",
+              año,
+              mesI,
+              mesF
+            ),
+            this.GetReporteImportes(
+              rfc,
+              "comprobantes_recibidos",
+              "E",
+              año,
+              mesI,
+              mesF
+            )
+          );
+        } else {
+          tareasImportes.push([]);
+        }
+
+        // const tareasImportes = [
+        //   this.GetReporteImportes(
+        //     rfc,
+        //     "comprobantes_emitidos",
+        //     "I",
+        //     año,
+        //     mesI,
+        //     mesF
+        //   ),
+        //   this.GetReporteImportes(
+        //     rfc,
+        //     "comprobantes_emitidos",
+        //     "E",
+        //     año,
+        //     mesI,
+        //     mesF
+        //   ),
+        //   this.GetReporteImportes(
+        //     rfc,
+        //     "comprobantes_recibidos",
+        //     "I",
+        //     año,
+        //     mesI,
+        //     mesF
+        //   ),
+        //   this.GetReporteImportes(
+        //     rfc,
+        //     "comprobantes_recibidos",
+        //     "E",
+        //     año,
+        //     mesI,
+        //     mesF
+        //   ),
+        // ];
+        const resultadosImportes = await Promise.all(tareasImportes);
+
+        console.log(resultadosImportes);
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Calculando nómina...",
+          messageColor: "white",
+        });
+
+        const tareasImportesN = [];
+
+        if (this.mostrarSeccionesReporte.mostrarNomina) {
+          tareasImportesN.push(
+            this.GetReporteImportesNomina(
+              rfc,
+              "comprobantes_nomina",
+              año,
+              mesI,
+              mesF
+            )
+          );
+        } else {
+          tareasImportesN.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarNominaGeneral) {
+          tareasImportesN.push(
+            this.GetReporteNominaGeneral(rfc, año, mesI, mesF)
+          );
+        } else {
+          tareasImportesN.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarNominaTrabajadores == true) {
+          tareasImportesN.push(
+            this.GetReporteNominaTrabajador(rfc, año, mesI, mesF)
+          );
+        } else {
+          tareasImportesN.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarNominaConceptos) {
+          tareasImportesN.push(
+            this.GetReporteNominaConceptos(rfc, año, mesI, mesF)
+          );
+        } else {
+          tareasImportesN.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarNominaDuplicadoO) {
+          tareasImportesN.push(
+            this.GetReporteNominaDuplicadaAsync(rfc, "O", año, mesI, mesF)
+          );
+        } else {
+          tareasImportesN.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarNominaDuplicadoE) {
+          tareasImportesN.push(
+            this.GetReporteNominaDuplicadaAsync(rfc, "E", año, mesI, mesF)
+          );
+        } else {
+          tareasImportesN.push([]);
+        }
+
+        // const tareasImportesN = [
+        //   this.GetReporteImportesNomina(
+        //     rfc,
+        //     "comprobantes_nomina",
+        //     año,
+        //     mesI,
+        //     mesF
+        //   ),
+        //   this.GetReporteNominaGeneral(rfc, año, mesI, mesF),
+        //   this.GetReporteNominaTrabajador(rfc, año, mesI, mesF),
+        //   this.GetReporteNominaConceptos(rfc, año, mesI, mesF),
+        //   this.GetReporteNominaDuplicadaAsync(rfc, "O", año, mesI, mesF),
+        //   this.GetReporteNominaDuplicadaAsync(rfc, "E", año, mesI, mesF),
+        // ];
+        const resultadosImportesN = await Promise.all(tareasImportesN);
+
+        console.log(resultadosImportesN);
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Calculando uso de CFDI...",
+          messageColor: "white",
+        });
+
+        const tareasUsoCFDI = [];
+
+        if (this.mostrarSeccionesReporte.mostrarUsoCFDI) {
+          tareasUsoCFDI.push(this.GetReporteUsoCFDI(rfc, año, mesI, mesF));
+        } else {
+          tareasUsoCFDI.push([]);
+        }
+
+        // const tareasUsoCFDI = [this.GetReporteUsoCFDI(rfc, año, mesI, mesF)];
+        const resultadosUsoCFDI = await Promise.all(tareasUsoCFDI);
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Calculando PUE...",
+          messageColor: "white",
+        });
+
+        const tareasUsoPUE = [];
+
+        if (this.mostrarSeccionesReporte.mostrarPue99Recibido) {
+          tareasUsoPUE.push(
+            this.GetReportePue99Async(rfc, "R", año, mesI, mesF) // RECIBIDOS
+          );
+        } else {
+          tareasUsoPUE.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarPue99Emitido) {
+          tareasUsoPUE.push(
+            this.GetReportePue99Async(rfc, "E", año, mesI, mesF) // EMITDOS - LA API NO DEVUELVE NADA
+          );
+        } else {
+          tareasUsoPUE.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarPue30Recibido) {
+          tareasUsoPUE.push(
+            this.GetReportePue30Async(rfc, "R", año, mesI, mesF) // RECIBIDOS
+          );
+        } else {
+          tareasUsoPUE.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarPue30Emitido) {
+          tareasUsoPUE.push(
+            this.GetReportePue30Async(rfc, "E", año, mesI, mesF) // EMITIDOS
+          );
+        } else {
+          tareasUsoPUE.push([]);
+        }
+
+        // const tareasUsoPUE = [
+        //   this.GetReportePue99Async(rfc, "R", año, mesI, mesF), // RECIBIDOS
+        //   this.GetReportePue99Async(rfc, "E", año, mesI, mesF), // EMITDOS - LA API NO DEVUELVE NADA
+        //   this.GetReportePue30Async(rfc, "R", año, mesI, mesF), // RECIBIDOS
+        //   this.GetReportePue30Async(rfc, "E", año, mesI, mesF), // EMITIDOS
+        // ];
+
+        const resultadosPUE = await Promise.all(tareasUsoPUE);
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Obteniendo reporte sin impuestos...",
+          messageColor: "white",
+        });
+
+        const tareasReporteSinImpuestos = [];
+
+        if (this.mostrarSeccionesReporte.mostrarSinImpuestosRecibidos) {
+          tareasReporteSinImpuestos.push(
+            this.GetReporteSinImpuestosAsync(rfc, "R", año, mesI, mesF)
+          );
+        } else {
+          tareasReporteSinImpuestos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarSinImpuestosEmitidos) {
+          tareasReporteSinImpuestos.push(
+            this.GetReporteSinImpuestosAsync(rfc, "E", año, mesI, mesF)
+          );
+        } else {
+          tareasReporteSinImpuestos.push([]);
+        }
+
+        // const tareasReporteSinImpuestos = [
+        //   this.GetReporteSinImpuestosAsync(rfc, "R", año, mesI, mesF), // EMITIDOS
+        //   this.GetReporteSinImpuestosAsync(rfc, "E", año, mesI, mesF), // EMITIDOS
+        // ];
+        const resultadosReporteSinImpuestos = await Promise.all(
+          tareasReporteSinImpuestos
+        );
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Obteniendo reporte de riesgos...",
+          messageColor: "white",
+        });
+
+        const tareasReporteRiesgos = [];
+
+        if (this.mostrarSeccionesReporte.mostrarRiesgoArrendamiento) {
+          tareasReporteRiesgos.push(
+            this.GetReporteRiesgoArrendamientoAsync(rfc, año, mesI, mesF)
+          );
+        } else {
+          tareasReporteRiesgos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarRiesgoConceptosEmitidos) {
+          tareasReporteRiesgos.push(
+            this.GetReporteRiesgoConceptosAsync(rfc, "E", año, mesI, mesF)
+          );
+        } else {
+          tareasReporteRiesgos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarSinImpuestosRecibidos) {
+          tareasReporteRiesgos.push(
+            this.GetReporteRiesgoConceptosAsync(rfc, "R", año, mesI, mesF)
+          );
+        } else {
+          tareasReporteRiesgos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarRiesgoFacturadoGlobal) {
+          tareasReporteRiesgos.push(
+            this.GetReporteRiesgoFacturaGlobalAsync(rfc, año, mesI, mesF)
+          );
+        } else {
+          tareasReporteRiesgos.push([]);
+        }
+
+        // const tareasReporteRiesgos = [
+        //   this.GetReporteRiesgoArrendamientoAsync(rfc, año, mesI, mesF), // SOLO RECIBIDOS
+        //   this.GetReporteRiesgoConceptosAsync(rfc, "R", año, mesI, mesF), // RECIBIDOS
+        //   this.GetReporteRiesgoConceptosAsync(rfc, "E", año, mesI, mesF), // RECIBIDOS
+        //   this.GetReporteRiesgoFacturaGlobalAsync(rfc, año, mesI, mesF),
+        // ];
+
+        const resultadosReporteRiesgos = await Promise.all(
+          tareasReporteRiesgos
+        );
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Calculando gastos...",
+          messageColor: "white",
+        });
+
+        const tareasReporteGastos = [];
+
+        if (this.mostrarSeccionesReporte.mostrarGastosEfectivo) {
+          tareasReporteGastos.push(
+            this.GetReporteGastosEfectivoAsync(rfc, año, mesI, mesF)
+          );
+        } else {
+          tareasReporteGastos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarConsumoCombustibleEmitido) {
+          tareasReporteGastos.push(
+            this.GetReporteConsumoCombustibleAsync(rfc, "E", año, mesI, mesF)
+          );
+        } else {
+          tareasReporteGastos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarConsumoCombustibleRecibido) {
+          tareasReporteGastos.push(
+            this.GetReporteConsumoCombustibleAsync(rfc, "R", año, mesI, mesF)
+          );
+        } else {
+          tareasReporteGastos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarNotasSinRelacion) {
+          tareasReporteGastos.push(
+            this.GetReporteNotasSinRelacionAsync(rfc, año, mesI, mesF)
+          );
+        } else {
+          tareasReporteGastos.push([]);
+        }
+
+        // const tareasReporteGastos = [
+        //   this.GetReporteGastosEfectivoAsync(rfc, año, mesI, mesF),
+        //   this.GetReporteConsumoCombustibleAsync(rfc, "E", año, mesI, mesF),
+        //   this.GetReporteConsumoCombustibleAsync(rfc, "R", año, mesI, mesF),
+        //   this.GetReporteNotasSinRelacionAsync(rfc, año, mesI, mesF),
+        // ];
+
+        const resultadosReporteGastos = await Promise.all(tareasReporteGastos);
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Calculando pagos...",
+          messageColor: "white",
+        });
+
+        const tareasPagos = [];
+
+        if (this.mostrarSeccionesReporte.mostrarPagoFueraDeTiempoRecibidos) {
+          tareasPagos.push(
+            this.GetReportePagoFueraDeTiempoAsync(rfc, "R", año, mesI, mesF)
+          );
+        } else {
+          tareasPagos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarPagoFueraDeTiempoEmitidos) {
+          tareasPagos.push(
+            this.GetReportePagoFueraDeTiempoAsync(rfc, "E", año, mesI, mesF)
+          );
+        } else {
+          tareasPagos.push([]);
+        }
+
+        if (
+          this.mostrarSeccionesReporte.mostrarPagoAntesDeComprobanteRecibidos
+        ) {
+          tareasPagos.push(
+            this.GetReportePagosAntesDeComprobanteAsync(
+              rfc,
+              "R",
+              año,
+              mesI,
+              mesF
+            )
+          );
+        } else {
+          tareasPagos.push([]);
+        }
+
+        if (
+          this.mostrarSeccionesReporte.mostrarPagoAntesDeComprobanteEmitidos
+        ) {
+          tareasPagos.push(
+            this.GetReportePagosAntesDeComprobanteAsync(
+              rfc,
+              "E",
+              año,
+              mesI,
+              mesF
+            )
+          );
+        } else {
+          tareasPagos.push([]);
+        }
+
+        // const tareasPagos = [
+        //   this.GetReportePagoFueraDeTiempoAsync(rfc, "R", año, mesI, mesF),
+        //   this.GetReportePagoFueraDeTiempoAsync(rfc, "E", año, mesI, mesF),
+        //   this.GetReportePagosAntesDeComprobanteAsync(
+        //     rfc,
+        //     "R",
+        //     año,
+        //     mesI,
+        //     mesF
+        //   ),
+        //   this.GetReportePagosAntesDeComprobanteAsync(
+        //     rfc,
+        //     "E",
+        //     año,
+        //     mesI,
+        //     mesF
+        //   ),
+        // ];
+
+        const resultadosPagos = await Promise.all(tareasPagos);
+
+        // impuestos
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Calculando impuestos...",
+          messageColor: "white",
+        });
+
+        const tareasImpuestos = [];
+
+        if (this.mostrarSeccionesReporte.mostrarReporteIva) {
+          tareasImpuestos.push(
+            this.GetReporteIvaAsync(rfc, "R", año, mesI, mesF),
+            this.GetReporteIvaAsync(rfc, "E", año, mesI, mesF)
+          );
+        } else {
+          tareasImpuestos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarIvaRetRecibidos) {
+          tareasImpuestos.push(
+            this.GetReporteIvaRetAsync(rfc, "R", año, mesI, mesF)
+          );
+        } else {
+          tareasImpuestos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarIvaRetEmitidos) {
+          tareasImpuestos.push(
+            this.GetReporteIvaRetAsync(rfc, "E", año, mesI, mesF)
+          );
+        } else {
+          tareasImpuestos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarIsrNomina) {
+          tareasImpuestos.push(
+            this.GetReporteIsrNominaAsync(rfc, año, mesI, mesF)
+          );
+        } else {
+          tareasImpuestos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarRetencionesIsr) {
+          tareasImpuestos.push(
+            this.GetRetencionesIsrAsync(rfc, año, mesI, mesF)
+          );
+        } else {
+          tareasImpuestos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarIeps) {
+          tareasImpuestos.push(this.GetReporteIepsAsync(rfc, año, mesI, mesF));
+        } else {
+          tareasImpuestos.push([]);
+        }
+
+        // const tareasImpuestos = [
+        //   this.GetReporteIvaAsync(rfc, "R", año, mesI, mesF), // RECIBIDOS
+        //   this.GetReporteIvaAsync(rfc, "E", año, mesI, mesF), // EMITIDOS
+        //   this.GetReporteIvaRetAsync(rfc, "R", año, mesI, mesF), // RECIBIDOS
+        //   this.GetReporteIvaRetAsync(rfc, "E", año, mesI, mesF), // EMITIDOS
+        //   this.GetReporteIsrNominaAsync(rfc, año, mesI, mesF),
+        //   this.GetRetencionesIsrAsync(rfc, año, mesI, mesF),
+        //   this.GetReporteIepsAsync(rfc, año, mesI, mesF),
+        // ];
+
+        const resultadosImpuestos = await Promise.all(tareasImpuestos);
+
+        // GetReporteCuentasPendientesAsync
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Calculando cuentas pendientes...",
+          messageColor: "white",
+        });
+
+        const tareasCuentasPendientes = [];
+
+        if (this.mostrarSeccionesReporte.mostrarCuentasPendientesEmitidos) {
+          tareasCuentasPendientes.push(
+            this.GetReporteCuentasPendientesAsync(rfc, "E", año, mesI, mesF)
+          );
+        } else {
+          tareasCuentasPendientes.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarCuentasPendientesRecibidos) {
+          tareasCuentasPendientes.push(
+            this.GetReporteCuentasPendientesAsync(rfc, "R", año, mesI, mesF)
+          );
+        } else {
+          tareasCuentasPendientes.push([]);
+        }
+
+        // const tareasCuentasPendientes = [
+        //   this.GetReporteCuentasPendientesAsync(rfc, "E", año, mesI, mesF),
+        //   this.GetReporteCuentasPendientesAsync(rfc, "R", año, mesI, mesF),
+        // ];
+
+        const resultadosCuentasPendientes = await Promise.all(
+          tareasCuentasPendientes
+        );
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Calculando anticipos...",
+          messageColor: "white",
+        });
+
+        const tareasAnticipos = [];
+
+        if (this.mostrarSeccionesReporte.mostrarAnticiposEmitidos) {
+          tareasImpuestos.push(
+            this.GetReporteAnticipoAsync(rfc, "E", año, mesI, mesF)
+          );
+        } else {
+          tareasAnticipos.push([]);
+        }
+
+        if (this.mostrarSeccionesReporte.mostrarAnticiposRecibidos) {
+          tareasImpuestos.push(
+            this.GetReporteAnticipoAsync(rfc, "R", año, mesI, mesF)
+          );
+        } else {
+          tareasAnticipos.push([]);
+        }
+
+        // const tareasAnticipos = [
+        //   this.GetReporteAnticipoAsync(rfc, "E", año, mesI, mesF),
+        //   this.GetReporteAnticipoAsync(rfc, "R", año, mesI, mesF),
+        // ];
+
+        const resultadosAnticipos = await Promise.all(tareasAnticipos);
+
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "white",
+          spinnerSize: 120,
+          message: "Calculando listas negras...",
+          messageColor: "white",
+        });
+
+        const listasNegras = [];
+
+        if (this.mostrarSeccionesReporte.mostrarListasNegras) {
+          listasNegras.push(this.GetReporteListasNegrasAsync(rfc, año));
+        } else {
+          listasNegras.push([]);
+        }
+
+        const resultadosListasNegras = await Promise.all(listasNegras);
+
+        const fin = performance.now();
+
+        //CREAMOS LAS TABLAS
+        var tablaEmitidos = [];
+        var tablaRecibidos = [];
+        var tablaPagos = [];
+        var tablaNominas = [];
+        var tablaNominaGeneral = resultadosImportesN[1];
+        var tablaNominaTrabajadores = resultadosImportesN[2];
+        var tabalaNominaConceptos = resultadosImportesN[3];
+
+        // Primero, procesamos los datos de emitidos y recibidos si existen
+        if (resultadosImportes[0]?.length > 0) {
+          const tope = mesF - mesI + 1;
+          for (let x = 0; x < tope; x++) {
+            //EMITIDOS
+            const nombreMes = this.obtenerNombreMes(
+              resultadosImportes[0][x].mes
+            );
+            var objEmitidos = {
+              mes: nombreMes,
+              contadorI: resultadosImportes[0][x].contador,
+              subTotalI: resultadosImportes[0][x].subTotal,
+              trasladosI: resultadosImportes[0][x].traslados,
+              retencionesI: resultadosImportes[0][x].retenciones,
+              totalI: resultadosImportes[0][x].total,
+
+              contadorE: resultadosImportes[1][x].contador,
+              subTotalE: resultadosImportes[1][x].subTotal,
+              trasladosE: resultadosImportes[1][x].traslados,
+              retencionesE: resultadosImportes[1][x].retenciones,
+              totalE: resultadosImportes[1][x].total,
+            };
+
+            //RECIBIDOS
+            var objRecibidos = {
+              mes: nombreMes,
+              contadorI: resultadosImportes[2][x].contador,
+              subTotalI: resultadosImportes[2][x].subTotal,
+              trasladosI: resultadosImportes[2][x].traslados,
+              retencionesI: resultadosImportes[2][x].retenciones,
+              totalI: resultadosImportes[2][x].total,
+
+              contadorE: resultadosImportes[3][x].contador,
+              subTotalE: resultadosImportes[3][x].subTotal,
+              trasladosE: resultadosImportes[3][x].traslados,
+              retencionesE: resultadosImportes[3][x].retenciones,
+              totalE: resultadosImportes[3][x].total,
+            };
+
+            //AGREGA A LAS TABLAS
+            tablaEmitidos.push(objEmitidos);
+            tablaRecibidos.push(objRecibidos);
+          }
+        }
+
+        // Procesamos los datos de nómina en un bloque separado
+        if (resultadosImportesN[0]?.length > 0) {
+          const topeNomina = mesF - mesI + 1;
+          for (let x = 0; x < topeNomina; x++) {
+            const nombreMes = this.obtenerNombreMes(
+              resultadosImportesN[0][x].mes
+            );
+
+            //NOMINA
+            var objNomina = {
+              mes: nombreMes,
+              contador: resultadosImportesN[0][x].contador,
+              percepciones: resultadosImportesN[0][x].percepciones,
+              deducciones: resultadosImportesN[0][x].deducciones,
+              otrosPagos: resultadosImportesN[0][x].otrosPagos,
+              total: resultadosImportesN[0][x].total,
+            };
+
+            // AGREGA A LA TABLA
+            tablaNominas.push(objNomina);
+          }
+        }
+
+        // PONEMOS NOMBRE MES EN NOMINA GENERAL (solo si hay datos)
+        if (tablaNominaGeneral?.length > 0) {
+          for (let i = 0; i < tablaNominaGeneral.length; i++) {
+            if (tablaNominaGeneral[i]?.mes) {
+              tablaNominaGeneral[i].mes = this.obtenerNombreMes(
+                tablaNominaGeneral[i].mes
+              );
+            }
+          }
+        }
+
+        const mensual = mesF === mesF ? true : false;
+
+        const objFacturado = {
+          emitidos: tablaEmitidos,
+          recibidos: tablaRecibidos,
+          // pagos: tablaPagos,
+          nomina: tablaNominas,
+          nominaGeneral: tablaNominaGeneral,
+          nominaTrabajadores: tablaNominaTrabajadores,
+          nominaConceptos: tabalaNominaConceptos,
+          rfcEmitidos: resultadosRfc[0],
+          rfcRecibidos: resultadosRfc[1],
+          usoCDFI: resultadosUsoCFDI[0],
+          pue99Recibidos: resultadosPUE[0],
+          pue99Emitidos: resultadosPUE[1],
+          pue30Recibidos: resultadosPUE[2],
+          pue30Emitidos: resultadosPUE[3],
+          rSinImpuestosRecibidos: resultadosReporteSinImpuestos[0],
+          rSinImpuestosEmitidos: resultadosReporteSinImpuestos[1],
+          riesgoArrendamiento: resultadosReporteRiesgos[0],
+          riesgoConceptosRecibidos: resultadosReporteRiesgos[1],
+          riesgoConceptosEmitidos: resultadosReporteRiesgos[2],
+          riesgoFacturadoGlobal: resultadosReporteRiesgos[3],
+          gastosEfectivo: resultadosReporteGastos[0],
+          consumoCombustibleEmitido: resultadosReporteGastos[1],
+          consumoCombustibleRecibido: resultadosReporteGastos[2],
+          notasSinRelacion: resultadosReporteGastos[3],
+          pagoFueraDeTiempoRecibidos: resultadosPagos[0],
+          pagoFueraDeTiempoEmitidos: resultadosPagos[1],
+          pagoAntesDeComprobanteRecibidos: resultadosPagos[2],
+          pagoAntesDeComprobanteEmitidos: resultadosPagos[3],
+          nominaDuplicadoO: resultadosImportesN[4],
+          nominaDuplicadoE: resultadosImportesN[5],
+          reporteIva: {
+            ivaRecibidos: resultadosImpuestos[0],
+            ivaEmitidos: resultadosImpuestos[1],
+          },
+          ivaRetRecibidos: resultadosImpuestos[2],
+          ivaRetEmitidos: resultadosImpuestos[3],
+          isrNomina: resultadosImpuestos[4],
+          retencionesIsr: resultadosImpuestos[5],
+          ieps: resultadosImpuestos[6],
+          cuentasPendientesEmitidos: resultadosCuentasPendientes[0],
+          cuentasPendientesRecibidos: resultadosCuentasPendientes[1],
+          anticiposEmitidos: resultadosAnticipos[0],
+          anticiposRecibidos: resultadosAnticipos[1],
+          listasNegras: resultadosListasNegras[0],
+        };
+        return objFacturado;
+      } catch (error) {
+        console.log(error);
+        this.$q.loading.hide();
+      }
+    },
 
         }
 }

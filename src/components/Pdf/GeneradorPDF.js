@@ -3408,6 +3408,7 @@ function agruparPorMoneda(data) {
   }, {})
 }
 
+ 
 const agregarPaginaFlujoComparativa = async (
   doc,
   colores,
@@ -3423,7 +3424,24 @@ const agregarPaginaFlujoComparativa = async (
     doc.addPage()
   
     const contenido = generarContenidoTabla(agrupado[moneda])
+
+    let totalE = 0
+    let totalR = 0
+    let totalD = 0
   
+    contenido.forEach(row => {
+      totalE += parseFloat(row[1].toString().replace(/,/g, ''))
+      totalR += parseFloat(row[2].toString().replace(/,/g, ''))
+      totalD += parseFloat(row[3].toString().replace(/,/g, ''))
+    })
+  
+    contenido.push([
+      'TOTAL',
+      totalE.toLocaleString('es-MX', { minimumFractionDigits: 2 }),
+      totalR.toLocaleString('es-MX', { minimumFractionDigits: 2 }),
+      totalD.toLocaleString('es-MX', { minimumFractionDigits: 2 })
+    ])
+
     let header = [
       'Mes',
       'Total Emitidos PUE',
@@ -3445,16 +3463,39 @@ const agregarPaginaFlujoComparativa = async (
       margin: { left: 20, right: 10 },
       theme: "grid",
       headStyles: {
-        fillColor: colores.primario,
+        fillColor: [8, 159, 144],
         textColor: [255, 255, 255],
         fontSize: 12,
       },
       columnStyles,
+      didParseCell: function (data) {
+
+        if (data.section === 'body' && data.column.index === 3) {
+          const valor = parseFloat(data.cell.raw.toString().replace(/,/g, ''))
+      
+          if (valor > 0) {
+            data.cell.styles.textColor = [0, 150, 0]
+            data.cell.styles.fontStyle = 'bold'
+          } else if (valor < 0) {
+            data.cell.styles.textColor = [200, 0, 0]
+            data.cell.styles.fontStyle = 'bold'
+          }
+        }
+      
+        if (
+          data.section === 'body' &&
+          data.row.index === data.table.body.length - 1
+        ) {
+          data.cell.styles.textColor = [0, 0, 0]
+          data.cell.styles.fillColor = [172, 223, 218]
+          data.cell.styles.fontStyle = 'bold'
+        }
+      },
       didDrawPage: function () {
         agregarPaginaSeccion(
           doc,
           `${titulo} - ${moneda}`,
-          colores.primario,
+          [8, 159, 144],
           "flujo_cobrado"
         )
       }
