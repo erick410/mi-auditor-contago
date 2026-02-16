@@ -989,8 +989,485 @@ export default {
             }
         },
 
+<<<<<<< HEAD
         async GetGeneralMoral() {
             try {
+=======
+            rutaAxios() {
+                return this.$store.state.rutaMongoStore
+            },
+
+            itemsAnios() {
+                let hoy = new Date().getFullYear();
+                let años = [];
+                for (let a = 0; a <= 6; a++) {
+                    años.push(hoy)
+                    hoy--;
+                }
+                return años;
+            },
+
+        },
+        created() {
+            this.Iniciales();
+        },
+        methods: {
+            Iniciales() {
+                let hoy = new Date().getFullYear();
+                this.selectedAnio = hoy.toString()
+            },
+
+            async GetReporte() {
+                if (!this.selectedAnio) {
+                    this.$q.notify({
+                        type: 'warning',
+                        message: `Seleccione el año`,
+                        actions: [
+                            { label: 'Cerrar', color: 'white', handler: () => { /* ... */ } }
+                        ]
+                    })
+                    return;
+                }
+
+                if (!this.selectedMes) {
+                    this.$q.notify({
+                        type: 'warning',
+                        message: `Seleccione el mes al que desea consultar`,
+                        actions: [
+                            { label: 'Cerrar', color: 'white', handler: () => { /* ... */ } }
+                        ]
+                    })
+                    return;
+                }
+
+                //VALIDAMOS EL REGIMEN            
+                await this.GetRegimen();
+                this.dialogRegimen = false;
+                const listaRegimen = [...this.añosRegimen]
+                const año = this.selectedAnio.toString();
+                const regimen = listaRegimen.find(o => o.año === año);
+
+                if (!regimen.tipoRegimen) {
+                    this.$q.notify({
+                        type: 'warning',
+                        message: `Indique el régimen fiscal del año ` + this.selectedAnio,
+                        actions: [
+                            { label: 'Cerrar', color: 'white', handler: () => { /* ... */ } }
+                        ]
+                    })
+                    return;
+                }
+
+                this.$q.loading.show({
+                    spinner: QSpinnerCube,
+                    spinnerColor: 'red-8',
+                    spinnerSize: 140,
+                    message: 'Generando reporte, espere...',
+                })
+                this.regimenSeleccionado = regimen.tipoRegimen.tipoRegimen
+                this.civiles = "NO";
+                this.columns = [];
+                //VALIDAMOS QUE NO SEA UNA SC O AC
+                if (regimen.civiles === "SI") {
+                    this.civiles = "SI";
+                    await this.GetPagoIsrAcYScA();
+                } else {
+                    this.regimenSeleccionadoClave = regimen.tipoRegimen.clave
+                    const claveRegimen = regimen.tipoRegimen.clave;
+                    const rfc = this.token.rfc
+                    if (rfc.length == 12) {
+                        var tipoPersona = 'MORAL';
+                    } else if (rfc.length == 13) {
+                        var tipoPersona = 'FISICA';
+                    }
+
+                    switch (claveRegimen) {
+                        case '601':
+                            await this.GetGeneralMoral();
+                            this.$q.loading.hide()
+                            break;
+                        case '626':
+                            if (tipoPersona === 'FISICA') {
+                                await this.GetResicoFisica();
+                            }
+                            if (tipoPersona === 'MORAL') {
+                                await this.GetResicoMoral();
+                            }
+                            this.$q.loading.hide()
+                            break;
+                        case '612':
+                            await this.GetFisicaActividadEmpresarial();
+                            this.$q.loading.hide()
+                            break;
+                    }
+                }
+            },
+
+            async GetGeneralMoral() {
+                try {
+                    let columnas = [
+                        { name: 'mes', align: 'left', label: 'Mes', field: 'mes' },
+                        { name: 'ingresosPorMes', align: 'right', label: 'Ingresos por Mes', field: 'ingresosPorMes' },
+                        { name: 'acciones', align: 'left', label: 'Acciones', field: 'acciones' },
+
+                        { name: 'ingresosAcumulados', align: 'right', label: 'Ingresos Acumulados', field: 'ingresosAcumulados' },
+                        { name: 'utilidadFiscal', align: 'right', label: 'Utilidad Fiscal', field: 'utilidadFiscal' },
+                        { name: 'basePagoProvisional', align: 'right', label: 'Base Pago Provisional', field: 'basePagoProvisional' },
+                        { name: 'pagoProvisional', align: 'right', label: 'Pago Provisional', field: 'pagoProvisional' },
+                        { name: 'impuestoCargo', align: 'right', label: 'Impuesto a Cargo', field: 'impuestoCargo' },
+                        { name: 'impuestoregistrado', align: 'right', label: 'Impuesto Registrado', field: 'impuestoregistrado' },
+                        { name: 'comparativa', align: 'right', label: 'Comparativa', field: 'comparativa' },
+                    ]
+                    this.columns = [...columnas]
+
+                    this.dataComprobantes = [];
+                    var ingresos = await this.GetIngresosFacturados();
+                    let coeficiente = await this.GetCoeficiente();
+                    let perdida = await this.GetPerdida();
+                    let registrados = await this.GetRegistrados();
+                    // console.log(ingresos);
+
+                    let ObjPp = {};
+                    let acumulado = 0;
+                    let pagoAnterior = 0;
+                    let impuestoCargo = 0;
+
+                    for (let i = 0; i < this.selectedMes.value; i++) {
+                        acumulado += ingresos[i].importe
+                        ObjPp.mes = ingresos[i].mes;
+                        ObjPp.ingresosPorMes = ingresos[i].importe;
+                        ObjPp.detalles = ingresos[i].detalles;
+                        ObjPp.ingresosAcumulados = acumulado;
+                        ObjPp.utilidadFiscal = acumulado * coeficiente[i].importe;
+                        let base = (acumulado * coeficiente[i].importe) - perdida[i].importe
+                        if (base < 0) {
+                            base = 0;
+                        }
+                        ObjPp.basePagoProvisional = base;
+                        ObjPp.pagoProvisional = (base * 30) / 100;
+
+                        impuestoCargo = ObjPp.pagoProvisional - pagoAnterior;
+                        ObjPp.impuestoCargo = impuestoCargo;
+                        if (impuestoCargo < 0) {
+                            ObjPp.impuestoCargo = 0;
+                        }
+                        pagoAnterior += ObjPp.impuestoCargo;
+
+                        ObjPp.impuestoregistrado = registrados[i].importe;
+
+                        let comparativa = ObjPp.impuestoCargo - ObjPp.impuestoregistrado
+                        ObjPp.comparativa = comparativa;
+                        this.dataComprobantes.push(ObjPp);
+                        ObjPp = {}
+                    }
+
+                    let objetoTotales = {
+                        mes: 'Total',
+                        ingresosPorMes: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.ingresosPorMes, 0),
+                        detalles: [],
+                        ingresosAcumulados: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.ingresosAcumulados, 0),
+                        utilidadFiscal: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.utilidadFiscal, 0),
+                        basePagoProvisional: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.basePagoProvisional, 0),
+                        pagoProvisional: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.pagoProvisional, 0),
+                        impuestoCargo: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.impuestoCargo, 0),
+                        impuestoregistrado: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.impuestoregistrado, 0),
+                        comparativa: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
+                    }
+                    this.dataComprobantes.push(objetoTotales);
+                } catch (error) {
+                    console.log(error)
+                }
+            },
+
+            async GetFisicaActividadEmpresarial() {
+                this.ShowLoadingGet();
+                try {
+                    let columnas = [
+                        { name: 'mes', align: 'left', label: 'Mes', field: 'mes' },
+
+                        { name: 'ingresosPorMes', align: 'right', label: 'Ingresos por Mes', field: 'ingresosPorMes' },
+                        { name: 'acciones', align: 'left', label: 'Acciones', field: 'acciones' },
+                        { name: 'ingresosAcumulados', align: 'right', label: 'Ingresos Acumulados', field: 'ingresosAcumulados' },
+
+                        { name: 'gastosPorMes', align: 'right', label: 'Gastos por Mes', field: 'gastosPorMes' },
+                        { name: 'accionesG', align: 'left', label: 'Acciones', field: 'accionesG' },
+                        { name: 'gastosAcumulados', align: 'right', label: 'Gastos Acumulados', field: 'gastosAcumulados' },
+
+
+                        { name: 'baseCalculo', align: 'right', label: 'Base del Cálculo', field: 'baseCalculo' },
+                        { name: 'limiteInferior', align: 'right', label: 'Límite Inferior', field: 'limiteInferior' },
+                        { name: 'baseImpuesto', align: 'right', label: 'Base Impuesto', field: 'baseImpuesto' },
+                        { name: 'porcentaje', align: 'right', label: 'Porcentaje', field: 'porcentaje' },
+                        { name: 'impuestoMarginal', align: 'right', label: 'Impuesto Marginal', field: 'impuestoMarginal' },
+                        { name: 'cuotaFija', align: 'right', label: 'Cuota Fija', field: 'cuotaFija' },
+                        { name: 'importeIsr', align: 'right', label: 'Importe ISR', field: 'importeIsr' },
+                        { name: 'pagosAnteriores', align: 'right', label: 'Pagos Anteriores', field: 'pagosAnteriores' },
+                        { name: 'isrCargo', align: 'right', label: 'ISR a Cargo', field: 'isrCargo' },
+
+                        { name: 'impuestoregistrado', align: 'right', label: 'Impuesto Registrado', field: 'impuestoregistrado' },
+                        { name: 'comparativa', align: 'right', label: 'Comparativa', field: 'comparativa' },
+                    ]
+                    this.columns = [...columnas]
+
+                    let tablas = await this.GetTablas('personas_fisicas_actividad_empresarial', 'mensual');
+                    // console.log(tablas[0].enero)
+                    let ingresos = await this.GetIngresosCobrados();
+                    let gastos = await this.GetGastosPagados();
+                    let registrados = await this.GetRegistrados();
+
+                    let ListComprobantes = [];
+                    let contador = 0;
+
+                    let ingresosAcumulados = 0;
+                    let gastosAcumulados = 0;
+                    let pagosAnteriores = 0;
+                    let isrCargo = 0;
+
+                    for (let x of ingresos) {
+                        ingresosAcumulados += x.importe;
+                        gastosAcumulados += gastos[contador].importe;
+                        // let baseCalculo = x.importe - gastos[contador].importe;
+                        let baseCalculo = ingresosAcumulados - gastosAcumulados;
+                        let limiteInferior = 0;
+                        let baseImpuesto = 0;
+                        let cuotaFija = 0;
+                        let porcentaje = 0;
+                        let impuestoMarginal = 0;
+                        let importeIsr = 0;
+
+                        if (baseCalculo < 0) {
+                            baseCalculo = 0;
+                        }
+
+                        //SI LA BASE ES MAYOS A 0, BUSCAMOS EN TABLA
+                        if (baseCalculo != 0) {
+                            let valor = x.mes.toLowerCase();
+                            let tablaMes = tablas[0][valor];
+
+                            let valorEncontrado = null;
+                            for (const rango of tablaMes) {
+                                const limiteInferior = parseFloat(rango.limite_inferior);
+                                const limiteSuperior = parseFloat(rango.limite_superior);
+
+                                if (baseCalculo >= limiteInferior && baseCalculo <= limiteSuperior) {
+                                    valorEncontrado = rango;
+                                    break; // Salimos del bucle una vez que encontramos el valor
+                                }
+                            }
+                            limiteInferior = valorEncontrado.limite_inferior
+                            cuotaFija = valorEncontrado.cuota_fija;
+                            porcentaje = valorEncontrado.porcentaje;
+
+                            //CALCULOS
+                            baseImpuesto = baseCalculo - limiteInferior;
+                            impuestoMarginal = Math.round(baseImpuesto * (porcentaje / 100) * 100) / 100;
+                            importeIsr = impuestoMarginal + cuotaFija;
+                            // console.log(cuotaFija, porcentaje);
+                        }
+
+                        isrCargo = importeIsr - pagosAnteriores;
+                        let representaIsrCargo = isrCargo;
+                        if (isrCargo <= 0) {
+                            representaIsrCargo = 0;
+                        }
+
+                        let ObjIngresos = {
+                            mes: x.mes,
+
+                            ingresosPorMes: x.importe,
+                            detalles: x.detalles,
+                            ingresosAcumulados: ingresosAcumulados,
+
+                            gastosPorMes: gastos[contador].importe,
+                            detallesG: gastos[contador].detalles,
+                            gastosAcumulados: gastosAcumulados,
+
+                            //CALCULAMOS IS HAY BASE
+                            baseCalculo: baseCalculo,
+                            limiteInferior: limiteInferior,
+                            baseImpuesto: baseImpuesto,
+                            porcentaje: porcentaje,
+                            impuestoMarginal: impuestoMarginal,
+                            cuotaFija: cuotaFija,
+                            importeIsr: importeIsr,
+
+                            pagosAnteriores: pagosAnteriores,
+                            isrCargo: representaIsrCargo,
+
+                            impuestoregistrado: registrados[contador].importe,
+                            comparativa: representaIsrCargo - registrados[contador].importe,
+                        }
+                        ListComprobantes.push(ObjIngresos)
+                        pagosAnteriores += isrCargo;
+                        contador++;
+                    }
+
+                    this.dataComprobantes = [...ListComprobantes]
+
+                    let objetoTotales = {
+                        mes: 'Total',
+                        ingresosPorMes: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.ingresosPorMes, 0),
+                        detalles: [],
+                        ingresosAcumulados: '---',
+                        gastosPorMes: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.gastosPorMes, 0),
+                        detallesG: [],
+                        gastosAcumulados: '---',
+                        baseCalculo: '---',
+                        limiteInferior: '---',
+                        baseImpuesto: '---',
+                        porcentaje: '---',
+                        impuestoMarginal: '---',
+                        cuotaFija: '---',
+                        importeIsr: '---',
+                        pagosAnteriores: '---',
+                        isrCargo: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.isrCargo, 0),
+                        impuestoregistrado: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.impuestoregistrado, 0),
+                        comparativa: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
+                    }
+                    this.dataComprobantes.push(objetoTotales);
+                    // console.log(objetoTotales)
+                } catch (error) {
+
+                }
+            },
+
+            async GenerarGrafica(data) {
+                // console.log(data)
+                data.pop();
+                const meses = data.map((item) => item.mes);
+                const ingresos = data.map((item) => item.ingresosPorMes);
+                const impuestos = data.map((item) => item.impuestoCargo);
+
+                let obj1 = {
+                    type: 'line',
+                    label: 'Ingresos por mes (Linea)',
+                    borderColor: '#FFA726',
+                    borderWidth: 2,
+                    fill: false,
+                    data: ingresos
+                }
+
+                let obj2 = {
+                    type: 'bar',
+                    label: 'Ingresos por mes (Barra)',
+                    backgroundColor: '#FFA726',
+                    data: ingresos,
+                    borderColor: 'white',
+                    borderWidth: 2
+                }
+
+                let obj3 = {
+                    type: 'line',
+                    label: 'Impuesto a cargo (Linea)',
+                    borderColor: '#66BB6A',
+                    borderWidth: 2,
+                    fill: false,
+                    data: impuestos
+                }
+
+                let obj4 = {
+                    type: 'bar',
+                    label: 'Impuesto a cargo (Barra)',
+                    backgroundColor: '#66BB6A',
+                    data: impuestos,
+                    borderColor: 'white',
+                    borderWidth: 2
+                }
+
+                let chartDatas = {
+                    labels: meses,
+                    datasets: []
+                }
+
+                chartDatas.datasets.push(obj1)
+                chartDatas.datasets.push(obj2)
+                chartDatas.datasets.push(obj3)
+                chartDatas.datasets.push(obj4)
+                this.chartData = { ...chartDatas }
+                // console.log(this.chartData)
+            },
+
+            async GetResicoFisica() {
+
+                this.ShowLoadingGet();
+                try {
+                    let columnas = [
+                        { name: 'mes', align: 'left', label: 'Mes', field: 'mes' },
+                        { name: 'ingresosPorMes', align: 'right', label: 'Ingresos por Mes', field: 'ingresosPorMes' },
+                        { name: 'acciones', align: 'left', label: 'Acciones', field: 'acciones' },
+                        { name: 'tasaAplicable', align: 'right', label: 'Tasa Aplicable', field: 'tasaAplicable' },
+                        { name: 'importeIsr', align: 'right', label: 'Importe ISR', field: 'importeIsr' },
+                        { name: 'impuestoregistrado', align: 'right', label: 'Impuesto Registrado', field: 'impuestoregistrado' },
+                        { name: 'comparativa', align: 'right', label: 'Comparativa', field: 'comparativa' },
+                    ]
+                    this.columns = [...columnas]
+                    this.tipoPersona = 'FISICA'
+
+                    let tablas = await this.GetTablas('resico_fisica', 'mensual');
+                    let ingresos_ = await this.GetIngresosCobrados();
+                    let registrados = await this.GetRegistrados();
+
+                    console.log(ingresos_);
+
+                    let ListComprobantes = [];
+                    let contador = 0;
+                    for (let x of ingresos_) {
+                        // BUSCAMOS SU LIMITE EN LA TABLA
+                        let tasaAplicable = {};
+                        let ingresos = Number(x.importe);
+                        let menorDiferencia = Infinity;
+
+                        // console.log(ingresos)
+                        for (const elemento of tablas[0].tablas) {
+                            if (elemento.hasta >= ingresos) {
+                                const diferencia = Math.abs(elemento.hasta - ingresos);
+                                if (diferencia < menorDiferencia) {
+                                    menorDiferencia = diferencia;
+                                    tasaAplicable = elemento;
+                                }
+                            }
+                            else{
+                                tasaAplicable.tasa = 2.5
+                            }
+                        }
+
+                        let importeIsr = 0;
+                        if(ingresos != 0){
+                            importeIsr = ingresos * (tasaAplicable.tasa / 100);
+                        }
+
+                        let ObjIngresos = {
+                            mes: x.mes,
+                            ingresosPorMes: x.importe,
+                            detalles: x.detalles,
+                            tasaAplicable: tasaAplicable.tasa,
+                            importeIsr: importeIsr,
+                            impuestoregistrado: registrados[contador].importe,
+                            comparativa: importeIsr - registrados[contador].importe,
+                        }
+                        ListComprobantes.push(ObjIngresos)
+                        contador++;
+                    }
+                    this.dataComprobantes = [...ListComprobantes]
+
+                    let objetoTotales = {
+                        mes: 'Total',
+                        ingresosPorMes: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.ingresosPorMes, 0),
+                        detalles: [],
+                        tasaAplicable: '---',
+                        importeIsr: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.importeIsr, 0),
+                        impuestoregistrado: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.impuestoregistrado, 0),
+                        comparativa: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
+                    }
+                    this.dataComprobantes.push(objetoTotales);
+                } catch (error) {
+                    console.log(error)
+                    this.$q.loading.hide()
+                }
+            },
+
+            async GetResicoMoral() {
+>>>>>>> 669a6ee394515607e4a4977487ee176146a7ccaa
                 let columnas = [
                     { name: "mes", align: "left", label: "Mes", field: "mes" },
                     {
