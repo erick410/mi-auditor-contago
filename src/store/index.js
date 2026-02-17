@@ -133,8 +133,8 @@ export default new Vuex.Store({
     litrosGasolineriaStore: {},
 
     //RUTA DEL AXIOS MONGO
-    // rutaMongoStore: 'https://api-mongo.contago.com.mx/api/',
-    rutaMongoStore: "https://localhost:44322/api/",
+    rutaMongoStore: 'https://api-mongo.contago.com.mx/api/',
+    // rutaMongoStore: "https://localhost:44322/api/",
 
     detallesIvaRet: null,
 

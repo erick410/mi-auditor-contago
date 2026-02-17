@@ -230,8 +230,9 @@
 
                     <q-td key="ivaRetenido" :props="props">{{ FormatCurrency(props.row.ivaRetenido)
                         }}</q-td>
-                    <!-- <q-td key="ivaRetenidoAnterior" :props="props">{{ FormatCurrency(props.row.ivaRetenidoAnterior)
-                        }}</q-td> -->
+                        
+                    <q-td v-if="token.rfc.length == 12" key="ivaRetenidoAnterior" :props="props">{{ FormatCurrency(props.row.ivaRetenidoAnterior)
+                        }}</q-td>
 
                     <q-td key="ivaCargo" :props="props">{{ FormatCurrency(props.row.ivaCargo) }}</q-td>
                     <q-td key="ivaFavor" :props="props">{{ FormatCurrency(props.row.ivaFavor) }}</q-td>
@@ -327,7 +328,9 @@
 
                 columns: [],
                 columnsDefault: [
-                    { name: 'año', align: 'left', label: 'Año', field: 'año' },
+                     ],
+
+                columnsFisicas:[ { name: 'año', align: 'left', label: 'Año', field: 'año' },
                     { name: 'mes', align: 'left', label: 'Mes', field: 'mes' },
                     { name: 'baseIvaTrasladado', align: 'right', label: 'Base IVA Trasladado', field: 'baseIvaTrasladado' },
                     { name: 'importeIvaTrasladado', align: 'right', label: 'Importe IVA Trasladado', field: 'importeIvaTrasladado' },
@@ -342,7 +345,24 @@
                     { name: 'cargoRegistrado', align: 'right', label: 'Cargo Registrado', field: 'cargoRegistrado', headerClasses: 'bg-green-14 text-white', classes: 'bg-green-2 text-black text-right ellipsis ' },
                     { name: 'favorRegistrado', align: 'right', label: 'Favor Registrado', field: 'favorRegistrado', headerClasses: 'bg-green-14 text-white', classes: 'bg-green-2 text-black text-right ellipsis ' },
                     { name: 'comparativa', align: 'right', label: 'Comparativa', field: 'comparativa' },
-                ],
+              ],
+
+              columnsMorales:[ { name: 'año', align: 'left', label: 'Año', field: 'año' },
+                    { name: 'mes', align: 'left', label: 'Mes', field: 'mes' },
+                    { name: 'baseIvaTrasladado', align: 'right', label: 'Base IVA Trasladado', field: 'baseIvaTrasladado' },
+                    { name: 'importeIvaTrasladado', align: 'right', label: 'Importe IVA Trasladado', field: 'importeIvaTrasladado' },
+                    { name: 'accionesT', align: 'left', label: 'Acciones', field: 'accionesT' },
+                    { name: 'baseIvaAcreditado', align: 'right', label: 'Base IVA Acreditado', field: 'baseIvaAcreditado' },
+                    { name: 'importeIvaAcreditado', align: 'right', label: 'Importe IVA Acreditado', field: 'importeIvaAcreditado' },
+                    { name: 'accionesA', align: 'left', label: 'Acciones', field: 'accionesA' },
+                    { name: 'ivaRetenido', align: 'right', label: 'IVA Retenido', field: 'ivaRetenido' },
+                    { name: 'ivaRetenidoAnterior', align: 'right', label: 'IVA Retenido Anterior', field: 'ivaRetenidoAnterior' },
+                    { name: 'ivaCargo', align: 'right', label: 'IVA a Cargo', field: 'ivaCargo', headerClasses: 'bg-primary text-white', classes: 'bg-red-2 text-black text-right ellipsis ' },
+                    { name: 'ivaFavor', align: 'right', label: 'IVA a Favor', field: 'ivaFavor', headerClasses: 'bg-primary text-white', classes: 'bg-red-2 text-black text-right ellipsis ' },
+                    { name: 'cargoRegistrado', align: 'right', label: 'Cargo Registrado', field: 'cargoRegistrado', headerClasses: 'bg-green-14 text-white', classes: 'bg-green-2 text-black text-right ellipsis ' },
+                    { name: 'favorRegistrado', align: 'right', label: 'Favor Registrado', field: 'favorRegistrado', headerClasses: 'bg-green-14 text-white', classes: 'bg-green-2 text-black text-right ellipsis ' },
+                    { name: 'comparativa', align: 'right', label: 'Comparativa', field: 'comparativa' },
+              ],
 
                 columnsExento: [
                     { name: 'año', align: 'left', label: 'Año', field: 'año' },
@@ -487,22 +507,138 @@
                 this.ivaSat8 = respuesta8;
                 this.ivaSat0 = respuesta0;
                 this.ivaSatExento = respuestaExento;
+                const rfc = this.token.rfc
 
-
-                if (this.selectedAnio < 2024) {
-                    // console.log('aqui 1')
+                if (rfc.length == 12) {
+                    this.columnsDefault = this.columnsMorales
+                    if (this.selectedAnio < 2024) {
                     const ivaCargo = await this.GetIvaTrasladado();
                     await this.GetReporteIva(ivaCargo);
                 } else {
-                    // console.log('aqui 2')
                     await this.GetReporteIva2024();
                 }
+
+                } else if (rfc.length == 13) {
+                    this.columnsDefault = this.columnsFisicas
+
+                     if (this.selectedAnio < 2024) {
+                    const ivaCargo = await this.GetIvaTrasladado();
+                    await this.GetReporteIvaFisicas(ivaCargo);
+                } else {
+                    await this.GetReporteIva2024Fisicas();
+                }
+            }
+
+
+                // if (this.selectedAnio < 2024) {
+                //     const ivaCargo = await this.GetIvaTrasladado();
+                //     await this.GetReporteIva(ivaCargo);
+                // } else {
+                //     await this.GetReporteIva2024();
+                // }
 
                 await this.GetReporteIvaPagosImpuestos();
                 // console.log(this.dataComprobantes)
             },
 
             async GetReporteIva(ivaCargo) {
+                try {
+
+                    console.log('ivaCargo')
+
+                    this.columns = [...this.columnsDefault]
+                    this.dataComprobantes = [];
+                    this.$q.loading.show({
+                        spinner: QSpinnerCube,
+                        spinnerColor: 'red-8',
+                        spinnerSize: 140,
+                        message: 'Consultando datos, espere...',
+                    })
+
+                    // let ivaCargo = await this.GetIvaTrasladado();
+                    let ivaAcreditable = await this.GetIvaAcreditado()
+                    let ivaRetenido = await this.GetIvaRetenido();
+                    console.log("iva ret a",ivaRetenido);
+                    let comparativa = await this.GetComparativa(this.selectedAnio, 'IVA')
+
+                    let ObjIva = {}
+
+                    for (let x = 0; x < this.selectedMes.value; x++) {
+                        ObjIva.año = this.selectedAnio;
+                        ObjIva.mes = ivaCargo[x].mes;
+
+                        ObjIva.baseIvaTrasladado = ivaCargo[x].baseIva;
+                        ObjIva.importeIvaTrasladado = ivaCargo[x].importeIva;
+                        ObjIva.detallesTrasladado = ivaCargo[x].detalles;
+
+                        ObjIva.baseIvaAcreditado = ivaAcreditable[x].baseIva
+                        ObjIva.importeIvaAcreditado = ivaAcreditable[x].importeIva
+                        ObjIva.detallesAcreditado = ivaAcreditable[x].detalles;
+
+                        ObjIva.ivaRetenidoAnterior = ivaRetenido[x].importeIva
+                        ObjIva.ivaRetenido = ivaRetenido[x + 1].importeIva
+
+                        let ivaCargo_ = ivaCargo[x].importeIva;
+                        let ivaAcreditado_ = ivaAcreditable[x].importeIva
+                        
+                        let ivaRetenido_ = ivaRetenido[x].importeIva
+                        let ivaRetenidoAnterior_ = ivaRetenido[x + 1].importeIva
+
+
+                        let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_
+                        if (calculo > 0) {
+                            ObjIva.ivaCargo = calculo
+                            ObjIva.ivaFavor = 0
+                        } else {
+                            ObjIva.ivaCargo = 0
+                            ObjIva.ivaFavor = calculo * -1
+                        }
+
+                        //COMPARATIVA
+                        ObjIva.cargoRegistrado = comparativa[x].ivaCargo
+                        ObjIva.favorRegistrado = comparativa[x].ivaFavor
+
+                        let comparativa_ = (ObjIva.ivaCargo - ObjIva.ivaFavor - ObjIva.cargoRegistrado + ObjIva.favorRegistrado) * -1
+                        if (comparativa_ != 0) {
+                            comparativa_ = comparativa_ * -1;
+                        }
+                        ObjIva.comparativa = comparativa_;
+
+                        this.dataComprobantes.push(ObjIva);
+                        ObjIva = {}
+                    }
+
+                    let objetoTotales = {
+                        año: 'Total',
+                        mes: '',
+
+                        baseIvaTrasladado: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.baseIvaTrasladado, 0),
+                        importeIvaTrasladado: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.importeIvaTrasladado, 0),
+                        detallesTrasladado: [],
+
+                        baseIvaAcreditado: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.baseIvaAcreditado, 0),
+                        importeIvaAcreditado: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.importeIvaAcreditado, 0),
+                        detallesAcreditado: [],
+
+                        ivaRetenidoAnterior: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior, 0),
+                        ivaRetenido: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.ivaRetenido, 0),
+                        ivaCargo: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.ivaCargo, 0),
+                        ivaFavor: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.ivaFavor, 0),
+                        cargoRegistrado: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.cargoRegistrado, 0),
+                        favorRegistrado: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.favorRegistrado, 0),
+                        comparativa: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
+                    }
+                    this.dataComprobantes.push(objetoTotales);
+                    await this.GenerarGrafica(this.dataComprobantes);
+
+                    this.$q.loading.hide()
+                } catch (error) {
+                    console.log(error)
+                    this.$q.loading.hide()
+                }
+            },
+
+            async GetReporteIvaFisicas(ivaCargo) {
                 try {
 
                     console.log('ivaCargo')
@@ -1162,6 +1298,112 @@
 
             //CALCULO DEL IVA
             async GetReporteIva2024() {
+                this.$q.loading.show({
+                    spinner: QSpinnerCube,
+                    spinnerColor: 'red-8',
+                    spinnerSize: 140,
+                    message: 'Calculando..',
+                });
+
+                this.dataComprobantes = [];
+                const rfc = this.token.rfc;
+                const fechaI = `${this.selectedAnio}-01-01`;
+                const fechaF = `${this.selectedAnio}-${this.selectedMes.value}-01`;
+
+                // **Fetching data**
+                const emitidos = (await this.GetReporteIvaCompletoEmitidos(rfc, fechaI, fechaF)) || [];
+                const recibidos = (await this.GetReporteIvaCompletoRecibidos(rfc, fechaI, fechaF)) || [];
+                const ivaRet = (await this.GetIvaRetenido()) || [];
+                console.log("Retenido",ivaRet);
+                const comp = (await this.GetComparativa(this.selectedAnio, 'IVA')) || [];
+                this.columns = [...this.columnsDefault];
+                const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+
+                for (let x = 0; x <= this.selectedMes.value; x++) {
+                    const mes = meses[x];
+
+                    const baseIvaTrasladado = emitidos
+                        .filter(item => item.mes?.toUpperCase() === mes)
+                        .reduce((acc, item) => acc + (item.baseIva || 0), 0);
+
+                    const importeIvaTrasladado = emitidos
+                        .filter(item => item.mes?.toUpperCase() === mes)
+                        .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+
+                    const baseIvaAcreditado = recibidos
+                        .filter(item => item.mes?.toUpperCase() === mes)
+                        .reduce((acc, item) => acc + (item.baseIva || 0), 0);
+
+                    const importeIvaAcreditado = recibidos
+                        .filter(item => item.mes?.toUpperCase() === mes)
+                        .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+
+                    // console.log("Retenido", ivaRet);
+                    const ivaRetenido = ivaRet
+                        .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio)
+                        .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+
+                    const ivaRetenidoAnterior =   [x]?.importeIva || 0;
+
+                    let ivaCargo = 0;
+                    let ivaFavor = 0;
+                    const calculo = importeIvaTrasladado - importeIvaAcreditado + ivaRetenido - ivaRetenidoAnterior;
+
+                    if (calculo > 0) {
+                        ivaCargo = calculo;
+                        ivaFavor = 0;
+                    } else {
+                        ivaCargo = 0;
+                        ivaFavor = Math.abs(calculo);
+                    }
+
+                    const cargoRegistrado = comp
+                        .filter(item => item.mes?.toUpperCase() === mes)
+                        .reduce((acc, item) => acc + (item.ivaCargo || 0), 0);
+
+                    const favorRegistrado = comp
+                        .filter(item => item.mes?.toUpperCase() === mes)
+                        .reduce((acc, item) => acc + (item.ivaFavor || 0), 0);
+
+                    let comparativa = (ivaCargo - ivaFavor - cargoRegistrado + favorRegistrado) * -1;
+                    if (comparativa !== 0) {
+                        comparativa *= -1;
+                    }
+
+                    const objIva = {
+                        año: this.selectedAnio,
+                        mes: mes,
+                        baseIvaTrasladado: baseIvaTrasladado,
+                        importeIvaTrasladado: importeIvaTrasladado,
+                        accionesT: [],
+                        baseIvaAcreditado: baseIvaAcreditado,
+                        importeIvaAcreditado: importeIvaAcreditado,
+                        accionesA: [],
+                        ivaRetenido: ivaRetenido,
+                        ivaRetenidoAnterior: ivaRetenidoAnterior,
+                        ivaCargo: ivaCargo,
+                        ivaFavor: ivaFavor,
+                        cargoRegistrado: cargoRegistrado,
+                        favorRegistrado: favorRegistrado,
+                        comparativa: comparativa,
+                    };
+
+                    // console.log(objIva)
+                    this.dataComprobantes.push(objIva);
+                }
+
+
+                // Asegura que existan datos 
+                if (this.dataComprobantes.length > 0) {
+                    await this.GenerarGrafica(this.dataComprobantes);
+                } else {
+                    console.warn("No hay datos por mostrar.");
+                }
+
+                this.$q.loading.hide();
+            },
+
+            async GetReporteIva2024Fisicas() {
                 this.$q.loading.show({
                     spinner: QSpinnerCube,
                     spinnerColor: 'red-8',

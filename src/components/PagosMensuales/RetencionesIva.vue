@@ -277,11 +277,11 @@ export default {
 console.log(response)
                 //ASIGNAMOS LAS COMPARATIVAS
                 for (let a = 1; a <= mesFin; a++) {
-                    let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe
+                    let diferencia = ivaRetenido[a].importeIva - 0
                     let objIva = {
                         mes: ivaRetenido[a].mes,
                         importeIva: ivaRetenido[a].importeIva,
-                        comparativa: comparativaIva[a - 1].importe,
+                        comparativa: 0,
                         diferencia: diferencia,
                         detalles: ivaRetenido[a].detalles,
                     }

@@ -345,7 +345,9 @@ export async function  generarReporte(
   usuario,
   flujoComparativa,
   dataIvaRetenidoNeteado,
-  dataISRRetenidoFavor
+  dataISRRetenidoFavor,
+  dataComprobantesConceptos,
+  rfcEmpresa
 ) {
   const doc = new jsPDF({
     orientation: "portrait",
@@ -395,38 +397,83 @@ export async function  generarReporte(
   y = agregarTextoConSaltos(doc, observaciones, y, 155, 520, 14);
   y += 5; // espacio entre secciones
 
-  autoTable(doc, {
-    startY: y,
-    head: [
-      [
-        "Mes",
+
+  let columnasIva = null
+
+  let columnasFisicas = [
+    "Mes",
         "Base IVA Trasladado",
         "Importe IVA Trasladado",
         "Base IVA Acreditado",
         "Importe IVA Acreditado",
         "IVA Retenido",
-        // "IVA Retenido Anterior",
         "IVA Cargo",
         "IVA Favor",
         "Cargo Registrado",
         "Favor Registrado",
         "Comparativa",
-      ],
-    ],
-    body: datos.map((x) => [
-      x.mes,
-      formatoPesos(x.baseIvaTrasladado),
-      formatoPesos(x.importeIvaTrasladado),
-      formatoPesos(x.baseIvaAcreditado),
-      formatoPesos(x.importeIvaAcreditado),
-      formatoPesos(x.ivaRetenido),
-      // formatoPesos(x.ivaRetenidoAnterior),
-      formatoPesos(x.ivaCargo),
-      formatoPesos(x.ivaFavor),
-      formatoPesos(x.cargoRegistrado),
-      formatoPesos(x.favorRegistrado),
-      formatoPesos(x.comparativa),
-    ]),
+  ]
+
+  let columnasMorales = [
+    "Mes",
+        "Base IVA Trasladado",
+        "Importe IVA Trasladado",
+        "Base IVA Acreditado",
+        "Importe IVA Acreditado",
+        "IVA Retenido",
+        "IVA Retenido Anterior",
+        "IVA Cargo",
+        "IVA Favor",
+        "Cargo Registrado",
+        "Favor Registrado",
+        "Comparativa",
+  ]
+
+  let datosIva = null 
+
+  let datosFisicas = datos.map((x) => [
+    x.mes,
+    formatoPesos(x.baseIvaTrasladado),
+    formatoPesos(x.importeIvaTrasladado),
+    formatoPesos(x.baseIvaAcreditado),
+    formatoPesos(x.importeIvaAcreditado),
+    formatoPesos(x.ivaRetenido),
+    formatoPesos(x.ivaCargo),
+    formatoPesos(x.ivaFavor),
+    formatoPesos(x.cargoRegistrado),
+    formatoPesos(x.favorRegistrado),
+    formatoPesos(x.comparativa),
+  ])
+
+  let datosMorales = datos.map((x) => [
+    x.mes,
+    formatoPesos(x.baseIvaTrasladado),
+    formatoPesos(x.importeIvaTrasladado),
+    formatoPesos(x.baseIvaAcreditado),
+    formatoPesos(x.importeIvaAcreditado),
+    formatoPesos(x.ivaRetenido),
+      formatoPesos(x.ivaRetenidoAnterior),
+    formatoPesos(x.ivaCargo),
+    formatoPesos(x.ivaFavor),
+    formatoPesos(x.cargoRegistrado),
+    formatoPesos(x.favorRegistrado),
+    formatoPesos(x.comparativa),
+  ])
+
+  if(rfcEmpresa.length == 12){
+    columnasIva = columnasMorales
+    datosIva = datosMorales
+  }else if(rfcEmpresa.length == 13){
+    columnasIva = columnasFisicas
+    datosIva = datosFisicas
+  }
+ 
+
+
+  autoTable(doc, {
+    startY: y,
+    head: [[...columnasIva]],
+    body:datosIva ,
     headStyles: {
       fillColor: "#E74747",
       textColor: "#FFF",
@@ -449,12 +496,12 @@ export async function  generarReporte(
       8: { halign: "right" },
       9: { halign: "right" },
       10: { halign: "right" },
-      // 11: { halign: "right" },
+      11: { halign: "right" },
     },
 
     didParseCell: function (data) {
       if (data.section === "body") {
-        if (data.row.index === datos.length - 1) {
+        if (data.row.index === datosIva.length - 1) {
           data.cell.styles.fillColor = "#F7C1C1";
           data.cell.styles.textColor = [0, 0, 0];
           data.cell.styles.fontStyle = "bold";
@@ -2701,19 +2748,86 @@ if(comentarios.trim() != ''){
   }
 
   y = doc.lastAutoTable.finalY + 20;
-  
 
   await agregarPaginaFlujoComparativa(
     doc,
     flujoComparativa,
     y
   );
-  
+
+  y = doc.lastAutoTable.finalY + 20;
+
+  if(dataComprobantesConceptos.length != 0){
+    
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "COMPARATIVA POR CONCEPTO", 40, y, 520, 14);
+    y += 5; // espacio entre secciones
+
+   
+    
+    const dataOrdenada = dataComprobantesConceptos
+  .filter(x => x.diferencia > 20000 || x.diferencia < -20000)
+  .sort((a, b) => b.diferencia - a.diferencia)
+
+    autoTable(doc, {
+      startY: y,
+      head: [
+        [
+          "Clave del Producto o servicio",
+          "Descripción",
+          "Importe de Ventas",
+          "Importe de Compras",
+          "Diferencia",
+        ],
+      ],
+      body: dataOrdenada.map((x) => [
+        x.claveProdServ,
+        x.descripcion,
+        formatoPesos(x.importeVenta),
+        formatoPesos(x.importeCompra),
+        formatoPesos(x.diferencia),
+      ]),
+      headStyles: {
+        fillColor: "#E74747",
+        textColor: "#FFF",
+        fontSize: 6,
+        halign: "center",
+        valign: "middle",
+      },
+      styles: {
+        fontSize: 6,
+        cellPadding: 2,
+      },
+      columnStyles: {
+        0: { halign: "left" },
+        1: { halign: "left" },
+        2: { halign: "right" },
+        3: { halign: "right" },
+        4: { halign: "right" },
+        5: { halign: "right" },
+      },
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          if (data.row.index === dataPremiumU.length - 1) {
+            data.cell.styles.fillColor = "#F7C1C1";
+            data.cell.styles.textColor = [0, 0, 0];
+            data.cell.styles.fontStyle = "bold";
+          }
+        }
+      },
+      didDrawPage: function (data) {
+        // Pie de página
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
+          align: "center",
+        });
+      },
+    });
+  }
 
   y = doc.lastAutoTable.finalY + 50;
-
- 
- 
 
 // Altura total de la página
 const pageHeight = doc.internal.pageSize.height;
