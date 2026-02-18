@@ -1276,7 +1276,8 @@ export default {
             for (let x of ingresos) {
                 ingresosAcumulados += x.importe;
                 deduccionesAcumuladas += gastos[contador].importe;
-                let utilidadFiscalPrevia = x.importe - gastos[contador].importe;
+                // let utilidadFiscalPrevia = x.importe - gastos[contador].importe;
+                let utilidadFiscalPrevia = ingresosAcumulados - deduccionesAcumuladas;
                 if (utilidadFiscalPrevia < 0) {
                     utilidadFiscalPrevia = 0;
                 }

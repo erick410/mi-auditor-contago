@@ -654,7 +654,7 @@
 
                     // let ivaCargo = await this.GetIvaTrasladado();
                     let ivaAcreditable = await this.GetIvaAcreditado()
-                    let ivaRetenido = await this.GetIvaRetenido();
+                    let ivaRetenido = await this.GetReporteIvaRetenidoNeteadoAsync();
                     console.log("iva ret a",ivaRetenido);
                     let comparativa = await this.GetComparativa(this.selectedAnio, 'IVA')
 
@@ -942,6 +942,21 @@
             },
 
             async GetIvaRetenido() {
+                try {
+                    this.dialogtext = 'Consultando IVA Retenido ...'
+                    let añoSel = this.selectedAnio - 1
+                    let fechaI = añoSel + '-' + '12' + '-01';
+                    let fechaF = this.selectedAnio + '-' + this.selectedMes.value + '-01';
+
+                    let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
+                    console.log('nueva', response)
+                    return response.data;
+                } catch (error) {
+                    console.log(error)
+                }
+            },
+
+            async GetReporteIvaRetenidoNeteadoAsync() {
                 try {
                     this.dialogtext = 'Consultando IVA Retenido ...'
                     let añoSel = this.selectedAnio - 1
@@ -1343,7 +1358,8 @@
                         .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio)
                         .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-                    const ivaRetenidoAnterior =   [x]?.importeIva || 0;
+
+                    const ivaRetenidoAnterior =   ivaRet[x]?.importeIva || 0;
 
                     let ivaCargo = 0;
                     let ivaFavor = 0;
@@ -1419,7 +1435,7 @@
                 // **Fetching data**
                 const emitidos = (await this.GetReporteIvaCompletoEmitidos(rfc, fechaI, fechaF)) || [];
                 const recibidos = (await this.GetReporteIvaCompletoRecibidos(rfc, fechaI, fechaF)) || [];
-                const ivaRet = (await this.GetIvaRetenido()) || [];
+                const ivaRet = (await this.GetReporteIvaRetenidoNeteadoAsync()) || [];
                 console.log("Retenido",ivaRet);
                 const comp = (await this.GetComparativa(this.selectedAnio, 'IVA')) || [];
                 this.columns = [...this.columnsDefault];
@@ -1449,7 +1465,7 @@
                         .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio)
                         .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-                    const ivaRetenidoAnterior =   [x]?.importeIva || 0;
+                    const ivaRetenidoAnterior =   ivaRet[x]?.importeIva || 0;
 
                     let ivaCargo = 0;
                     let ivaFavor = 0;

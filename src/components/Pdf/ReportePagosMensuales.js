@@ -73,6 +73,7 @@ const agregarPaginaFlujoComparativa = async (
   resumen,
   y 
 ) => {
+  y += 20;
 
   doc.setFontSize(10);
       doc.setFont("helvetica", "bold");
@@ -2501,6 +2502,7 @@ if(comentarios.trim() != ''){
         14
       );
  
+      y += 20;
 
   for (let tab of datosRiesgoFiscal) {
     if (tab.datos.length != 0) {
@@ -2743,11 +2745,11 @@ if(comentarios.trim() != ''){
         },
       });
 
-      y = doc.lastAutoTable.finalY + 10;
+      y = doc.lastAutoTable.finalY + 20;
     }
   }
 
-  y = doc.lastAutoTable.finalY + 20;
+  y += 20;
 
   await agregarPaginaFlujoComparativa(
     doc,

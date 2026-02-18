@@ -301,6 +301,7 @@
             },
             
             VerDetalles(item) {
+                console.log(item)
                 const fecha = this.selectedAnio + "-" + this.selectedMes.value + "-" + item.dia
                 const fechaObjeto = parse(fecha, 'yyyy-M-dd', new Date());
                 console.log(fechaObjeto);
@@ -309,6 +310,7 @@
                     const objetoFecha = parse(objeto.fecha, "yyyy-MM-dd'T'HH:mm:ss'Z'", new Date());
                     return isSameDay(objetoFecha, fechaObjeto);
                 });
+                console.log(objetosEnFecha)
 
                 this.$store.state.detallesFacturacionStore.cabecera = 'INGRESOS ' + item.dia + ' DE ' + this.selectedMes.label + ' DEL ' + this.selectedAnio;
                 this.$store.state.detallesFacturacionStore.detalles = objetosEnFecha;

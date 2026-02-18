@@ -220,6 +220,7 @@ export default {
         },
 
         async VerComprobante(item) {
+            console.log(item)
             try {
                 this.$store.state.vistaPreviaStore.folioFiscal = item.folioFiscal;
                 this.$store.state.vistaPreviaStore.color = "19775C"

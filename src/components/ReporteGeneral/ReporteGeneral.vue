@@ -2990,6 +2990,15 @@ export default {
             const año = parseInt(partes[0], 10);
             const mes = parseInt(partes[1], 10);
             const nombreMes = this.obtenerNombreMes(mes);
+ 
+
+            const partesP = fechaP.split("T")[0].split("-");
+            const añoP = parseInt(partesP[0], 10);
+            const mesP = parseInt(partesP[1], 10);
+
+            if (año === añoP && mes === mesP) {
+              return;
+            }
 
             if (!objetoDatos[nombreMes]) {
               objetoDatos[nombreMes] = [];
@@ -4090,7 +4099,7 @@ export default {
 
         // let ivaCargo = await this.GetIvaTrasladado();
         let ivaAcreditable = await this.GetIvaAcreditado();
-        let ivaRetenido = await this.GetIvaRetenido();
+        let ivaRetenido = await this.GetReporteIvaRetenidoNeteadoAsync();
         console.log("iva ret a", ivaRetenido);
         let comparativa = await this.GetComparativa(this.selectedAnio, "IVA");
 
@@ -4152,7 +4161,7 @@ export default {
 
         let objetoTotales = {
           año: "Total",
-          mes: "",
+          mes: "Total",
 
           baseIvaTrasladado: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
@@ -4318,9 +4327,8 @@ export default {
       this.dataComprobantes.pop();
 
       let objetoTotales = {
-        año: "",
+        año: "TOTAL",
         mes: "TOTAL",
-
         baseIvaTrasladado: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
           0
@@ -4330,7 +4338,6 @@ export default {
           0
         ),
         detallesTrasladado: [],
-
         baseIvaAcreditado: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
           0
@@ -4340,7 +4347,6 @@ export default {
           0
         ),
         detallesAcreditado: [],
-
         ivaRetenidoAnterior: this.dataComprobantes.reduce(
           (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
           0
@@ -4396,7 +4402,7 @@ export default {
         (await this.GetReporteIvaCompletoEmitidos(rfc, fechaI, fechaF)) || [];
       const recibidos =
         (await this.GetReporteIvaCompletoRecibidos(rfc, fechaI, fechaF)) || [];
-      const ivaRet = (await this.GetIvaRetenido()) || [];
+      const ivaRet = (await this.GetReporteIvaRetenidoNeteadoAsync()) || [];
       console.log("Retenido", ivaRet);
       const comp = (await this.GetComparativa(this.selectedAnio, "IVA")) || [];
       const meses = [
@@ -4440,7 +4446,7 @@ export default {
           )
           .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-        const ivaRetenidoAnterior = [x]?.importeIva || 0;
+        const ivaRetenidoAnterior = ivaRet[x]?.importeIva || 0;
 
         let ivaCargo = 0;
         let ivaFavor = 0;
@@ -4489,6 +4495,61 @@ export default {
         // console.log(objIva)
         this.dataComprobantes.push(objIva);
       }
+
+      this.dataComprobantes.pop();
+
+let objetoTotales = {
+  año: "TOTAL",
+  mes: "TOTAL",
+  baseIvaTrasladado: this.dataComprobantes.reduce(
+    (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
+    0
+  ),
+  importeIvaTrasladado: this.dataComprobantes.reduce(
+    (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
+    0
+  ),
+  detallesTrasladado: [],
+  baseIvaAcreditado: this.dataComprobantes.reduce(
+    (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
+    0
+  ),
+  importeIvaAcreditado: this.dataComprobantes.reduce(
+    (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
+    0
+  ),
+  detallesAcreditado: [],
+  ivaRetenidoAnterior: this.dataComprobantes.reduce(
+    (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
+    0
+  ),
+  ivaRetenido: this.dataComprobantes.reduce(
+    (acumulador, objeto) => acumulador + objeto.ivaRetenido,
+    0
+  ),
+  ivaCargo: this.dataComprobantes.reduce(
+    (acumulador, objeto) => acumulador + objeto.ivaCargo,
+    0
+  ),
+  ivaFavor: this.dataComprobantes.reduce(
+    (acumulador, objeto) => acumulador + objeto.ivaFavor,
+    0
+  ),
+  cargoRegistrado: this.dataComprobantes.reduce(
+    (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
+    0
+  ),
+  favorRegistrado: this.dataComprobantes.reduce(
+    (acumulador, objeto) => acumulador + objeto.favorRegistrado,
+    0
+  ),
+  comparativa: this.dataComprobantes.reduce(
+    (acumulador, objeto) => acumulador + objeto.comparativa,
+    0
+  ),
+};
+
+this.dataComprobantes.push(objetoTotales);
 
       this.$q.loading.hide();
     },
@@ -4543,7 +4604,7 @@ export default {
 
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_" +
+            "Gastos/GetReporteIvaRetenidoAsync/erp_" +
             this.token.rfc +
             "/" +
             fechaI +
@@ -4556,6 +4617,20 @@ export default {
         console.log(error);
       }
     },
+    async GetReporteIvaRetenidoNeteadoAsync() {
+                try {
+                    let añoSel = this.selectedAnio - 1
+                    let fechaI = añoSel + '-' + '12' + '-01';
+                    let fechaF = this.selectedAnio + '-' + this.selectedMesF.value + '-01';
+
+                    let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
+                    console.log('nueva', response)
+                    return response.data;
+                } catch (error) {
+                    console.log(error)
+                }
+            },
+
     async GetReporteIvaCompletoEmitidos(rfc, fechaI, fechaF) {
       try {
         const response = await axios.get(
