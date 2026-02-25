@@ -2,29 +2,29 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-// --- FORMATO PESOS MXN ---
-function formatoPesos(v) {
-  if(v == null){
-    return ""
+  // --- FORMATO PESOS MXN ---
+  function formatoPesos(v) {
+    if(v == null){
+      return ""
+    }
+    return (
+      new Intl.NumberFormat("es-MX", {
+        style: "currency",
+        currency: "MXN",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }).format(v ?? 0) ?? 0
+    );
   }
-  return (
-    new Intl.NumberFormat("es-MX", {
-      style: "currency",
-      currency: "MXN",
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(v ?? 0) ?? 0
-  );
-}
 
-// --- FECHA REPORTE ---
-function fechaActual() {
-  return new Date().toLocaleDateString("es-MX", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
+  // --- FECHA REPORTE ---
+  function fechaActual() {
+    return new Date().toLocaleDateString("es-MX", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
 
 function FormatoPorcentaje(numero) {
   if (numero === "---") {
@@ -581,7 +581,8 @@ export async function  generarReporte(
   y += 10; // espacio entre secciones
 
   // y = agregarTextoConSaltos(doc, "Otro comentario…", 40, y, 520, 14);
-
+  let ultimoivar = retencionesIva[retencionesIva.length - 1]
+  if(ultimoivar.diferencia != 0){
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
   doc.text("RETENCIONES DE IVA", 40, y);
@@ -657,8 +658,58 @@ export async function  generarReporte(
     " se entera a más tardar el 17 de " +
     mesF;
 
-    y += 10;  
+    if (esAñoActual(anio) == false) {
+      condicion33 = "";
+    }
+    
   
+  
+    const valores1 = retencionesIva.map((d) => d.diferencia);
+    const hayPositivos1 = valores1.some((v) => v > 5);
+    const hayNegativos1 = valores1.some((v) => v < -5);
+  
+    let texto2 = "";
+    if (hayPositivos1 && hayNegativos1) {
+      console.log("Hay valores positivos y negativos");
+      texto2 = condicion11 + " " + condicion22;
+    } else if (hayPositivos1) {
+      console.log("Solo hay valores positivos");
+      texto2 = condicion11;
+    } else if (hayNegativos1) {
+      console.log("Solo hay valores negativos");
+      texto2 = condicion22;
+    } else {
+      console.log("Solo hay ceros o la lista está vacía");
+    }
+  
+    if (dia < 17) {
+      console.log("Hoy es antes del día 17");
+      texto2 = texto2 + " " + condicion33;
+    } else if (dia > 17) {
+      console.log("Hoy es después del día 17");
+    } else {
+      console.log("Hoy ES el día 17");
+      texto2 = texto2 + " " + condicion33;
+    }
+  
+    // ---- SELECCIONAR SOLO UNA ----
+    let condicionSeleccionada2 = texto2;
+  
+    // ---- CALCULAR ESPACIO ----
+    y = agregarTextoConSaltos(
+      doc,
+      condicionSeleccionada2,
+      40, // margen izquierdo
+      y, // continuar donde se quedó la tabla
+      520, // ancho máximo
+      14 // lineHeight
+    );
+    
+  }
+    y += 10;  
+
+    let ultimoivare = dataIvaRetenidoNeteado[dataIvaRetenidoNeteado.length - 1]
+    if(ultimoivare.diferencia != 0){
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.text("IVA RETENIDO EMITIDO", 40, y);
@@ -713,50 +764,7 @@ export async function  generarReporte(
   y = doc.lastAutoTable.finalY += 20;
 
 
-  if (esAñoActual(anio) == false) {
-    condicion33 = "";
-  }
-  const valores1 = retencionesIva.map((d) => d.diferencia);
-  const hayPositivos1 = valores1.some((v) => v > 5);
-  const hayNegativos1 = valores1.some((v) => v < -5);
-
-  let texto2 = "";
-  if (hayPositivos1 && hayNegativos1) {
-    console.log("Hay valores positivos y negativos");
-    texto2 = condicion11 + " " + condicion22;
-  } else if (hayPositivos1) {
-    console.log("Solo hay valores positivos");
-    texto2 = condicion11;
-  } else if (hayNegativos1) {
-    console.log("Solo hay valores negativos");
-    texto2 = condicion22;
-  } else {
-    console.log("Solo hay ceros o la lista está vacía");
-  }
-
-  if (dia < 17) {
-    console.log("Hoy es antes del día 17");
-    texto2 = texto2 + " " + condicion33;
-  } else if (dia > 17) {
-    console.log("Hoy es después del día 17");
-  } else {
-    console.log("Hoy ES el día 17");
-    texto2 = texto2 + " " + condicion33;
-  }
-
-  // ---- SELECCIONAR SOLO UNA ----
-  let condicionSeleccionada2 = texto2;
-
-  // ---- CALCULAR ESPACIO ----
-  y = agregarTextoConSaltos(
-    doc,
-    condicionSeleccionada2,
-    40, // margen izquierdo
-    y, // continuar donde se quedó la tabla
-    520, // ancho máximo
-    14 // lineHeight
-  );
-
+    }
   y += 10; // espacio entre secciones
 
   doc.setFontSize(11);
@@ -1435,6 +1443,9 @@ export async function  generarReporte(
 
   y += 10; // espacio entre secciones
 
+  let ultimo = provisionalesISR[provisionalesISR.length - 1]
+
+  if(ultimo.comparativa != 0){
   doc.setFontSize(11);
   doc.setFont("helvetica", "bold");
   y = agregarTextoConSaltos(doc, "PAGOS PROVISIONALES DE ISR", 40, y, 520, 14);
@@ -1566,6 +1577,7 @@ if (ocultarColumnas) {
     14 // lineHeight
   );
 
+}
   y += 10; // espacio entre secciones
 
   doc.setFontSize(11);
@@ -1670,7 +1682,10 @@ if (ocultarColumnas) {
     14 // lineHeight
   );
 
-  if(esAñoActual(anio)== false){
+  let totaldeclaracion = dataAnual.reduce((acumulador, objeto) => acumulador + (objeto.columna2 - objeto.columna3) , 0)
+console.log(totaldeclaracion)
+console.log(dataAnual)
+  if(esAñoActual(anio)== false && totaldeclaracion != 0){
     y += 20;
 
     doc.setFontSize(9);
@@ -2647,7 +2662,7 @@ if(comentarios.trim() != ''){
           x.rfc,
           x.nombre,
           formatoPesos(x.subTotal),
-          formatoPesos(x.totalImpuestosTransladados),
+          formatoPesos(x.totalImpuestosTrasladados),
           formatoPesos(x.totalImpuestosRetenidos),
           formatoPesos(x.total),
         ]),
@@ -2809,15 +2824,7 @@ if(comentarios.trim() != ''){
         4: { halign: "right" },
         5: { halign: "right" },
       },
-      didParseCell: function (data) {
-        if (data.section === "body") {
-          if (data.row.index === dataPremiumU.length - 1) {
-            data.cell.styles.fillColor = "#F7C1C1";
-            data.cell.styles.textColor = [0, 0, 0];
-            data.cell.styles.fontStyle = "bold";
-          }
-        }
-      },
+      
       didDrawPage: function (data) {
         // Pie de página
         const page = doc.internal.getNumberOfPages();

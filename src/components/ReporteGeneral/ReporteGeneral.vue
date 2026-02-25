@@ -2693,7 +2693,7 @@ export default {
         const response = await axios.get(curl);
 
         const objetoDatos = {};
-
+        console.log('GetReporteSinImpuestosAsync',response)
         response.data.map((dato) => {
           try {
             // Extraer manualmente las partes de la fecha usando regex o split
@@ -2708,8 +2708,10 @@ export default {
             if (!objetoDatos[nombreMes]) {
               objetoDatos[nombreMes] = [];
             }
+            if(dato.tipoComprobante != "T"){
+              objetoDatos[nombreMes].push(dato);
+            }
 
-            objetoDatos[nombreMes].push(dato);
           } catch (error) {
             console.error(`Error procesando fecha: ${dato.fecha}`, error);
           }
@@ -2984,6 +2986,7 @@ export default {
           try {
             // Extraer manualmente las partes de la fecha usando regex o split
             const fechaStr = dato.fecha;
+            const fechaP = dato.fechaPago;
 
             // Asumiendo formato ISO: "YYYY-MM-DDTHH:MM:SSZ"
             const partes = fechaStr.split("T")[0].split("-");
