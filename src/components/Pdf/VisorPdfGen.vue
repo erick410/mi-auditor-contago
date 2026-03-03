@@ -221,7 +221,7 @@
                         colection = 'comprobantes_recibidos'
                         break;
                     case "NOTA CREDITO":
-                        base64 = await ComprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
+                        colection = 'comprobantes_recibidos'
                         break;
                     case 'PAGO':
                         colection = 'comprobantes_pagos_recibidos'
@@ -256,6 +256,9 @@
                             break;
                         case 'COMERCIO EXTERIOR':
                             base64 = await ComercioExterior20(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
+                            break;
+                            case "NOTA CREDITO":
+                            base64 = await ComprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
                             break;
                     }
                     this.pdfBase64 = 'data:application/pdf;base64,' + base64.split(',')[1];
