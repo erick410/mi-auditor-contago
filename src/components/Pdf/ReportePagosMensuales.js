@@ -885,7 +885,7 @@ export async function  generarReporte(
 
     if (dia < 17) {
       console.log("Hoy es antes del día 17");
-      texto3 = texto3 + " " + condicion33;
+      texto3 = texto3 + " " + condicionS3;
     } else if (dia > 17) {
       console.log("Hoy es después del día 17");
     } else {
