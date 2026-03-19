@@ -876,3 +876,18 @@
         }
     }
 </script>
+<style>
+.page-wrap {
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 16px;
+    
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background: #f0f2f5;
+}
+</style>

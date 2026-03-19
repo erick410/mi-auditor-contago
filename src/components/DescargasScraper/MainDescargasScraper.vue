@@ -68,6 +68,15 @@
                         </q-item-section>
                     </q-item>
                     <q-separator />
+                    <q-item active clickable v-ripple @click="irDescargasPagos">
+                        <q-item-section avatar>
+                            <q-icon name="mdi-package-down" />
+                        </q-item-section>
+                        <q-item-section>
+                            Descargas Sat Pagos
+                        </q-item-section>
+                    </q-item>
+                    <q-separator />
                 </q-list>
             </q-scroll-area>
         </q-drawer>
@@ -137,6 +146,9 @@ export default {
             this.$router.push({ name: 'DescargasMetadata' })
             this.$store.state.listaHistorialDescargasMetadataStore = []
         },
+        irDescargasPagos(){
+            this.$router.push({ name: 'DescargasPagos' })
+        }
     }
 }
 </script>

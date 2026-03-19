@@ -286,17 +286,10 @@ export default {
         },
         async salir() {
             this.$q.loading.show({ message: '<b>Cerrando Sesión...</b>' })
-
-            let respuesta;
             try {
-                respuesta = await axios.put(
-                    "https://api-framework.contago.com.mx/api/Usuarios/actualizaSesion/" +
-                    this.$store.state.usuario.nombre +
-                    "/INACTIVA"
-                );
-                this.$q.loading.hide()
                 this.$store.dispatch("salir");
                 this.$store.state.listaEmpresasStore=[]
+                this.$q.loading.hide()
             } catch (err) {
                 console.log(err);
                 this.$q.loading.hide()

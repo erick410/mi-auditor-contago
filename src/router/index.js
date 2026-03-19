@@ -107,6 +107,7 @@ import ViewReporteGeneral from "../components/ReporteGeneral/ViewReporteGeneral.
 import MainConceptos from "../components/Conceptos/MainConceptos.vue"
 import Conceptos from "../components/Conceptos/ListaConceptos.vue"
 
+import SatScraperPagos from "../components/SatScraperPagos/SatScraperPagos.vue";
 Vue.use(VueRouter);
 
 const routes = [
@@ -684,6 +685,12 @@ const routes = [
         path: "DescargasMetadata",
         component: DescargasMetadata,
         name: "DescargasMetadata",
+        meta: { Administrador: true, Gasolinero: true },
+      },
+      {
+        path: "DescargasPagos",
+        component: SatScraperPagos,
+        name: "DescargasPagos",
         meta: { Administrador: true, Gasolinero: true },
       },
     ],
