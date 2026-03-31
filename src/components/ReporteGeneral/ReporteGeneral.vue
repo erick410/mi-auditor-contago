@@ -6,43 +6,15 @@
 
     <q-header elevated>
       <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="mdi-home"
-          aria-label="Menu"
-          @click="$router.push({ name: 'Home' })"
-        />
+        <q-btn flat dense round icon="mdi-home" aria-label="Menu" @click="$router.push({ name: 'Home' })" />
         <q-toolbar-title>
           <div class="text-h6 text-weight-bolder">REPORTES</div>
         </q-toolbar-title>
         <div class="text-h6 q-mr-lg">{{ $store.state.usuario.rfc }}</div>
-        <q-btn
-          flat
-          class="q-mx-sm"
-          round
-          dense
-          icon="mdi-chat-question"
-          @click="dialogAsistente = true"
-        />
+        <q-btn flat class="q-mx-sm" round dense icon="mdi-chat-question" @click="dialogAsistente = true" />
 
-        <q-btn
-          flat
-          class="q-mx-sm"
-          round
-          dense
-          icon="mdi-domain"
-          @click="drawerEmpresas = !drawerEmpresas"
-        />
-        <q-btn
-          flat
-          class="q-mx-sm"
-          round
-          dense
-          icon="mdi-account"
-          @click="drawerPerfil = !drawerPerfil"
-        />
+        <q-btn flat class="q-mx-sm" round dense icon="mdi-domain" @click="drawerEmpresas = !drawerEmpresas" />
+        <q-btn flat class="q-mx-sm" round dense icon="mdi-account" @click="drawerPerfil = !drawerPerfil" />
       </q-toolbar>
     </q-header>
 
@@ -52,22 +24,13 @@
     </q-drawer>
 
     <!-- DRAWER EMPRESAS -->
-    <q-drawer
-      :width="350"
-      v-model="drawerEmpresas"
-      behavior="mobile"
-      side="right"
-      bordered
-    >
+    <q-drawer :width="350" v-model="drawerEmpresas" behavior="mobile" side="right" bordered>
       <drawerEmpresas></drawerEmpresas>
     </q-drawer>
 
     <!-- TARJETA DE CONFIGURACIÓN CENTRADA -->
 
-    <div
-      class="row justify-center q-mt-md"
-      v-if="mostrarAdvertenciaDatosEmpresa === true"
-    >
+    <div class="row justify-center q-mt-md" v-if="mostrarAdvertenciaDatosEmpresa === true">
       <q-card class="col-xs-12 col-sm-10 col-md-8 col-lg-6 q-mt-md no-shadow">
         <q-card-section>
           <div class="text-h6">¡Información empresarial incompleta!</div>
@@ -87,13 +50,8 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn
-            color="primary"
-            label="Completar ahora"
-            icon="arrow_forward"
-            class="q-px-md"
-            @click="$router.push('/Configuracion')"
-          />
+          <q-btn color="primary" label="Completar ahora" icon="arrow_forward" class="q-px-md"
+            @click="$router.push('/Configuracion')" />
         </q-card-actions>
       </q-card>
     </div>
@@ -110,34 +68,15 @@
           <div class="text-bold q-mb-md">Fecha y rango</div>
           <div class="row q-col-gutter-md">
             <div class="col-12 col-sm-4">
-              <q-select
-                outlined
-                dense
-                v-model="selectedAnio"
-                :options="itemsAnios"
-                label="Año"
-                class="full-width"
-              />
+              <q-select outlined dense v-model="selectedAnio" :options="itemsAnios" label="Año" class="full-width" />
             </div>
             <div class="col-12 col-sm-4">
-              <q-select
-                outlined
-                dense
-                v-model="selectedMesI"
-                :options="itemsMes"
-                label="Mes Inicial"
-                class="full-width"
-              />
+              <q-select outlined dense v-model="selectedMesI" :options="itemsMes" label="Mes Inicial"
+                class="full-width" />
             </div>
             <div class="col-12 col-sm-4">
-              <q-select
-                outlined
-                dense
-                v-model="selectedMesF"
-                :options="itemsMes"
-                label="Mes Final"
-                class="full-width"
-              />
+              <q-select outlined dense v-model="selectedMesF" :options="itemsMes" label="Mes Final"
+                class="full-width" />
             </div>
           </div>
         </q-card-section>
@@ -146,16 +85,8 @@
 
     <div class="row justify-center q-mt-md">
       <q-card bordered class="col-xs-12 col-sm-10 col-md-10 col-lg-10 q-mt-md no-shadow">
-        <q-tabs
-          v-model="tab"
-          class="bg-grey-3"
-          active-color="primary"
-          indicator-color="primary"
-          dense
-          align="justify"
-          narrow-indicator
-          bordered
-        >
+        <q-tabs v-model="tab" class="bg-grey-3" active-color="primary" indicator-color="primary" dense align="justify"
+          narrow-indicator bordered>
           <q-tab name="mails" label="Reporte General" />
           <q-tab name="alarms" label="Reporte de Impuestos" />
         </q-tabs>
@@ -166,22 +97,13 @@
               <div class="text-bold q-mb-md col-12">Configuración del reporte</div>
               <div class="col-12">
                 <q-list bordered class="q-mt-md rounded-borders">
-                  <q-expansion-item
-                    expand-separator
-                    icon="mdi-clipboard-list-outline"
-                    label="Mostrar detalles de los reportes"
-                  >
+                  <q-expansion-item expand-separator icon="mdi-clipboard-list-outline"
+                    label="Mostrar detalles de los reportes">
                     <q-list separator>
                       <!-- Iteramos sobre cada sección de concentrados -->
-                      <q-expansion-item
-                        v-for="(section, sectionName) in sections"
-                        :key="sectionName"
-                        expand-separator
-                        icon="mdi-text-box-multiple"
-                        :label="sectionName"
-                        v-if="section && section.items"
-                        :header-inset-level="1"
-                      >
+                      <q-expansion-item v-for="(section, sectionName) in sections" :key="sectionName" expand-separator
+                        icon="mdi-text-box-multiple" :label="sectionName" v-if="section && section.items"
+                        :header-inset-level="1">
                         <q-list separator :content-inset-level="0.5">
                           <!-- Opción para seleccionar todos los elementos de la sección -->
                           <q-item tag="label" v-ripple :inset-level="2">
@@ -189,31 +111,18 @@
                               <q-item-label>Todos los elementos</q-item-label>
                             </q-item-section>
                             <q-item-section avatar>
-                              <q-toggle
-                                color="blue"
-                                :value="checkConcentradosSelected(sectionName)"
-                                @input="toggleAllConcentrados(sectionName, $event)"
-                              />
+                              <q-toggle color="blue" :value="checkConcentradosSelected(sectionName)"
+                                @input="toggleAllConcentrados(sectionName, $event)" />
                             </q-item-section>
                           </q-item>
 
                           <!-- Elementos individuales de la sección -->
-                          <q-item
-                            tag="label"
-                            v-ripple
-                            v-for="item in section.items"
-                            :key="item.key"
-                            :inset-level="2"
-                          >
+                          <q-item tag="label" v-ripple v-for="item in section.items" :key="item.key" :inset-level="2">
                             <q-item-section>
                               <q-item-label>{{ item.label }}</q-item-label>
                             </q-item-section>
                             <q-item-section avatar>
-                              <q-toggle
-                                color="blue"
-                                v-model="mostrarConcentradosReporte[item.key]"
-                                val="true"
-                              />
+                              <q-toggle color="blue" v-model="mostrarConcentradosReporte[item.key]" val="true" />
                             </q-item-section>
                           </q-item>
                         </q-list>
@@ -221,21 +130,12 @@
                     </q-list>
                   </q-expansion-item>
 
-                  <q-expansion-item
-                    expand-separator
-                    icon="mdi-clipboard-list-outline"
-                    label="Secciones a mostrar en el reporte"
-                  >
+                  <q-expansion-item expand-separator icon="mdi-clipboard-list-outline"
+                    label="Secciones a mostrar en el reporte">
                     <q-list separator>
-                      <q-expansion-item
-                        v-for="(section, sectionName) in sections"
-                        :key="sectionName"
-                        expand-separator
-                        icon="mdi-text-box-multiple"
-                        :label="sectionName"
-                        v-if="section && section.items"
-                        :header-inset-level="1"
-                      >
+                      <q-expansion-item v-for="(section, sectionName) in sections" :key="sectionName" expand-separator
+                        icon="mdi-text-box-multiple" :label="sectionName" v-if="section && section.items"
+                        :header-inset-level="1">
                         <q-list separator :content-inset-level="0.5">
                           <!-- Opción para seleccionar todos los elementos de la sección -->
                           <q-item tag="label" v-ripple :inset-level="2">
@@ -243,31 +143,18 @@
                               <q-item-label>Todos los elementos</q-item-label>
                             </q-item-section>
                             <q-item-section avatar>
-                              <q-toggle
-                                color="blue"
-                                @input="toggleAllSecciones(sectionName, $event)"
-                                :value="checkSeccionesSelected(sectionName)"
-                              />
+                              <q-toggle color="blue" @input="toggleAllSecciones(sectionName, $event)"
+                                :value="checkSeccionesSelected(sectionName)" />
                             </q-item-section>
                           </q-item>
 
                           <!-- Elementos individuales de la sección -->
-                          <q-item
-                            tag="label"
-                            v-ripple
-                            v-for="item in section.items"
-                            :key="item.key"
-                            :inset-level="2"
-                          >
+                          <q-item tag="label" v-ripple v-for="item in section.items" :key="item.key" :inset-level="2">
                             <q-item-section>
                               <q-item-label>{{ item.label }}</q-item-label>
                             </q-item-section>
                             <q-item-section avatar>
-                              <q-toggle
-                                color="blue"
-                                v-model="mostrarSeccionesReporte[item.key]"
-                                val="true"
-                              />
+                              <q-toggle color="blue" v-model="mostrarSeccionesReporte[item.key]" val="true" />
                             </q-item-section>
                           </q-item>
                         </q-list>
@@ -581,12 +468,8 @@
             Generar reporte impuestos
           </q-btn> -->
 
-                <q-btn
-                  @click="generarReporteEmpresarial"
-                  dense
-                  color="primary"
-                  class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5"
-                >
+                <q-btn @click="generarReporteEmpresarial" dense color="primary"
+                  class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5">
                   <q-icon name="download" left size="sm" />
                   Generar reporte
                 </q-btn>
@@ -606,12 +489,7 @@
               <div class="row no-wrap justify-between q-mb-md">
                 <div class="text-bold text-h5">Reporte de Impuestos</div>
 
-                <q-btn
-                  @click="runAll"
-                  dense
-                  color="primary"
-                  class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5"
-                >
+                <q-btn @click="runAll" dense color="primary" class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5">
                   <q-icon name="download" left size="sm" />
                   Consultar información
                 </q-btn>
@@ -624,28 +502,15 @@
 
                 <div class="row items-center">
                   <div class="col-12 row no-wrap">
-                    <q-linear-progress
-                      class="q-mr-md"
-                      :value="task.progress"
-                      :color="
-                        task.status === 'success'
-                          ? 'green'
-                          : task.status === 'error'
+                    <q-linear-progress class="q-mr-md" :value="task.progress" :color="task.status === 'success'
+                        ? 'green'
+                        : task.status === 'error'
                           ? 'red'
                           : 'primary'
-                      "
-                      rounded
-                      striped
-                      size="20px"
-                    />
-                    <q-btn
-                      round
-                      v-if="task.status !== 'loading'"
-                      :icon="task.status === 'error' ? 'mdi-update' : 'mdi-update'"
-                      color="primary"
-                      @click="runTask(index)"
-                      style="margin-top: -10px"
-                    />
+                      " rounded striped size="20px" />
+                    <q-btn round v-if="task.status !== 'loading'"
+                      :icon="task.status === 'error' ? 'mdi-update' : 'mdi-update'" color="primary"
+                      @click="runTask(index)" style="margin-top: -10px" />
 
                     <q-spinner v-else color="primary" size="24px" />
                   </div>
@@ -653,14 +518,8 @@
               </div>
 
               <div class="row no-wrap justify-between q-mb-md">
-                <q-table
-                  class="full-width no-shadow"
-                  bordered
-                  title="Declaraciones Anuales"
-                  :data="dataAnual"
-                  :columns="columnsAnual"
-                  row-key="columna1"
-                >
+                <q-table class="full-width no-shadow" bordered title="Declaraciones Anuales" :data="dataAnual"
+                  :columns="columnsAnual" row-key="columna1">
                   <template v-slot:body="props">
                     <q-tr :props="props">
                       <q-td key="columna1" :props="props">
@@ -668,35 +527,15 @@
                       </q-td>
                       <q-td key="columna2" :props="props">
                         {{ formatCurrency(props.row.columna2) }}
-                        <q-popup-edit
-                          v-model="props.row.columna2"
-                          title="Determinado"
-                          auto-save
-                          v-slot="scope"
-                        >
-                          <q-input
-                            type="number"
-                            v-model.number="scope.value"
-                            dense
-                            autofocus
-                          />
+                        <q-popup-edit v-model="props.row.columna2" title="Determinado" auto-save v-slot="scope">
+                          <q-input type="number" v-model.number="scope.value" dense autofocus />
                         </q-popup-edit>
                       </q-td>
 
                       <q-td key="columna3" :props="props">
                         {{ formatCurrency(props.row.columna3) }}
-                        <q-popup-edit
-                          v-model="props.row.columna3"
-                          title="Declarado"
-                          auto-save
-                          v-slot="scope"
-                        >
-                          <q-input
-                            type="number"
-                            v-model.number="scope.value"
-                            dense
-                            autofocus
-                          />
+                        <q-popup-edit v-model="props.row.columna3" title="Declarado" auto-save v-slot="scope">
+                          <q-input type="number" v-model.number="scope.value" dense autofocus />
                         </q-popup-edit>
                       </q-td>
                       <q-td key="columna4" :props="props">{{
@@ -707,23 +546,13 @@
                 </q-table>
               </div>
               <div class="row no-wrap justify-between q-mb-md">
-                <q-input
-                  v-model="comentarios"
-                  filled
-                  autogrow
-                  label="Comentarios"
-                  class="full-width"
-                />
+                <q-input v-model="comentarios" filled autogrow label="Comentarios" class="full-width" />
               </div>
 
               <div class="row no-wrap justify-between q-mb-md">
                 <div class="text-bold text-h5"></div>
-                <q-btn
-                  @click="GetReportePMPDF()"
-                  dense
-                  color="primary"
-                  class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5"
-                >
+                <q-btn @click="GetReportePMPDF()" dense color="primary"
+                  class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5">
                   <q-icon name="download" left size="sm" />
                   Generar PDF
                 </q-btn>
@@ -742,7 +571,7 @@ import axios from "axios";
 import drawerPerfil from "../DrawerPerfil/DrawerPerfil.vue";
 import drawerEmpresas from "../DrawerEmpresas/DrawerEmpresas.vue";
 import moment from "moment";
-import { startOfMonth, endOfMonth, format, parse } from "date-fns";
+import { startOfMonth, endOfMonth, format, parse, parseISO , lastDayOfMonth, differenceInDays, utcToZonedTime} from "date-fns";
 import { es } from "date-fns/locale";
 import { QSpinnerCube } from "quasar";
 import {
@@ -1222,6 +1051,18 @@ export default {
           status: "idle",
           run: () => this.GetRiesgoFiscalConcentrados(),
         },
+        {
+          title: "Anticipos",
+          progress: 0,
+          status: "idle",
+          run: () => this.GetReporteAnticipos(),
+        },
+        {
+          title: "Cuentas Por Cobrar/Pagar",
+          progress: 0,
+          status: "idle",
+          run: () => this.GetReporteCuentasCobrarPagar(),
+        },
       ],
 
       tasksGasolinero: [
@@ -1266,6 +1107,18 @@ export default {
           progress: 0,
           status: "idle",
           run: () => this.GetRiesgoFiscalConcentrados(),
+        },
+        {
+          title: "Anticipos",
+          progress: 0,
+          status: "idle",
+          run: () => this.GetReporteAnticipos(),
+        },
+        {
+          title: "Cuentas Por Cobrar/Pagar",
+          progress: 0,
+          status: "idle",
+          run: () => this.GetReporteCuentasCobrarPagar(),
         },
         {
           title: "Ventas/Gasolinera",
@@ -1380,6 +1233,10 @@ export default {
       dataIvaRetenidoNeteado: [],
       dataISRRetenidoFavor: [],
       dataComprobantesConceptos: [],
+      dataAnticiposGastos:[],
+      dataAnticiposIngresos:[],
+      dataCuentasPagar:[],
+      dataCuentasCobrar:[]
     };
   },
 
@@ -2693,7 +2550,7 @@ export default {
         const response = await axios.get(curl);
 
         const objetoDatos = {};
-        console.log('GetReporteSinImpuestosAsync',response)
+        console.log('GetReporteSinImpuestosAsync', response)
         response.data.map((dato) => {
           try {
             // Extraer manualmente las partes de la fecha usando regex o split
@@ -2708,7 +2565,7 @@ export default {
             if (!objetoDatos[nombreMes]) {
               objetoDatos[nombreMes] = [];
             }
-            if(dato.tipoComprobante != "T"){
+            if (dato.tipoComprobante != "T") {
               objetoDatos[nombreMes].push(dato);
             }
 
@@ -2993,7 +2850,7 @@ export default {
             const año = parseInt(partes[0], 10);
             const mes = parseInt(partes[1], 10);
             const nombreMes = this.obtenerNombreMes(mes);
- 
+
 
             const partesP = fechaP.split("T")[0].split("-");
             const añoP = parseInt(partesP[0], 10);
@@ -3927,7 +3784,12 @@ export default {
         this.dataIvaRetenidoNeteado,
         this.dataISRRetenidoFavor,
         this.dataComprobantesConceptos,
-        this.$store.state.empresaStore.rfc
+        this.$store.state.empresaStore.rfc,
+        
+        this.dataAnticiposIngresos,
+        this.dataAnticiposGastos,
+        this.dataCuentasPagar,
+        this.dataCuentasCobrar
 
       );
       this.$q.loading.hide();
@@ -4501,58 +4363,58 @@ export default {
 
       this.dataComprobantes.pop();
 
-let objetoTotales = {
-  año: "TOTAL",
-  mes: "TOTAL",
-  baseIvaTrasladado: this.dataComprobantes.reduce(
-    (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
-    0
-  ),
-  importeIvaTrasladado: this.dataComprobantes.reduce(
-    (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
-    0
-  ),
-  detallesTrasladado: [],
-  baseIvaAcreditado: this.dataComprobantes.reduce(
-    (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
-    0
-  ),
-  importeIvaAcreditado: this.dataComprobantes.reduce(
-    (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
-    0
-  ),
-  detallesAcreditado: [],
-  ivaRetenidoAnterior: this.dataComprobantes.reduce(
-    (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
-    0
-  ),
-  ivaRetenido: this.dataComprobantes.reduce(
-    (acumulador, objeto) => acumulador + objeto.ivaRetenido,
-    0
-  ),
-  ivaCargo: this.dataComprobantes.reduce(
-    (acumulador, objeto) => acumulador + objeto.ivaCargo,
-    0
-  ),
-  ivaFavor: this.dataComprobantes.reduce(
-    (acumulador, objeto) => acumulador + objeto.ivaFavor,
-    0
-  ),
-  cargoRegistrado: this.dataComprobantes.reduce(
-    (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
-    0
-  ),
-  favorRegistrado: this.dataComprobantes.reduce(
-    (acumulador, objeto) => acumulador + objeto.favorRegistrado,
-    0
-  ),
-  comparativa: this.dataComprobantes.reduce(
-    (acumulador, objeto) => acumulador + objeto.comparativa,
-    0
-  ),
-};
+      let objetoTotales = {
+        año: "TOTAL",
+        mes: "TOTAL",
+        baseIvaTrasladado: this.dataComprobantes.reduce(
+          (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
+          0
+        ),
+        importeIvaTrasladado: this.dataComprobantes.reduce(
+          (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
+          0
+        ),
+        detallesTrasladado: [],
+        baseIvaAcreditado: this.dataComprobantes.reduce(
+          (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
+          0
+        ),
+        importeIvaAcreditado: this.dataComprobantes.reduce(
+          (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
+          0
+        ),
+        detallesAcreditado: [],
+        ivaRetenidoAnterior: this.dataComprobantes.reduce(
+          (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
+          0
+        ),
+        ivaRetenido: this.dataComprobantes.reduce(
+          (acumulador, objeto) => acumulador + objeto.ivaRetenido,
+          0
+        ),
+        ivaCargo: this.dataComprobantes.reduce(
+          (acumulador, objeto) => acumulador + objeto.ivaCargo,
+          0
+        ),
+        ivaFavor: this.dataComprobantes.reduce(
+          (acumulador, objeto) => acumulador + objeto.ivaFavor,
+          0
+        ),
+        cargoRegistrado: this.dataComprobantes.reduce(
+          (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
+          0
+        ),
+        favorRegistrado: this.dataComprobantes.reduce(
+          (acumulador, objeto) => acumulador + objeto.favorRegistrado,
+          0
+        ),
+        comparativa: this.dataComprobantes.reduce(
+          (acumulador, objeto) => acumulador + objeto.comparativa,
+          0
+        ),
+      };
 
-this.dataComprobantes.push(objetoTotales);
+      this.dataComprobantes.push(objetoTotales);
 
       this.$q.loading.hide();
     },
@@ -4562,12 +4424,12 @@ this.dataComprobantes.push(objetoTotales);
         let fechaF = this.selectedAnio + "-" + this.selectedMesF.value + "-01";
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetReporteIvaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF,
+          "Ingresos/GetReporteIvaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF,
           {
             timeout: 240000, // 120 segundos
           }
@@ -4586,12 +4448,12 @@ this.dataComprobantes.push(objetoTotales);
 
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIvaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetReporteIvaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -4607,12 +4469,12 @@ this.dataComprobantes.push(objetoTotales);
 
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIvaRetenidoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetReporteIvaRetenidoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -4621,24 +4483,24 @@ this.dataComprobantes.push(objetoTotales);
       }
     },
     async GetReporteIvaRetenidoNeteadoAsync() {
-                try {
-                    let añoSel = this.selectedAnio - 1
-                    let fechaI = añoSel + '-' + '12' + '-01';
-                    let fechaF = this.selectedAnio + '-' + this.selectedMesF.value + '-01';
+      try {
+        let añoSel = this.selectedAnio - 1
+        let fechaI = añoSel + '-' + '12' + '-01';
+        let fechaF = this.selectedAnio + '-' + this.selectedMesF.value + '-01';
 
-                    let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
-                    console.log('nueva', response)
-                    return response.data;
-                } catch (error) {
-                    console.log(error)
-                }
-            },
+        let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
+        console.log('nueva', response)
+        return response.data;
+      } catch (error) {
+        console.log(error)
+      }
+    },
 
     async GetReporteIvaCompletoEmitidos(rfc, fechaI, fechaF) {
       try {
         const response = await axios.get(
           this.rutaAxios +
-            `Ingresos/GetReporteIvaCompletoAsync/${rfc}/${fechaI}/${fechaF}`
+          `Ingresos/GetReporteIvaCompletoAsync/${rfc}/${fechaI}/${fechaF}`
         );
         return response.data;
       } catch (error) {
@@ -4665,12 +4527,12 @@ this.dataComprobantes.push(objetoTotales);
         let fechaF = this.selectedAnio + "-" + this.selectedMesF.value + "-01";
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetReporteIvaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF,
+          "Ingresos/GetReporteIvaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF,
           {
             timeout: 240000, // 120 segundos
           }
@@ -4699,12 +4561,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            año +
-            "/" +
-            tipo
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          año +
+          "/" +
+          tipo
         );
         respuesta = response.data.comparativa;
         return respuesta;
@@ -4744,12 +4606,12 @@ this.dataComprobantes.push(objetoTotales);
         let fechaF = this.selectedAnio + "-" + this.selectedMesF.value + "-01";
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIvaRetenidoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetReporteIvaRetenidoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         ivaRetenido = response.data;
         let mesFin = this.selectedMesF.value;
@@ -4808,12 +4670,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            año +
-            "/" +
-            tipo
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          año +
+          "/" +
+          tipo
         );
         respuesta = response.data.comparativa;
         return respuesta;
@@ -4837,12 +4699,12 @@ this.dataComprobantes.push(objetoTotales);
 
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/ReporteIsrEmitidoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/ReporteIsrEmitidoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         console.log("isr emitido", response);
         this.dataISRRetenidoFavor = response.data;
@@ -4906,12 +4768,12 @@ this.dataComprobantes.push(objetoTotales);
         let fechaF = this.selectedAnio + "-" + this.selectedMesF.value + "-01";
         let response = await axios.get(
           this.rutaAxios +
-            "Nomina/GetReporteISrAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Nomina/GetReporteISrAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         let res = response.data;
         this.dataSueldos = res[0];
@@ -5018,12 +4880,12 @@ this.dataComprobantes.push(objetoTotales);
         let fechaF = this.selectedAnio + "-" + this.selectedMesF.value + "-01";
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIsrAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetReporteIsrAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
 
         this.dataArrendamientos = response.data[0];
@@ -5102,12 +4964,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            año +
-            "/" +
-            tipo
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          año +
+          "/" +
+          tipo
         );
         respuesta = response.data.comparativa;
         return respuesta;
@@ -5236,8 +5098,8 @@ this.dataComprobantes.push(objetoTotales);
         this.añosRegimen = [];
         let response = await axios.get(
           this.rutaAxios +
-            "PagosProvisionales/GetRegimenEmpresaAsync/erp_" +
-            this.token.rfc
+          "PagosProvisionales/GetRegimenEmpresaAsync/erp_" +
+          this.token.rfc
         );
         let x = [...response.data];
         this.añosRegimen = [...x];
@@ -5390,12 +5252,12 @@ this.dataComprobantes.push(objetoTotales);
         const mes = this.selectedMesF.value;
         let response = await axios.get(
           this.rutaAxios +
-            "PagosProvisionales/GetPagoIsrAcYScAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            año +
-            "/" +
-            mes
+          "PagosProvisionales/GetPagoIsrAcYScAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          año +
+          "/" +
+          mes
         );
         // console.log(response.data);
         this.dataComprobantesP = [...response.data];
@@ -5843,12 +5705,12 @@ this.dataComprobantes.push(objetoTotales);
 
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/ReporteIsrEmitidoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/ReporteIsrEmitidoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         console.log("isr emitido", response);
         return response.data;
@@ -6204,12 +6066,12 @@ this.dataComprobantes.push(objetoTotales);
 
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetReporteIngresosPPISRAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/GetReporteIngresosPPISRAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6224,12 +6086,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetCobradoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/GetCobradoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6244,12 +6106,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetCobradoResicoMoralAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/GetCobradoResicoMoralAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6264,12 +6126,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetPagadoResicoMoralAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetPagadoResicoMoralAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6284,12 +6146,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetPagadoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetPagadoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6304,12 +6166,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Nomina/GetReportePagoPtuAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Nomina/GetReportePagoPtuAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6321,12 +6183,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Empresa/GetTablas/" +
-            this.selectedAnio +
-            "/" +
-            tipo +
-            "/" +
-            periodicidad
+          "Empresa/GetTablas/" +
+          this.selectedAnio +
+          "/" +
+          tipo +
+          "/" +
+          periodicidad
         );
         return response.data;
       } catch (error) {
@@ -6352,11 +6214,11 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Coeficiente"
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Coeficiente"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -6385,11 +6247,11 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Perdida"
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Perdida"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -6418,11 +6280,11 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/RegistradosPPIsr"
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/RegistradosPPIsr"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -6551,12 +6413,12 @@ this.dataComprobantes.push(objetoTotales);
 
         let response = await axios.get(
           this.rutaAxios +
-            "Consultas/GetReporteUsoCfdiIngresosAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Consultas/GetReporteUsoCfdiIngresosAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         return response.data;
       } catch (error) {
@@ -6580,12 +6442,12 @@ this.dataComprobantes.push(objetoTotales);
 
         let response = await axios.get(
           this.rutaAxios +
-            "Consultas/GetReporteUsoCfdiGastosAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Consultas/GetReporteUsoCfdiGastosAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         return response.data;
       } catch (error) {
@@ -6609,12 +6471,12 @@ this.dataComprobantes.push(objetoTotales);
 
         let response = await axios.get(
           this.rutaAxios +
-            "Consultas/GetReporteUsoCfdiNomina/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Consultas/GetReporteUsoCfdiNomina/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         return response.data;
       } catch (error) {
@@ -6996,12 +6858,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetVentasLitrosMesAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Gasolineros/GetVentasLitrosMesAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         return x;
@@ -7016,12 +6878,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetComprasLitrosMesAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Gasolineros/GetComprasLitrosMesAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         return x;
@@ -7040,12 +6902,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Inicial/" +
-            item
+          "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Inicial/" +
+          item
         );
         let x = response.data;
         return x;
@@ -7077,12 +6939,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Merma/" +
-            item
+          "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Merma/" +
+          item
         );
         let x = response.data;
         return x;
@@ -7440,12 +7302,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetVentasSubTotalMesAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Gasolineros/GetVentasSubTotalMesAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         console.log(x);
@@ -7461,12 +7323,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetComprasSubTotalMesAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Gasolineros/GetComprasSubTotalMesAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         return x;
@@ -7498,12 +7360,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Comparativa/" +
-            item
+          "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Comparativa/" +
+          item
         );
         let x = response.data;
         return x;
@@ -7797,12 +7659,12 @@ this.dataComprobantes.push(objetoTotales);
 
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         ivaRetenido = response.data;
         let mesFin = this.selectedMesF.value;
@@ -7854,8 +7716,7 @@ this.dataComprobantes.push(objetoTotales);
       const fI = `${this.selectedAnio}-01-01`;
       const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
 
-      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(
-        2,
+      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(2,
         "0"
       )}-${String(ultimoDia).padStart(2, "0")}`;
 
@@ -7865,12 +7726,12 @@ this.dataComprobantes.push(objetoTotales);
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/ReporteConceptoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Ingresos/ReporteConceptoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         this.dataComprobantesConceptos = [...x];
@@ -7900,6 +7761,133 @@ this.dataComprobantes.push(objetoTotales);
         }
       }, 200);
     },
+
+    // ANTICIPOS 
+    async GetReporteAnticiposGastos() {
+      this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
+      this.dataAnticiposGastos = []
+
+      const fI = `${this.selectedAnio}-01-01`;
+      const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+
+      try {
+        let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteAnticiposAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
+        let x = response.data;
+        this.dataAnticiposGastos = x.filter(x=> x.total != x.totalNc)
+        this.$q.loading.hide()
+      } catch (error) {
+        console.log(error)
+        this.$q.loading.hide()
+      }
+    },
+
+    async GetReporteAnticiposIngresos() {
+      this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
+      this.dataAnticiposIngresos = []
+
+      const fI = `${this.selectedAnio}-01-01`;
+      const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+
+      try {
+        let response = await axios.get(this.rutaAxios + 'Ingresos/GetReporteAnticiposAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
+        let x = response.data;
+        this.dataAnticiposIngresos = x.filter(x=> x.total != x.totalNc)
+        this.$q.loading.hide()
+      } catch (error) {
+        console.log(error)
+        this.$q.loading.hide()
+      }
+    },
+
+    // CUENTAS POR COBRAR Y PAGAR NEGATIVOS
+    async GetReporteCuentasPagar() {
+      this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
+      this.dataCuentasPagar = []
+                const fI = `${this.selectedAnio}-01-01`;
+                const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+                const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+                try {
+                    let response = await axios.get(this.rutaAxios + 'Gastos/GetCxPAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
+                    let x = response.data;
+                    this.dataCuentasPagar = x.filter(x => x.porPagar < 0)
+                   
+                    this.$q.loading.hide()
+
+                    //VAMOS A TRATAR DE OBTENER LOS DIAS DE CREDITO
+                    for (var c of this.dataCuentasPagar) {
+                        const mas_grande = this.ObtenerFechaMasGrande(c.detalles)
+                        const fecha_ = parseISO(c.fecha);
+                        const fechaPago_ = parseISO(mas_grande);
+                        const diferencia = differenceInDays(fechaPago_, fecha_);
+                        c.dias = diferencia;
+                    }
+                    
+                } catch (error) {
+                    console.log(error)
+                    this.$q.loading.hide()
+                }
+            },
+
+            async GetReporteCuentasCobrar() {
+              this.dataCuentasCobrar = []
+                this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
+                const fI = `${this.selectedAnio}-01-01`;
+                const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+                const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+
+                try {
+                    let response = await axios.get(this.rutaAxios + 'Ingresos/GetCxCAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
+                    let x = response.data;
+                    this.dataCuentasCobrar = x.filter(x => x.porCobrar < 0)
+
+                    this.$q.loading.hide()
+
+                    //VAMOS A TRATAR DE OBTENER LOS DIAS DE CREDITO
+                    for (var c of this.dataCuentasCobrar) {
+                        const mas_grande = this.ObtenerFechaMasGrande(c.detalles)
+                        const fecha_ = parseISO(c.fecha);
+                        const fechaPago_ = parseISO(mas_grande);
+                        const diferencia = differenceInDays(fechaPago_, fecha_);
+                        c.dias = diferencia;
+                    }
+                } catch (error) {
+                    console.log(error)
+                    this.$q.loading.hide()
+                }
+            },
+
+            ObtenerFechaMasGrande(array) {
+                if (array.length === 0) {
+                    const fechaActual = new Date();
+                    const fechaFormateada = format(fechaActual, "yyyy-MM-dd'T'HH:mm:ss'Z'");
+                    return fechaFormateada;
+                }
+                return array.reduce((fechaMasGrande, objeto) => {
+                    const fechaActual = objeto.fechaPago;
+
+                    // Compara las fechas y actualiza fechaMasGrande si la fechaActual es mayor
+                    return fechaActual > fechaMasGrande ? fechaActual : fechaMasGrande;
+                }, array[0].fechaPago); // Inicializa con la fecha del primer objeto
+            },
+
+            async GetReporteAnticipos(){
+              await this.GetReporteAnticiposIngresos();
+              await this.GetReporteAnticiposGastos();
+              console.log('dataAnticiposIngresos', this.dataAnticiposIngresos)
+              console.log('dataAnticiposGastos', this.dataAnticiposGastos)
+
+
+            },
+
+            async GetReporteCuentasCobrarPagar(){
+              await this.GetReporteCuentasPagar();
+              await this.GetReporteCuentasCobrar();
+
+              console.log('cuentascobrar', this.dataCuentasCobrar)
+              console.log('cuentaspagar', this.dataCuentasPagar)
+            }
   },
 
   // Convertir hexadecimal a RGB

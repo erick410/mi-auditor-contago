@@ -59,7 +59,7 @@
                 </q-fab>
             </div>
             <div class="q-mt-lg">
-                <q-fab v-model="fabComparativa" label="Comparativa" vertical-actions-align="left" color="blue-10"
+                <q-fab v-model="fabComparativa" label="Inventario Final" vertical-actions-align="left" color="blue-10"
                     padding="none md" icon="keyboard_arrow_down" direction="down">
                     <q-fab-action color="green-10" @click="OpenDialogComparativa('MAGNA')" icon="mdi-gas-station-outline"
                         label="Magna" />
@@ -288,9 +288,19 @@ export default {
                 //RECORREMOS PARA HACER LA LISTA
                 const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
 
-                let magnaInicial = inicialMagna.detalle[0].litros;
-                let premiumInicial = inicialPremium.detalle[0].litros;
-                let dieselInicial = inicialDiesel.detalle[0].litros;
+                let inicialM =  inicialMagna.detalle.find(x=> x.mes == this.selectedMesI.label)
+                let inicialD =  inicialDiesel.detalle.find(x=> x.mes == this.selectedMesI.label)
+                let inicialP =  inicialPremium.detalle.find(x=> x.mes == this.selectedMesI.label)
+               
+                // let magnaInicial = inicialMagna.detalle[0].litros;
+                // let premiumInicial = inicialPremium.detalle[0].litros;
+                // let dieselInicial = inicialDiesel.detalle[0].litros;
+
+
+                let magnaInicial = inicialM.litros;
+                let premiumInicial = inicialP.litros;
+                let dieselInicial = inicialD.litros;
+                
                 console.log(magnaInicial)
                 for (let a = this.selectedMesI.value; a <= this.selectedMesF.value; a++) {
                     //MAGNA
@@ -463,9 +473,18 @@ export default {
                 //RECORREMOS PARA HACER LA LISTA
                 const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
 
-                let magnaInicial = inicialMagna.detalle[0].litros;
-                let premiumInicial = inicialPremium.detalle[0].litros;
-                let dieselInicial = inicialDiesel.detalle[0].litros;
+                let inicialM =  inicialMagna.detalle.find(x=> x.mes == this.selectedMesI.label)
+                let inicialD =  inicialDiesel.detalle.find(x=> x.mes == this.selectedMesI.label)
+                let inicialP =  inicialPremium.detalle.find(x=> x.mes == this.selectedMesI.label)
+               
+                // let magnaInicial = inicialMagna.detalle[0].litros;
+                // let premiumInicial = inicialPremium.detalle[0].litros;
+                // let dieselInicial = inicialDiesel.detalle[0].litros;
+
+
+                let magnaInicial = inicialM.litros;
+                let premiumInicial = inicialD.litros;
+                let dieselInicial = inicialP.litros;
                 console.log(magnaInicial)
                 for (let a = this.selectedMesI.value; a <= this.selectedMesF.value; a++) {
                     //MAGNA
@@ -713,6 +732,7 @@ export default {
                 return;
             }
             let ObjInicial = await this.GetInicial(item);
+            console.log(ObjInicial)
             this.$store.state.litrosGasolineriaStore = { ...ObjInicial }
             this.dialogInventrioInicial = true;
         },
@@ -759,7 +779,19 @@ export default {
                 tipo: 'Inicial',
                 combustible: item,
                 detalle: [
-                    { mes: this.selectedMesI.label, litros: 0 }
+                    // { mes: this.selectedMesI.label, litros: 0 }
+                    { mes: 'ENERO', litros: 0 },
+                    { mes: 'FEBRERO', litros: 0 },
+                    { mes: 'MARZO', litros: 0 },
+                    { mes: 'ABRIL', litros: 0 },
+                    { mes: 'MAYO', litros: 0 },
+                    { mes: 'JUNIO', litros: 0 },
+                    { mes: 'JULIO', litros: 0 },
+                    { mes: 'AGOSTO', litros: 0 },
+                    { mes: 'SEPTIEMBRE', litros: 0 },
+                    { mes: 'OCTUBRE', litros: 0 },
+                    { mes: 'NOVIEMBRE', litros: 0 },
+                    { mes: 'DICIEMBRE', litros: 0 }
                 ],
             };
             try {

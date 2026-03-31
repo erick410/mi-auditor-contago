@@ -1,5 +1,11 @@
 <template>
     <div class="q-pa-md">
+
+        <!-- DIALOG PARA VER LOS PDF -->
+        <q-dialog v-model="dialogDetalles" persistent transition-show="scale" transition-hide="scale" maximized>
+            <visor-pdf @CloseDialogPdf="CloseDialogPdf"></visor-pdf>
+        </q-dialog>
+
         <!-- SELECCIONA AÑO Y MES, BOTON DE BUSCAR Y EXPORTAR A EXCEL -->
         <div class="row no-wrap items-center q-mt-md q-pa-sm">
             <q-space />
@@ -45,10 +51,10 @@
             <template v-slot:body="props">
                 <q-tr :props="props" :class="'clase-total-' + props.row.producto">
                     <q-td auto-width>
-                        <q-btn size="md" color="primary" rounded flat dense @click="OpenDialogDetalle(props.row)"
-                            icon="mdi-format-list-bulleted">
+                        <q-btn size="md" color="red-14" rounded flat dense @click="VerComprobante(props.row)"
+                            icon="mdi-file-pdf-box">
                             <q-tooltip transition-show="flip-right" transition-hide="flip-left"
-                                content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
+                                content-style="font-size: 14px" :offset="[10, 10]">Ver Comprobante</q-tooltip>
                         </q-btn>
                     </q-td>
 
@@ -84,10 +90,10 @@ import * as XLSX from 'xlsx';
 import { format, lastDayOfMonth } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { QSpinnerCube } from 'quasar';
-
+  import visorPdf from '../Pdf/VisorPdf.vue'
 export default {
     components: {
-
+        visorPdf
     },
     data() {
         return {
@@ -118,6 +124,7 @@ export default {
             //FECHAS
             fechaIVentas: new Date(),
             fechaFVentas: new Date(),
+            dialogDetalles:false
         }
     },
     computed: {
@@ -224,6 +231,25 @@ export default {
                 message: 'Consultando datos, espere...',
             })
         },
+        async VerComprobante(item) {
+                try {
+                    this.$store.state.vistaPreviaStore.folioFiscal = item.folioFiscal;
+                    this.$store.state.vistaPreviaStore.color = "19775C"
+                    this.$store.state.vistaPreviaStore.tipoComprobanteInterno = "FACTURA"
+                    this.$store.state.vistaPreviaStore.tipo = "E"
+                    this.$store.state.vistaPreviaStore.rfc = this.token.rfc
+                    this.dialogDetalles = true;
+                } catch (error) {
+                    console.log(error)
+                }
+            },
+            CloseDialogPdf() {
+                this.dialogDetalles = false;
+            },
+
+        OpenDialogDetalle(item){
+            console.log(item)
+        }
 
     },
 }

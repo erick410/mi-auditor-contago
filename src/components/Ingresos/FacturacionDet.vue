@@ -275,6 +275,7 @@
                 rfc + ' - ' + empresa +  ' - REPORTE DE ' + periodo.toUpperCase() + '.xlsx'
             );
             },
+            
             async VerComprobante(item) {
                 try {
                     this.$store.state.vistaPreviaStore.folioFiscal = item.folioFiscal;

@@ -348,7 +348,11 @@ export async function  generarReporte(
   dataIvaRetenidoNeteado,
   dataISRRetenidoFavor,
   dataComprobantesConceptos,
-  rfcEmpresa
+  rfcEmpresa,
+  dataAnticiposIngresos,
+  dataAnticiposGastos,
+  dataCuentasPagar,
+  dataCuentasCobrar
 ) {
   const doc = new jsPDF({
     orientation: "portrait",
@@ -2254,7 +2258,7 @@ if(comentarios.trim() != ''){
     doc.setFontSize(11);
     y = agregarTextoConSaltos(
       doc,
-      "El sistema determina la utilidad por producto, cocnforme a los comprobantes fiscales:",
+      "El sistema determina la utilidad por producto, conforme a los comprobantes fiscales:",
       40,
       y,
       520,
@@ -2762,6 +2766,317 @@ if(comentarios.trim() != ''){
 
       y = doc.lastAutoTable.finalY + 20;
     }
+  }
+
+  y += 20;
+
+  if(dataAnticiposIngresos.length != 0){
+    y = doc.lastAutoTable.finalY + 20;
+
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "ANTICIPOS INGRESOS", 40, y, 520, 14);
+    y += 5;
+
+    autoTable(doc, {
+      startY: y,
+      head: [
+        [
+          "Serie",
+          "Folio",
+          "RFC",
+          "Nombre",
+          "Fecha",
+          "SubTotal",
+          "Descuento",
+          "Total",
+          "Total Ingreso",
+          "Total NC",
+          "Forma de Pago",
+          "Folio Fiscal",
+        ],
+      ],
+      body: dataAnticiposIngresos.map((x) => [
+        x.serie,
+        x.folio,
+        x.rfc,
+        x.nombre,
+        x.fecha,
+        formatoPesos(x.subTotal),
+        formatoPesos(x.descuento),
+        formatoPesos(x.total),
+        formatoPesos(x.totalIngreso),
+        formatoPesos(x.totalNc),
+        x.formaPago,
+        x.folioFiscal,
+      ]),
+      headStyles: {
+        fillColor: "#E74747",
+        textColor: "#FFF",
+        fontSize: 5,
+        halign: "center",
+        valign: "middle",
+      },
+      styles: {
+        fontSize: 5,
+        cellPadding: 2,
+      },
+      columnStyles: {
+        0: { halign: "left" },
+        1: { halign: "left" },
+        2: { halign: "center" },
+        3: { halign: "right" },
+        4: { halign: "right" },
+        5: { halign: "right" },
+        6: { halign: "right" },
+        7: { halign: "right" },
+        8: { halign: "center" },
+        9: { halign: "center" },
+      },
+      
+      didDrawPage: function (data) {
+        // Pie de página
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
+          align: "center",
+        });
+      },
+    });
+
+  }
+
+  if(dataAnticiposGastos.length != 0){
+    y = doc.lastAutoTable.finalY + 20;
+
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "ANTICIPOS GASTOS", 40, y, 520, 14);
+    y += 5;
+
+    autoTable(doc, {
+      startY: y,
+      head: [
+        [
+          // "Serie",
+          // "Folio",
+          "RFC",
+          "Nombre",
+          "Fecha",
+          "SubTotal",
+          "Descuento",
+          "Total",
+          "Total Ingreso",
+          "Total NC",
+          "Forma de Pago",
+          "Folio Fiscal",
+        ],
+      ],
+      body: dataAnticiposGastos.map((x) => [
+        // x.serie,
+        // x.folio,
+        x.rfc,
+        x.nombre,
+        x.fecha,
+        formatoPesos(x.subTotal),
+        formatoPesos(x.descuento),
+        formatoPesos(x.total),
+        formatoPesos(x.totalIngreso),
+        formatoPesos(x.totalNc),
+        x.formaPago,
+        x.folioFiscal,
+      ]),
+      headStyles: {
+        fillColor: "#E74747",
+        textColor: "#FFF",
+        fontSize: 5,
+        halign: "center",
+        valign: "middle",
+      },
+      styles: {
+        fontSize: 5,
+        cellPadding: 2,
+      },
+      columnStyles: {
+        0: { halign: "left" },
+        1: { halign: "left" },
+        2: { halign: "center" },
+        3: { halign: "right" },
+        4: { halign: "right" },
+        5: { halign: "right" },
+        6: { halign: "right" },
+        7: { halign: "right" },
+        8: { halign: "center" },
+        9: { halign: "center" },
+      },
+      
+      didDrawPage: function (data) {
+        // Pie de página
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
+          align: "center",
+        });
+      },
+    });
+
+  }
+
+
+  if(dataCuentasCobrar.length != 0){
+    y = doc.lastAutoTable.finalY + 20;
+
+
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "CUENTAS POR COBRAR", 40, y, 520, 14);
+    y += 5;
+
+    autoTable(doc, {
+      startY: y,
+      head: [
+        [
+          // "Serie",
+          // "Folio",
+          "RFC",
+          "Nombre",
+          "Fecha",
+          "Por Cobrar",
+          "Cobrado",
+          "Total",
+          "NC",
+          "Moneda",
+          "Folio Fiscal",
+          "Dias",
+        ],
+      ],
+      body: dataCuentasCobrar.map((x) => [
+        // x.serie,
+        // x.folio,
+        x.rfc,
+        x.nombre,
+        x.fecha,
+        formatoPesos(x.porCobrar),
+        formatoPesos(x.cobrado),
+        formatoPesos(x.total),
+        formatoPesos(x.nc),
+        x.moneda,
+        x.folioFiscal,
+        x.dias,
+      ]),
+      headStyles: {
+        fillColor: "#E74747",
+        textColor: "#FFF",
+        fontSize: 5,
+        halign: "center",
+        valign: "middle",
+      },
+      styles: {
+        fontSize: 5,
+        cellPadding: 2,
+      },
+      columnStyles: {
+        0: { halign: "left" },
+        1: { halign: "left" },
+        2: { halign: "left" },
+        3: { halign: "right" },
+        4: { halign: "right" },
+        5: { halign: "right" },
+        6: { halign: "right" },
+        7: { halign: "center" },
+        8: { halign: "center" },
+        9: { halign: "center" },
+      },
+      
+      didDrawPage: function (data) {
+        // Pie de página
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
+          align: "center",
+        });
+      },
+    });
+
+  }
+
+  if(dataCuentasPagar.length != 0){
+    y = doc.lastAutoTable.finalY + 20;
+    
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "CUENTAS POR PAGAR", 40, y, 520, 14);
+    y += 5;
+
+    autoTable(doc, {
+      startY: y,
+      head: [
+        [
+          // "Serie",
+          // "Folio",
+          "RFC",
+          "Nombre",
+          "Fecha",
+          "Por Pagar",
+          "Pagado",
+          "Total",
+          "NC",
+          "Moneda",
+          "Folio Fiscal",
+          "Dias",
+        ],
+      ],
+      body: dataCuentasPagar.map((x) => [
+        // x.serie,
+        // x.folio,
+        x.rfc,
+        x.nombre,
+        x.fecha,
+        formatoPesos(x.porPagar),
+        formatoPesos(x.pagado),
+        formatoPesos(x.total),
+        formatoPesos(x.nc),
+        x.moneda,
+        x.folioFiscal,
+        x.dias,
+      ]),
+      headStyles: {
+        fillColor: "#E74747",
+        textColor: "#FFF",
+        fontSize: 5,
+        halign: "center",
+        valign: "middle",
+      },
+      styles: {
+        fontSize: 5,
+        cellPadding: 2,
+      },
+      columnStyles: {
+        0: { halign: "left" },
+        1: { halign: "left" },
+        2: { halign: "left" },
+        3: { halign: "right" },
+        4: { halign: "right" },
+        5: { halign: "right" },
+        6: { halign: "right" },
+        7: { halign: "center" },
+        8: { halign: "center" },
+        9: { halign: "center" },
+      },
+      
+      didDrawPage: function (data) {
+        // Pie de página
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
+          align: "center",
+        });
+      },
+    });
+    y = doc.lastAutoTable.finalY + 10;
+
   }
 
   y += 20;

@@ -28,8 +28,8 @@
         </div>
 
         <!-- TABLA DE MAGNA -->
-        <q-table title="Reporte ISR" :data="dataMagna" :columns="columns" row-key="nombreMes" :rows-per-page-options="[13]"
-            hide-bottom dense class="my-sticky-column-table">
+        <q-table title="Reporte ISR" :data="dataMagna" :columns="columns" row-key="nombreMes"
+            :rows-per-page-options="[13]" hide-bottom dense class="my-sticky-column-table">
             <template v-slot:top>
                 <span class="text-body1 text-green-10" content-style="font-size: 20px">MAGNA </span>
             </template>
@@ -59,7 +59,7 @@
                     <q-td key="promedioCompras" :props="props">{{ FormatCurrency(props.row.promedioCompras) }}</q-td>
 
                     <q-td key="porcentajeUtilidad" :props="props">{{ FormatoPorcentaje(props.row.porcentajeUtilidad)
-                    }}%</q-td>
+                        }}%</q-td>
                     <q-td key="utilidadPeriodo" :props="props">{{ FormatCurrency(props.row.utilidadPeriodo) }}</q-td>
                 </q-tr>
             </template>
@@ -98,15 +98,15 @@
                     <q-td key="promedioCompras" :props="props">{{ FormatCurrency(props.row.promedioCompras) }}</q-td>
 
                     <q-td key="porcentajeUtilidad" :props="props">{{ FormatoPorcentaje(props.row.porcentajeUtilidad)
-                    }}%</q-td>
+                        }}%</q-td>
                     <q-td key="utilidadPeriodo" :props="props">{{ FormatCurrency(props.row.utilidadPeriodo) }}</q-td>
                 </q-tr>
             </template>
         </q-table>
         <br>
         <!-- TABLA DE DIESEL -->
-        <q-table title="Reporte ISR" :data="dataDiesel" :columns="columns" row-key="nombreMes" :rows-per-page-options="[13]"
-            hide-bottom dense class="my-sticky-column-table">
+        <q-table title="Reporte ISR" :data="dataDiesel" :columns="columns" row-key="nombreMes"
+            :rows-per-page-options="[13]" hide-bottom dense class="my-sticky-column-table">
             <template v-slot:top>
                 <span class="text-body1 text-blue-grey-10" content-style="font-size: 20px">DIESEL </span>
             </template>
@@ -136,8 +136,132 @@
                     <q-td key="promedioCompras" :props="props">{{ FormatCurrency(props.row.promedioCompras) }}</q-td>
 
                     <q-td key="porcentajeUtilidad" :props="props">{{ FormatoPorcentaje(props.row.porcentajeUtilidad)
-                    }}%</q-td>
+                        }}%</q-td>
                     <q-td key="utilidadPeriodo" :props="props">{{ FormatCurrency(props.row.utilidadPeriodo) }}</q-td>
+                </q-tr>
+            </template>
+        </q-table>
+        <br>
+        <br>
+            <span>
+        
+        Costo de venta en litros: comprasCV + invInicial - invFinal<br>
+                Utilidad = (litrosVendidosCV * promedioVentas) - (costoVenta × promedioCompras)<br>
+                Porcentaje de utilidad = (utiliad / sobre importe de ventas) * 100
+            </span>
+        <br>
+
+        <q-table :data="dataTablaMagna" :columns="columnsMUti" row-key="mes" hide-bottom dense
+            class="my-sticky-column-table">
+            <template v-slot:top>
+                <span class="text-body1">Costo de Venta — MAGNA</span>
+            </template>
+            <template v-slot:body="props">
+                <q-tr :props="props">
+                    <q-td key="mes" :props="props">{{ props.row.mes }}</q-td>
+                    <q-td key="comprasCV" :props="props" class="text-right">{{ fmt(props.row.comprasCV) }}</q-td>
+                    <q-td key="invInicial" :props="props" class="text-right">{{ fmt(props.row.invInicial) }}</q-td>
+                    <q-td key="invFinal" :props="props" class="text-right">{{ fmt(props.row.invFinal) }}</q-td>
+
+                    <q-td key="costoVenta" :props="props" class="text-right">{{ fmt(props.row.costoVenta) }}</q-td>
+                    <q-td key="promedioCompra" :props="props" class="text-right">{{ fmtCur(props.row.promedioCompra)
+                        }}</q-td>
+
+                    <q-td key="litrosVendidosCV" :props="props" class="text-right">{{ fmt(props.row.litrosVendidosCV)
+                        }}</q-td>
+                        <q-td key="promedioVenta" :props="props" class="text-right">{{ fmtCur(props.row.promedioVenta)
+                        }}</q-td>
+
+                        <q-td key="utilidad" :props="props" class="text-right"
+                        :class="props.row.utilidad >= 0 ? 'text-green-9' : 'text-red-9'">
+                        {{ fmtCur(props.row.utilidad) }}
+                    </q-td>
+
+                    <q-td key="importeVendido" :props="props" class="text-right">{{
+                        fmtCur(props.row.importeVendido) }}</q-td> 
+                    <q-td key="porcentaje" :props="props" class="text-right"
+                        :class="props.row.porcentaje >= 0 ? 'text-green-9' : 'text-red-9'">
+                        {{ fmtPct(props.row.porcentaje) }}
+                    </q-td>
+                </q-tr>
+            </template>
+        </q-table>
+        <br>
+
+        <q-table :data="dataTablaPremium" :columns="columnsMUti" row-key="mes" hide-bottom dense
+            class="my-sticky-column-table">
+            <template v-slot:top>
+                <span class="text-body1">Costo de Venta — PREMIUM</span>
+            </template>
+            <template v-slot:body="props">
+                <q-tr :props="props">
+                    <q-td key="mes" :props="props">{{ props.row.mes }}</q-td>
+                    <q-td key="comprasCV" :props="props" class="text-right">{{ fmt(props.row.comprasCV) }}</q-td>
+                    <q-td key="invInicial" :props="props" class="text-right">{{ fmt(props.row.invInicial) }}</q-td>
+                    <q-td key="invFinal" :props="props" class="text-right">{{ fmt(props.row.invFinal) }}</q-td>
+
+                    <q-td key="costoVenta" :props="props" class="text-right">{{ fmt(props.row.costoVenta) }}</q-td>
+                    <q-td key="promedioCompra" :props="props" class="text-right">{{ fmtCur(props.row.promedioCompra)
+                        }}</q-td>
+
+                    <q-td key="litrosVendidosCV" :props="props" class="text-right">{{ fmt(props.row.litrosVendidosCV)
+                        }}</q-td>
+                        <q-td key="promedioVenta" :props="props" class="text-right">{{ fmtCur(props.row.promedioVenta)
+                        }}</q-td>
+
+                        <q-td key="utilidad" :props="props" class="text-right"
+                        :class="props.row.utilidad >= 0 ? 'text-green-9' : 'text-red-9'">
+                        {{ fmtCur(props.row.utilidad) }}
+                    </q-td>
+
+                    <q-td key="importeVendido" :props="props" class="text-right">{{
+                        fmtCur(props.row.importeVendido) }}</q-td> 
+                    <q-td key="porcentaje" :props="props" class="text-right"
+                        :class="props.row.porcentaje >= 0 ? 'text-green-9' : 'text-red-9'">
+                        {{ fmtPct(props.row.porcentaje) }}
+                    </q-td>
+                </q-tr>
+            </template>
+        </q-table>
+
+        <br>
+
+        <q-table :data="dataTablaDiesel" :columns="columnsMUti" row-key="mes" hide-bottom dense
+            class="my-sticky-column-table">
+            <template v-slot:top>
+                <span class="text-body1">Costo de Venta — DIESEL</span>
+            </template>
+            <template v-slot:body="props">
+                <q-tr :props="props">
+                    <q-td key="mes" :props="props">{{ props.row.mes }}</q-td>
+                    <q-td key="comprasCV" :props="props" class="text-right">{{ fmt(props.row.comprasCV) }}</q-td>
+                    <q-td key="invInicial" :props="props" class="text-right">{{ fmt(props.row.invInicial) }}</q-td>
+                    <q-td key="invFinal" :props="props" class="text-right">{{ fmt(props.row.invFinal) }}</q-td>
+
+                    <q-td key="costoVenta" :props="props" class="text-right">{{ fmt(props.row.costoVenta) }}</q-td>
+                    <q-td key="promedioCompra" :props="props" class="text-right">{{ fmtCur(props.row.promedioCompra)
+                        }}</q-td>
+
+                    <q-td key="litrosVendidosCV" :props="props" class="text-right">{{ fmt(props.row.litrosVendidosCV)
+                        }}</q-td>
+                        <q-td key="promedioVenta" :props="props" class="text-right">{{ fmtCur(props.row.promedioVenta)
+                        }}</q-td>
+
+                        <q-td key="utilidad" :props="props" class="text-right"
+                        :class="props.row.utilidad >= 0 ? 'text-green-9' : 'text-red-9'">
+                        {{ fmtCur(props.row.utilidad) }}
+                    </q-td>
+
+                    <q-td key="importeVendido" :props="props" class="text-right">{{
+                        fmtCur(props.row.importeVendido) }}</q-td> 
+                    <q-td key="porcentaje" :props="props" class="text-right"
+                        :class="props.row.porcentaje >= 0 ? 'text-green-9' : 'text-red-9'">
+                        {{ fmtPct(props.row.porcentaje) }}
+                    </q-td>
+
+                    <!-- <q-td key="litrosVendidosCFDI" :props="props" class="text-right">{{
+                        fmt(props.row.litrosVendidosCFDI) }}</q-td> -->
+                    
                 </q-tr>
             </template>
         </q-table>
@@ -176,7 +300,7 @@ export default {
             dataPremium: [],
             dataDiesel: [],
 
-            itemsAnios: ['2026','2025','2024','2023', '2022', '2021', '2020', '2019', '2018'],
+            itemsAnios: ['2026', '2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018'],
             itemsMes: [
                 { label: 'ENERO', value: 1 },
                 { label: 'FEBRERO', value: 2 },
@@ -199,6 +323,30 @@ export default {
             //DATOS DE LOS DETALLES
             dialogDetalles: false,
 
+            // VENTAS Y COMPRAS
+            dataVentas: [],
+            dataCompras: [],
+
+            columnsMUti: [
+                { name: 'mes', label: 'Mes', align: 'left', field: 'mes' },
+                { name: 'comprasCV', label: 'Compras CV (L)', align: 'right', field: 'comprasCV' },
+                { name: 'invInicial', label: 'Inv. Inicial (L)', align: 'right', field: 'invInicial' },
+                { name: 'invFinal', label: 'Inv. Final (L)', align: 'right', field: 'invFinal' },
+               
+                { name: 'costoVenta', label: 'Costo Venta', align: 'right', field: 'costoVenta' },
+                { name: 'promedioCompra', label: 'Prom. Compra', align: 'right', field: 'promedioCompra' },
+               
+                { name: 'litrosVendidosCV', label: 'Ventas CV (L)', align: 'right', field: 'litrosVendidosCV' },
+                { name: 'promedioVenta', label: 'Prom. Venta', align: 'right', field: 'promedioVenta' },
+              
+                { name: 'utilidad', label: 'Utilidad / Pérdida', align: 'right', field: 'utilidad' },
+                // { name: 'litrosVendidosCFDI', label: 'Ventas CFDI (L)', align: 'right', field: 'litrosVendidosCFDI' },
+                { name: 'importeVendido', label: 'Importe Ventas CFDI ($)', align: 'right', field: 'importeVendido' },
+                { name: 'porcentaje', label: '% Utilidad', align: 'right', field: 'porcentaje' },
+            ],
+            dataTablaMagna: [],
+            dataTablaDiesel: [],
+            dataTablaPremium: [],
         }
     },
     computed: {
@@ -454,7 +602,7 @@ export default {
                     utilidadPeriodo: this.dataDiesel.reduce((acumulador, objeto) => acumulador + objeto.utilidadPeriodo, 0),
                 }
                 this.dataDiesel.push(SumDiesel);
-
+                this.GetReporteUtilidadRegistrado()
                 this.$q.loading.hide()
             } catch (error) {
                 console.log(error)
@@ -529,7 +677,7 @@ export default {
         },
 
         ExportExcel() {
-            try{
+            try {
                 const columnsToInclude = [
                     'nombreMes',
                     'litrosVentas',
@@ -540,9 +688,9 @@ export default {
                     'litrosCompras',
                     'importeCompras',
                     'descuentoCompras',
-                    'subTotalCompras', 
-                    'promedioCompras', 
-                    'porcentajeUtilidad', 
+                    'subTotalCompras',
+                    'promedioCompras',
+                    'porcentajeUtilidad',
                     'utilidadPeriodo',
                 ];
                 //MAGNA
@@ -589,9 +737,9 @@ export default {
                         'Litros Comprados',
                         'Importe de Compras',
                         'Descuento de Compras',
-                        'Sub Total de Compras', 
-                        'Promedio de Compras', 
-                        'Porcentaje de Utilidad', 
+                        'Sub Total de Compras',
+                        'Promedio de Compras',
+                        'Porcentaje de Utilidad',
                         'Utilidad del Periodo',
                     ],
                     ...arrayDeValoresMagna.map((registro, index) => [
@@ -624,9 +772,9 @@ export default {
                         'Litros Comprados',
                         'Importe de Compras',
                         'Descuento de Compras',
-                        'Sub Total de Compras', 
-                        'Promedio de Compras', 
-                        'Porcentaje de Utilidad', 
+                        'Sub Total de Compras',
+                        'Promedio de Compras',
+                        'Porcentaje de Utilidad',
                         'Utilidad del Periodo',
                     ],
                     ...arrayDeValoresPremium.map((registro, index) => [
@@ -659,9 +807,9 @@ export default {
                         'Litros Comprados',
                         'Importe de Compras',
                         'Descuento de Compras',
-                        'Sub Total de Compras', 
-                        'Promedio de Compras', 
-                        'Porcentaje de Utilidad', 
+                        'Sub Total de Compras',
+                        'Promedio de Compras',
+                        'Porcentaje de Utilidad',
                         'Utilidad del Periodo',
                     ],
                     ...arrayDeValoresDiesel.map((registro, index) => [
@@ -683,7 +831,7 @@ export default {
                         { t: 'n', v: registro[12], z: '#,##0.00' },
                     ]),
                 ]);
-                    
+
                 // Combinar celdas A1 a H1 y centrar texto
                 hojaCalculo['!merges'] = [{ s: { r: 0, c: 0 }, e: { c: 7, r: 0 } }];
                 hojaCalculo['!merges'].push({ s: { c: 0, r: 1 }, e: { c: 7, r: 1 } });
@@ -693,15 +841,15 @@ export default {
                 XLSX.utils.book_append_sheet(libroTrabajo, hojaCalculo, 'Hoja1');
 
                 // Guardar el libro como un archivo XLSX
-                const nombreArchivo = 'REPORTE GASOLINERAS ' + this.token.rfc + '_' + this.token.empresa; 
+                const nombreArchivo = 'REPORTE GASOLINERAS ' + this.token.rfc + '_' + this.token.empresa;
                 XLSX.writeFile(libroTrabajo, nombreArchivo + '.xlsx');
-            }catch(error){
+            } catch (error) {
                 console.log(error);
             }
-            
 
 
-            
+
+
             // const workbook = XLSX.utils.book_new();
 
             // const sheetMagna = XLSX.utils.json_to_sheet(this.dataMagna);
@@ -720,6 +868,342 @@ export default {
             this.dialogDetalles = false;
         },
 
+
+        // GET REPROTE DE UTILIDAD
+        async GetReporteUtilidadRegistrado() {
+            let año = this.selectedAnio
+
+            let comprasMagna = await this.GetComparativaVentasCompras(año, 'COMPRAS', 'MAGNA');
+            let comprasPremium = await this.GetComparativaVentasCompras(año, 'COMPRAS', 'PREMIUM');
+            let comprasDiesel = await this.GetComparativaVentasCompras(año, 'COMPRAS', 'DIESEL');
+
+            let ventasMagna = await this.GetComparativaVentasCompras(año, 'VENTAS', 'MAGNA');
+            let ventasPremium = await this.GetComparativaVentasCompras(año, 'VENTAS', 'PREMIUM');
+            let ventasDiesel = await this.GetComparativaVentasCompras(año, 'VENTAS', 'DIESEL');
+
+            let inicialMagna = await this.GetInicial('MAGNA');
+            let inicialPremium = await this.GetInicial('PREMIUM');
+            let inicialDiesel = await this.GetInicial('DIESEL');
+
+            let comparativaMagna = await this.GetComparativa('MAGNA');
+            let comparativaPremium = await this.GetComparativa('PREMIUM');
+            let comparativaDiesel = await this.GetComparativa('DIESEL');
+
+            let magna = this.dataTabla(comprasMagna, inicialMagna, comparativaMagna, ventasMagna, this.dataMagna);
+            let diesel = this.dataTabla(comprasDiesel, inicialDiesel, comparativaDiesel, ventasDiesel, this.dataDiesel);
+            let premium = this.dataTabla(comprasPremium, inicialPremium, comparativaPremium, ventasPremium, this.dataPremium);
+
+            this.dataTablaMagna = magna
+            this.dataTablaDiesel = diesel
+            this.dataTablaPremium = premium
+        },
+
+        dataTabla(compras, inventarioInicial, inventarioFinal, ventas, reporteUtilidad) {
+            const mesesUtilidad = reporteUtilidad.filter(r => !r.nombreMes.startsWith('Total_'))
+
+            return mesesUtilidad.map(ru => {
+                const mes = ru.nombreMes
+
+                // Litros del control volumétrico
+                const comprasCV = this.litrosMes(compras, mes)
+                const invInicial = this.litrosMes(inventarioInicial, mes)
+                const invFinal = this.litrosMes(inventarioFinal, mes)
+                const litrosVendidosCV = this.litrosMes(ventas, mes)   // CV — multiplicado por promedioVentas
+
+                // Litros ventas CFDI del reporte de utilidad — referencia visual
+                const litrosVendidosCFDI = ru.litrosVentas
+
+                // Costo de venta en litros: comprasCV + invInicial - invFinal
+                const costoVenta = comprasCV + invInicial - invFinal
+
+                // Utilidad = (costoVenta × promedioCompras) − (litrosVendidosCV × promedioVentas)
+                const utilidad =   (litrosVendidosCV * ru.promedioVentas) - (costoVenta * ru.promedioCompras)
+
+                console.log(litrosVendidosCV)
+                console.log(ru.promedioVentas)
+                console.log(costoVenta)
+                console.log(ru.promedioCompras)
+                console.log(litrosVendidosCV * ru.promedioVentas)
+                console.log(costoVenta * ru.promedioCompras)
+                console.log(utilidad)
+
+                // % sobre importe de ventas CFDI
+                const porcentaje = ru.importeVentas !== 0
+                    ? (utilidad / ru.importeVentas) * 100
+                    : 0
+
+                return {
+                    mes,
+                    comprasCV,
+                    invInicial,
+                    invFinal,
+                    costoVenta,
+                    promedioCompra: ru.promedioCompras,
+                    litrosVendidosCV,
+                    litrosVendidosCFDI,
+                    importeVendido: ru.importeVentas,
+                    promedioVenta: ru.promedioVentas,
+                    utilidad,
+                    porcentaje,
+                }
+            })
+        },
+
+
+        // GET VENTAS Y COMPRAS 
+        async GetReporteTodos() {
+            this.dataVentas = []
+
+            if (!this.selectedAnio || !this.selectedMesI || !this.selectedMesF) {
+                this.$q.notify({ type: 'warning', message: 'Selecciona año y meses', position: 'top-right' })
+                return
+            }
+
+            const fI = new Date(this.selectedAnio, this.selectedMesI.value - 1, 1)
+                .toISOString().split('T')[0]
+            const fF = new Date(this.selectedAnio, this.selectedMesF.value, 0)
+                .toISOString().split('T')[0]
+
+            let año = this.selectedAnio
+
+            let ObjInicialMagna = await this.GetComparativaVentasCompras(año, 'VENTAS', 'MAGNA');
+            let ObjInicialPremium = await this.GetComparativaVentasCompras(año, 'VENTAS', 'PREMIUM');
+            let ObjInicialDiesel = await this.GetComparativaVentasCompras(año, 'VENTAS', 'DIESEL');
+
+            try {
+                let response = await axios.get(this.rutaAxios + 'Gasolineros/GetVentasGasolinasAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
+                let x = response.data;
+
+                const mI = this.selectedMesI.value
+                const mF = this.selectedMesF.value
+
+                this.dataVentas = x.map(item => {
+                    let objComp = null
+                    if (item.producto === 'MAGNA') objComp = ObjInicialMagna
+                    if (item.producto === 'PREMIUM') objComp = ObjInicialPremium
+                    if (item.producto === 'DIESEL') objComp = ObjInicialDiesel
+
+                    const comparativa = this.calcularComparativa(objComp, mI, mF)
+                    return {
+                        ...item,
+                        comparativa,
+                        diferencia: item.cantidad - comparativa
+                    }
+                })
+
+                //VAMOS A CALCULAR LOS TOTALES
+                let objetoTotales = {
+                    detalles: [],
+                    producto: 'Total',
+                    cantidad: this.dataVentas.reduce((acumulador, objeto) => acumulador + objeto.cantidad, 0),
+                    comparativa: this.dataVentas.reduce((a, o) => a + (o.comparativa ?? 0), 0),
+                    diferencia: this.dataVentas.reduce((a, o) => a + (o.diferencia ?? 0), 0), subTotal: this.dataVentas.reduce((acumulador, objeto) => acumulador + objeto.subTotal, 0),
+                    descuento: this.dataVentas.reduce((acumulador, objeto) => acumulador + objeto.descuento, 0),
+                    iva: this.dataVentas.reduce((acumulador, objeto) => acumulador + objeto.iva, 0),
+                    ieps: this.dataVentas.reduce((acumulador, objeto) => acumulador + objeto.ieps, 0),
+                    total: this.dataVentas.reduce((acumulador, objeto) => acumulador + objeto.total, 0),
+                    ventas: this.dataVentas.reduce((acumulador, objeto) => acumulador + objeto.ventas, 0),
+                    comprobantes: this.dataVentas.reduce((acumulador, objeto) => acumulador + objeto.comprobantes, 0),
+                }
+                this.dataVentas.push(objetoTotales);
+            } catch (error) {
+                console.log(error)
+            }
+        },
+
+        async GetComparativaVentasCompras(año, tipo, item) {
+            let noCre = 'Todos'
+
+            let ObjInicial = {
+                año: año,
+                tipo: tipo,
+                combustible: item,
+                noCre: noCre,
+                detalle: [
+                    { mes: 'ENERO', litros: 0 },
+                    { mes: 'FEBRERO', litros: 0 },
+                    { mes: 'MARZO', litros: 0 },
+                    { mes: 'ABRIL', litros: 0 },
+                    { mes: 'MAYO', litros: 0 },
+                    { mes: 'JUNIO', litros: 0 },
+                    { mes: 'JULIO', litros: 0 },
+                    { mes: 'AGOSTO', litros: 0 },
+                    { mes: 'SEPTIEMBRE', litros: 0 },
+                    { mes: 'OCTUBRE', litros: 0 },
+                    { mes: 'NOVIEMBRE', litros: 0 },
+                    { mes: 'DICIEMBRE', litros: 0 }
+                ],
+            };
+            let objeto = {
+                databaseName: 'erp_' + this.token.rfc,
+                año: año,
+                tipo: tipo,
+                combustible: item,
+                noCre: noCre,
+            }
+            console.log(objeto)
+            try {
+                let response = await axios.post(this.rutaAxios + 'Gasolineros/GetLitrosGasolinerosCVAsync', objeto);
+                let x = response.data;
+                return x;
+            } catch (error) {
+                return ObjInicial;
+            }
+        },
+
+        calcularComparativa(objComparativa, mesInicial, mesFinal) {
+            if (!objComparativa?.detalle) return 0
+            return objComparativa.detalle
+                .filter(d => {
+                    const mesIndex = this.itemsMes.findIndex(m => m.label === d.mes) + 1
+                    return mesIndex >= mesInicial && mesIndex <= mesFinal
+                })
+                .reduce((a, d) => a + parseFloat(d.litros), 0)
+        },
+
+        async GetReporteComprasTodos() {
+
+            if (!this.selectedAnio || !this.selectedMesI || !this.selectedMesF) {
+                this.$q.notify({ type: 'warning', message: 'Selecciona año y meses', position: 'top-right' })
+                return
+            }
+
+            const fI = new Date(this.selectedAnio, this.selectedMesI.value - 1, 1)
+                .toISOString().split('T')[0]
+            const fF = new Date(this.selectedAnio, this.selectedMesF.value, 0)
+                .toISOString().split('T')[0]
+
+            this.dataCompras = [];
+
+            let año = this.selectedAnio
+
+            let ObjInicialMagna = await this.GetComparativaVentasCompras(año, 'COMPRAS', 'MAGNA');
+            let ObjInicialPremium = await this.GetComparativaVentasCompras(año, 'COMPRAS', 'PREMIUM');
+            let ObjInicialDiesel = await this.GetComparativaVentasCompras(año, 'COMPRAS', 'DIESEL');
+
+            try {
+                let response = await axios.get(this.rutaAxios + 'Gasolineros/GetComprasGasolineriasAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
+                let x = response.data;
+
+                const mI = this.selectedMesI.value
+                const mF = this.selectedMesF.value
+
+                this.dataCompras = x.map(item => {
+                    let objComp = null
+                    if (item.producto === 'MAGNA') objComp = ObjInicialMagna
+                    if (item.producto === 'PREMIUM') objComp = ObjInicialPremium
+                    if (item.producto === 'DIESEL') objComp = ObjInicialDiesel
+
+                    const comparativa = this.calcularComparativa(objComp, mI, mF)
+                    return {
+                        ...item,
+                        comparativa,
+                        diferencia: item.cantidad - comparativa
+                    }
+                })
+
+                let objetoTotales = {
+                    detalles: [],
+                    producto: 'Total',
+                    cantidad: this.dataCompras.reduce((acumulador, objeto) => acumulador + objeto.cantidad, 0),
+                    comparativa: this.dataCompras.reduce((a, o) => a + (o.comparativa ?? 0), 0),
+                    diferencia: this.dataCompras.reduce((a, o) => a + (o.diferencia ?? 0), 0), subTotal: this.dataCompras.reduce((acumulador, objeto) => acumulador + objeto.subTotal, 0),
+
+                    subTotal: this.dataCompras.reduce((acumulador, objeto) => acumulador + objeto.subTotal, 0),
+                    descuento: this.dataCompras.reduce((acumulador, objeto) => acumulador + objeto.descuento, 0),
+                    iva: this.dataCompras.reduce((acumulador, objeto) => acumulador + objeto.iva, 0),
+                    ieps: this.dataCompras.reduce((acumulador, objeto) => acumulador + objeto.ieps, 0),
+                    total: this.dataCompras.reduce((acumulador, objeto) => acumulador + objeto.total, 0),
+                    ventas: this.dataCompras.reduce((acumulador, objeto) => acumulador + objeto.ventas, 0),
+                    comprobantes: this.dataCompras.reduce((acumulador, objeto) => acumulador + objeto.comprobantes, 0),
+                }
+                this.dataCompras.push(objetoTotales);
+
+                this.$q.loading.hide()
+            } catch (error) {
+                console.log(error)
+                this.$q.loading.hide()
+            }
+        },
+
+        // GET INVENTARIO INICIAL E INVENTARIO FINAL 
+        async GetInicial(item) {
+            let ObjInicial = {
+                año: this.selectedAnio,
+                tipo: 'Inicial',
+                combustible: item,
+                detalle: [
+                    // { mes: this.selectedMesI.label, litros: 0 }
+                    { mes: 'ENERO', litros: 0 },
+                    { mes: 'FEBRERO', litros: 0 },
+                    { mes: 'MARZO', litros: 0 },
+                    { mes: 'ABRIL', litros: 0 },
+                    { mes: 'MAYO', litros: 0 },
+                    { mes: 'JUNIO', litros: 0 },
+                    { mes: 'JULIO', litros: 0 },
+                    { mes: 'AGOSTO', litros: 0 },
+                    { mes: 'SEPTIEMBRE', litros: 0 },
+                    { mes: 'OCTUBRE', litros: 0 },
+                    { mes: 'NOVIEMBRE', litros: 0 },
+                    { mes: 'DICIEMBRE', litros: 0 }
+                ],
+            };
+            try {
+                let response = await axios.get(this.rutaAxios + 'Gasolineros/GetLitrosGasolinerosAsync/erp_' + this.token.rfc + '/' + this.selectedAnio + '/Inicial/' + item);
+                let x = response.data;
+                return x;
+            } catch (error) {
+                return ObjInicial;
+            }
+        },
+
+        async GetComparativa(item) {
+            let ObjInicial = {
+                año: this.selectedAnio,
+                tipo: 'Comparativa',
+                combustible: item,
+                detalle: [
+                    { mes: 'ENERO', litros: 0 },
+                    { mes: 'FEBRERO', litros: 0 },
+                    { mes: 'MARZO', litros: 0 },
+                    { mes: 'ABRIL', litros: 0 },
+                    { mes: 'MAYO', litros: 0 },
+                    { mes: 'JUNIO', litros: 0 },
+                    { mes: 'JULIO', litros: 0 },
+                    { mes: 'AGOSTO', litros: 0 },
+                    { mes: 'SEPTIEMBRE', litros: 0 },
+                    { mes: 'OCTUBRE', litros: 0 },
+                    { mes: 'NOVIEMBRE', litros: 0 },
+                    { mes: 'DICIEMBRE', litros: 0 }
+                ],
+            };
+            try {
+                let response = await axios.get(this.rutaAxios + 'Gasolineros/GetLitrosGasolinerosAsync/erp_' + this.token.rfc + '/' + this.selectedAnio + '/Comparativa/' + item);
+                let x = response.data;
+                return x;
+            } catch (error) {
+                return ObjInicial;
+            }
+        },
+
+        litrosMes(obj, mes) {
+            if (!obj?.detalle) return 0
+            const found = obj.detalle.find(d => d.mes === mes)
+            return found ? parseFloat(found.litros) : 0
+        },
+
+        fmt(val) {
+            return Number(val).toLocaleString('es-MX', { minimumFractionDigits: 3, maximumFractionDigits: 3 })
+        },
+
+        fmtCur(val) {
+            return Number(val).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' })
+        },
+
+        fmtPct(val) {
+            return Number(val).toFixed(2) + ' %'
+        }
+
     },
 }
 </script>
@@ -736,7 +1220,7 @@ export default {
     background: rgb(120, 144, 156);
 }
 </style>
-    
+
 <style lang="sass">
     .my-sticky-column-table
       thead tr:first-child th:first-child
