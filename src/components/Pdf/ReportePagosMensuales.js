@@ -1469,7 +1469,7 @@ export async function  generarReporte(
 
   y += 10; // espacio entre secciones
 
-  const columnasOcultables = ["ptuPagada", "perdidasFiscalesPorAplicar", "accionesD"];
+  const columnasOcultables = ["ptuPagada", "perdidasFiscalesPorAplicar", "accionesD", "accionesG"];
 
   const filaTotales = provisionalesISR[provisionalesISR.length - 1];
 
@@ -1492,9 +1492,10 @@ if (ocultarColumnas) {
 
   const body = provisionalesISR.map((row) =>
     columnasFinales.map((c) => {
+      let label = c.field
       let value = row[c.field];
       // Si es número, aplicamos formato pesos
-      if (typeof value === "number") {
+      if (typeof value === "number" && label != 'porcentaje') {
         return formatoPesos(value);
       }
       return value ?? "";
@@ -1522,7 +1523,7 @@ if (ocultarColumnas) {
       valign: "middle",
     },
     styles: {
-      fontSize: 5,
+      fontSize: 4,
       cellPadding: 3,
     },
     columnStyles: columnStyles,

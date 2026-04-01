@@ -263,33 +263,46 @@
                             <div class="period-card" v-for="d in datosOrdenados" :key="d.folio + d.periodo">
                                 <div class="period-card-header">
                                     <span>{{ d.periodo }}</span>
-                                    <span class="folio">Folio: {{ d.folio }}</span>
                                 </div>
-                                <div class="period-row"><span class="lbl">Tipo de declaración</span><span class="val">{{
+                                <!--  <div class="period-row"><span class="lbl">Tipo de declaración</span><span class="val">{{
                                     d.analisis.encabezado.tipo_declaracion }}</span></div>
                                 <div class="period-row"><span class="lbl">Presentación</span><span class="val">{{
-                                    fmtFecha(d.analisis.encabezado.fecha) }}</span></div>
-                                <div class="period-row"><span class="lbl">Coeficiente de utilidad</span><span
-                                        class="val info">{{
-                                            d.analisis.determinacion_isr.coeficiente_utilidad }}</span></div>
+                                    fmtFecha(d.analisis.encabezado.fecha) }}</span></div> -->
+                                <div class="period-row">
+                                    <span class="lbl">Coeficiente de utilidad </span>
+                                    <span class="val info"> {{ d.analisis.determinacion_isr.coeficiente_utilidad }}</span>
+                                </div>
                                 <div class="period-row"><span class="lbl">Pérdidas anteriores pend.</span><span
                                         class="val">{{
                                             fmt(d.analisis.determinacion_isr.perdidas_fiscales_ejercicios_anteriores_pendientes)
                                         }}</span></div>
-                                <div class="period-row"><span class="lbl">ISR a cargo</span><span class="val neg">{{
-                                    fmt(getImpuesto(d, 'ISRPERSONASMORALES').a_cargo) }}</span></div>
-                                <div class="period-row"><span class="lbl">ISR a favor</span><span class="val pos">{{
+                                
+                                <div class="period-row"><span class="lbl">ISR a cargo ({{
+                                    getImpuesto(d, 'ISRPERSONASMORALES').tipo_declaracion }}) </span><span
+                                        class="val neg">{{
+                                            fmt(getImpuesto(d, 'ISRPERSONASMORALES').a_cargo) }} </span></div>
+                                
+                                <div class="period-row"><span class="lbl">ISR a favor  ({{
+                                    getImpuesto(d, 'ISRPERSONASMORALES').tipo_declaracion }})</span><span class="val pos">{{
                                     fmt(getImpuesto(d, 'ISRPERSONASMORALES').a_favor) }}</span></div>
-                                <div class="period-row"><span class="lbl">IVA a cargo</span><span class="val neg">{{
+                               
+                                <div class="period-row"><span class="lbl">IVA a cargo  ({{
+                                    getImpuesto(d, 'IVA.PERSONASMORALES').tipo_declaracion }})</span><span class="val neg">{{
                                     fmt(getImpuesto(d, 'IVA.PERSONASMORALES').a_cargo) }}</span></div>
-                                <div class="period-row"><span class="lbl">IVA a favor</span><span class="val pos">{{
+                                
+                                <div class="period-row"><span class="lbl">IVA a favor ({{
+                                    getImpuesto(d, 'IVA.PERSONASMORALES').tipo_declaracion }}) </span><span class="val pos">{{
                                     fmt(getImpuesto(d, 'IVA.PERSONASMORALES').a_favor) }}</span></div>
-                                <div class="period-row"><span class="lbl">IVA Ret. a cargo</span><span
+                                
+                                <div class="period-row"><span class="lbl">IVA Ret. a cargo ({{
+                                    getImpuesto(d, 'IVARETENCIONES').tipo_declaracion }})</span><span
                                         class="val neg">{{
                                             fmt(getImpuesto(d, 'IVARETENCIONES').a_cargo) }}</span></div>
+                                
                                 <div v-for="concepto in conceptosISR" :key="concepto">
                                     <div class="period-row">
-                                        <span class="lbl">{{ labelConcepto(concepto) }} cargo</span>
+                                        <span class="lbl">{{ labelConcepto(concepto) }} cargo ({{
+                                            getImpuesto(d, concepto).tipo_declaracion }})</span>
                                         <span class="val neg">{{ fmt(getImpuesto(d, concepto).a_cargo) }}</span>
                                     </div>
                                 </div>
@@ -409,7 +422,7 @@ export default {
         },
 
         getImpuesto(d, concepto) {
-            return d.analisis.impuestos?.find(i => i.concepto === concepto) ?? { a_cargo: 0, a_favor: 0 };
+            return d.analisis.impuestos?.find(i => i.concepto === concepto) ?? { a_cargo: 0, a_favor: 0, tipo_declaracion: '' };
         },
 
         labelConcepto(concepto) {
@@ -427,8 +440,7 @@ export default {
 
         _getPeriodo(nombreMes) {
             const nombre = capMes(nombreMes);
-            return this.resultado.data.find(x => x.periodo === nombre && x.analisis.encabezado.tipo_declaracion === 'Complementaria')
-                || this.resultado.data.find(x => x.periodo === nombre && x.analisis.encabezado.tipo_declaracion === 'Normal');
+            return this.resultado.data.find(x => x.periodo === nombre);
         },
 
         async getDescargaScraper() {
@@ -569,26 +581,60 @@ export default {
                 this.PostRetencionesAsimilados(),
                 this.PostRetencionesArrendamientos(),
                 this.PostRetencionesHonorarios(),
+                this.PostIva()
             ]);
             this.loadingRegistrar = false;
             this.$q.notify({ type: 'positive', message: 'Comparativas registradas', position: 'top-right' });
         },
 
+        // _buildComparativa(tipo, fn) {
+        //     const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+        //     return {
+        //         tipo, anio: this.form.anio,
+        //         comparativa: meses.map(mes => ({
+        //             mes,
+        //             importe: fn(this._getPeriodo(mes)) ?? 0,
+        //             ivaCargo: 0,
+        //             ivaFavor: 0,
+        //         })),
+        //     };
+        // },
+
         _buildComparativa(tipo, fn) {
             const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
             return {
                 tipo, anio: this.form.anio,
-                comparativa: meses.map(mes => ({
-                    mes,
-                    importe: fn(this._getPeriodo(mes)) ?? 0,
-                    ivaCargo: 0,
-                    ivaFavor: 0,
-                })),
+                comparativa: meses.map(mes => {
+                    const periodo = this._getPeriodo(mes);
+                    return {
+                        mes,
+                        importe: periodo ? (fn(periodo) ?? 0) : 0,
+                        ivaCargo: 0,
+                        ivaFavor: 0,
+                    };
+                }),
             };
         },
 
         async _post(obj) {
             await axios.post(`${this.rutaAxios}Comparativa/PostComparativaAsync/erp_${this.token.rfc}`, obj);
+        },
+
+        async PostIva() {
+            const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+            await this._post({
+                tipo: 'IVA',
+                anio: this.form.anio,
+                comparativa: meses.map(mes => {
+                    const periodo = this._getPeriodo(mes);
+                    return {
+                        mes,
+                        importe: 0,
+                        ivaCargo: periodo ? (this.getImpuesto(periodo, 'IVA.PERSONASMORALES').a_cargo ?? 0) : 0,
+                        ivaFavor: periodo ? (this.getImpuesto(periodo, 'IVA.PERSONASMORALES').a_favor ?? 0) : 0,
+                    };
+                }),
+            });
         },
 
         async PostCoeficiente() {
@@ -643,7 +689,7 @@ export default {
         },
         // SueldosOtros - Comparativa Sueldos Otros
 
-        // Arrendamientos - Comparativa Arrendamientos
+        // Arrendamientos - Comparativa Arrendamientos|
         async PostRetencionesArrendamientos() {
             await this._post(this._buildComparativa('Arrendamientos', d =>
                 this.getImpuesto(d, 'R15ISRPORPAGOSPORCUENTADETERCEROSORETENCIONESPORARRENDAMIENTODEINMUEBLES').a_cargo
