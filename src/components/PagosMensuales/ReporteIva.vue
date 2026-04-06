@@ -108,7 +108,6 @@
                                 <q-td key="tipoFactor" :props="props">{{ props.row.tipoFactor }}</q-td>
                                 <q-td key="tasaOcuota" :props="props">{{ props.row.tasaOcuota }}</q-td>
                                 <q-td key="importe" :props="props">{{ FormatCurrency(props.row.importe) }}</q-td>
-                                </q-td>
                             </q-tr>
                         </template>
                     </q-table>
@@ -127,7 +126,6 @@
                                 <q-td key="tipoFactor" :props="props">{{ props.row.tipoFactor }}</q-td>
                                 <q-td key="tasaOcuota" :props="props">{{ props.row.tasaOcuota }}</q-td>
                                 <q-td key="importe" :props="props">{{ FormatCurrency(props.row.importe) }}</q-td>
-                                </q-td>
                             </q-tr>
                         </template>
                     </q-table>
@@ -157,6 +155,7 @@
                 <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
                     :offset="[10, 10]">Exportar Excel</q-tooltip>
             </q-btn>
+            <q-checkbox v-model="ivaExento" label="Tiene IVA Exento?" />
             <!-- <q-btn push color="blue-10" @click="GetReporteIvaExento" icon="mdi-file-excel-box-outline" rounded flat
                 size="18px" padding="xs">
                 <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
@@ -208,12 +207,6 @@
                         </q-btn>
                     </q-td>
 
-                    <!-- CASO PARA IVA EXENTO -->
-                    <template v-if="banderaExento">
-                        <q-td key="porcentajeExento" :props="props">{{ FormatoCantidad(props.row.porcentajeExento)
-                            }}</q-td>
-                    </template>
-
                     <q-td key="baseIvaAcreditado" :props="props">{{ FormatCurrency(props.row.baseIvaAcreditado)
                         }}</q-td>
                     <q-td key="importeIvaAcreditado" :props="props">{{ FormatCurrency(props.row.importeIvaAcreditado)
@@ -240,6 +233,12 @@
                     <q-td key="cargoRegistrado" :props="props">{{ FormatCurrency(props.row.cargoRegistrado) }}</q-td>
                     <q-td key="favorRegistrado" :props="props">{{ FormatCurrency(props.row.favorRegistrado) }}</q-td>
                     <q-td key="comparativa" :props="props">{{ FormatCurrency(props.row.comparativa) }}</q-td>
+
+                    <!-- CASO PARA IVA EXENTO -->
+                    <template v-if="ivaExento">
+                        <q-td key="porcentajeE" :props="props">{{ props.row.porcentajeE}}</q-td>
+                        <q-td key="calculoE" :props="props">{{ props.row.calculoE}}</q-td>
+                    </template>
                 </q-tr>
             </template>
 
@@ -345,9 +344,9 @@
                     { name: 'cargoRegistrado', align: 'right', label: 'Cargo Registrado', field: 'cargoRegistrado', headerClasses: 'bg-green-14 text-white', classes: 'bg-green-2 text-black text-right ellipsis ' },
                     { name: 'favorRegistrado', align: 'right', label: 'Favor Registrado', field: 'favorRegistrado', headerClasses: 'bg-green-14 text-white', classes: 'bg-green-2 text-black text-right ellipsis ' },
                     { name: 'comparativa', align: 'right', label: 'Comparativa', field: 'comparativa' },
-              ],
+                ],
 
-              columnsMorales:[ { name: 'año', align: 'left', label: 'Año', field: 'año' },
+                columnsMorales:[ { name: 'año', align: 'left', label: 'Año', field: 'año' },
                     { name: 'mes', align: 'left', label: 'Mes', field: 'mes' },
                     { name: 'baseIvaTrasladado', align: 'right', label: 'Base IVA Trasladado', field: 'baseIvaTrasladado' },
                     { name: 'importeIvaTrasladado', align: 'right', label: 'Importe IVA Trasladado', field: 'importeIvaTrasladado' },
@@ -362,7 +361,7 @@
                     { name: 'cargoRegistrado', align: 'right', label: 'Cargo Registrado', field: 'cargoRegistrado', headerClasses: 'bg-green-14 text-white', classes: 'bg-green-2 text-black text-right ellipsis ' },
                     { name: 'favorRegistrado', align: 'right', label: 'Favor Registrado', field: 'favorRegistrado', headerClasses: 'bg-green-14 text-white', classes: 'bg-green-2 text-black text-right ellipsis ' },
                     { name: 'comparativa', align: 'right', label: 'Comparativa', field: 'comparativa' },
-              ],
+                ],
 
                 columnsExento: [
                     { name: 'año', align: 'left', label: 'Año', field: 'año' },
@@ -459,6 +458,9 @@
                 ivaSat8: null,
                 ivaSat0: null,
                 ivaSatExento: null,
+
+                //PARA EL IVA EXENTO
+                ivaExento: false,
             }
         },
         computed: {
@@ -512,22 +514,22 @@
                 if (rfc.length == 12) {
                     this.columnsDefault = this.columnsMorales
                     if (this.selectedAnio < 2024) {
-                    const ivaCargo = await this.GetIvaTrasladado();
-                    await this.GetReporteIva(ivaCargo);
-                } else {
-                    await this.GetReporteIva2024();
-                }
+                        const ivaCargo = await this.GetIvaTrasladado();
+                        await this.GetReporteIva(ivaCargo);
+                    } else {
+                        await this.GetReporteIva2024();
+                    }
 
                 } else if (rfc.length == 13) {
                     this.columnsDefault = this.columnsFisicas
 
-                     if (this.selectedAnio < 2024) {
-                    const ivaCargo = await this.GetIvaTrasladado();
-                    await this.GetReporteIvaFisicas(ivaCargo);
-                } else {
-                    await this.GetReporteIva2024Fisicas();
+                    if (this.selectedAnio < 2024) {
+                        const ivaCargo = await this.GetIvaTrasladado();
+                        await this.GetReporteIvaFisicas(ivaCargo);
+                    } else {
+                        await this.GetReporteIva2024Fisicas();
+                    }
                 }
-            }
 
 
                 // if (this.selectedAnio < 2024) {
@@ -538,14 +540,35 @@
                 // }
 
                 await this.GetReporteIvaPagosImpuestos();
+
+                //CONSULTAMOS LO DE LOS EXENTOS
+                if(this.ivaExento){
+                    const porcentajeE = await this.getPorcentajeExento();
+                    
+                    this.columns.push(
+                        { name: 'porcentajeE', align: 'right', label: 'porcentajeE', field: 'porcentajeE' }
+                    );
+                    this.columns.push(
+                        { name: 'calculoE', align: 'right', label: 'calculoE', field: 'calculoE' }
+                    );
+
+                    let contE = 0;
+                    for(let i of this.dataComprobantes ){
+                        if(i.ivaFavor > 0){
+                            const calculo = i.ivaFavor * porcentajeE[contE]
+                            console.log(calculo)
+                            this.dataComprobantes[contE].porcentajeE = porcentajeE[contE];
+                            // this.dataComprobantes[contE].porcentajeE = 0;
+                            this.dataComprobantes[contE].calculoE = parseFloat(calculo.toFixed(2));
+                            contE++;
+                        }
+                    }
+                }
                 // console.log(this.dataComprobantes)
             },
 
             async GetReporteIva(ivaCargo) {
                 try {
-
-                    console.log('ivaCargo')
-
                     this.columns = [...this.columnsDefault]
                     this.dataComprobantes = [];
                     this.$q.loading.show({
@@ -558,7 +581,6 @@
                     // let ivaCargo = await this.GetIvaTrasladado();
                     let ivaAcreditable = await this.GetIvaAcreditado()
                     let ivaRetenido = await this.GetIvaRetenido();
-                    console.log("iva ret a",ivaRetenido);
                     let comparativa = await this.GetComparativa(this.selectedAnio, 'IVA')
 
                     let ObjIva = {}
@@ -640,9 +662,6 @@
 
             async GetReporteIvaFisicas(ivaCargo) {
                 try {
-
-                    console.log('ivaCargo')
-
                     this.columns = [...this.columnsDefault]
                     this.dataComprobantes = [];
                     this.$q.loading.show({
@@ -652,12 +671,9 @@
                         message: 'Consultando datos, espere...',
                     })
 
-                    // let ivaCargo = await this.GetIvaTrasladado();
                     let ivaAcreditable = await this.GetIvaAcreditado()
                     let ivaRetenido = await this.GetReporteIvaRetenidoNeteadoAsync();
-                    console.log("iva ret a",ivaRetenido);
                     let comparativa = await this.GetComparativa(this.selectedAnio, 'IVA')
-
                     let ObjIva = {}
 
                     for (let x = 0; x < this.selectedMes.value; x++) {
@@ -678,16 +694,9 @@
 
                         let ivaCargo_ = ivaCargo[x].importeIva;
                         let ivaAcreditado_ = ivaAcreditable[x].importeIva
-                        
-                        // let ivaRetenido_ = ivaRetenido[x].importeIva
                         let ivaRetenido_ = ObjIva.ivaRetenido
                         let ivaRetenidoAnterior_ = ivaRetenido[x + 1].importeIva
-
-
-                        // let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_
                         let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_ 
-                        console.log(ivaCargo_ + ' - ' + ivaAcreditado_ + ' - ' + ivaRetenido_)
-                        console.log(calculo)
                         if (calculo > 0) {
                             ObjIva.ivaCargo = calculo
                             ObjIva.ivaFavor = 0
@@ -796,10 +805,7 @@
 
             async GetReporteIvaExento(ivaCargo) {
                 try {
-                    console.log('GetReporteIvaExento')
-
                     this.columns = [...this.columnsExento];
-
                     this.dataComprobantes = [];
                     this.$q.loading.show({
                         spinner: QSpinnerCube,
@@ -947,9 +953,7 @@
                     let añoSel = this.selectedAnio - 1
                     let fechaI = añoSel + '-' + '12' + '-01';
                     let fechaF = this.selectedAnio + '-' + this.selectedMes.value + '-01';
-
                     let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
-                    console.log('nueva', response)
                     return response.data;
                 } catch (error) {
                     console.log(error)
@@ -964,7 +968,6 @@
                     let fechaF = this.selectedAnio + '-' + this.selectedMes.value + '-01';
 
                     let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
-                    console.log('nueva', response)
                     return response.data;
                 } catch (error) {
                     console.log(error)
@@ -1015,7 +1018,6 @@
 
             async DetalesEmitidos(rfc, fechaI, fechaF) {
                 const response = await axios.get(this.rutaAxios + `Ingresos/GetReporteIvaDetAsync/${rfc}/${fechaI}/${fechaF}`);
-                // console.log(response.data)
                 const factor1Data = response.data.filter(item => item.tipoFactor === 'Tasa' && item.tasaOCuota == .16);
                 const factor2Data = response.data.filter(item => item.tipoFactor === 'Tasa' && item.tasaOCuota == .08);
                 const factor3Data = response.data.filter(item => item.tipoFactor === 'Tasa' && item.tasaOCuota == .0);
@@ -1085,15 +1087,6 @@
                 this.dialogDetalles = true;
                 this.$q.loading.hide()
             },
-
-            // ExportExcel() {
-            //     const workbook = xlsx.utils.book_new();
-
-            //     const sheetOtros = xlsx.utils.json_to_sheet(this.dataComprobantes);
-            //     xlsx.utils.book_append_sheet(workbook, sheetOtros, 'IVA');
-
-            //     xlsx.writeFile(workbook, 'PAGOS IVA DE ENERO A ' + this.selectedMes.label + ' ' + this.selectedAnio + '.xlsx');
-            // },
 
             ExportExcel() {
             let reporte = 'REPORTE PAGOS DE IVA'
@@ -1329,7 +1322,6 @@
                 const emitidos = (await this.GetReporteIvaCompletoEmitidos(rfc, fechaI, fechaF)) || [];
                 const recibidos = (await this.GetReporteIvaCompletoRecibidos(rfc, fechaI, fechaF)) || [];
                 const ivaRet = (await this.GetIvaRetenido()) || [];
-                console.log("Retenido",ivaRet);
                 const comp = (await this.GetComparativa(this.selectedAnio, 'IVA')) || [];
                 this.columns = [...this.columnsDefault];
                 const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
@@ -1353,7 +1345,6 @@
                         .filter(item => item.mes?.toUpperCase() === mes)
                         .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-                    // console.log("Retenido", ivaRet);
                     const ivaRetenido = ivaRet
                         .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio)
                         .reduce((acc, item) => acc + (item.importeIva || 0), 0);
@@ -1404,16 +1395,14 @@
                         comparativa: comparativa,
                     };
 
-                    // console.log(objIva)
                     this.dataComprobantes.push(objIva);
                 }
-
 
                 // Asegura que existan datos 
                 if (this.dataComprobantes.length > 0) {
                     await this.GenerarGrafica(this.dataComprobantes);
                 } else {
-                    console.warn("No hay datos por mostrar.");
+
                 }
 
                 this.$q.loading.hide();
@@ -1436,7 +1425,7 @@
                 const emitidos = (await this.GetReporteIvaCompletoEmitidos(rfc, fechaI, fechaF)) || [];
                 const recibidos = (await this.GetReporteIvaCompletoRecibidos(rfc, fechaI, fechaF)) || [];
                 const ivaRet = (await this.GetReporteIvaRetenidoNeteadoAsync()) || [];
-                console.log("Retenido",ivaRet);
+
                 const comp = (await this.GetComparativa(this.selectedAnio, 'IVA')) || [];
                 this.columns = [...this.columnsDefault];
                 const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
@@ -1460,7 +1449,6 @@
                         .filter(item => item.mes?.toUpperCase() === mes)
                         .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-                    // console.log("Retenido", ivaRet);
                     const ivaRetenido = ivaRet
                         .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio)
                         .reduce((acc, item) => acc + (item.importeIva || 0), 0);
@@ -1511,7 +1499,6 @@
                         comparativa: comparativa,
                     };
 
-                    // console.log(objIva)
                     this.dataComprobantes.push(objIva);
                 }
 
@@ -1520,7 +1507,7 @@
                 if (this.dataComprobantes.length > 0) {
                     await this.GenerarGrafica(this.dataComprobantes);
                 } else {
-                    console.warn("No hay datos por mostrar.");
+
                 }
 
                 this.$q.loading.hide();
@@ -1746,6 +1733,29 @@
                 this.$store.state.vistaPreviaStore.tipo = "R"
                 this.$store.state.vistaPreviaStore.rfc = this.token.rfc
                 this.dialogPdf = true;
+            },
+
+            //PARA EL IVA EXENTO
+            async getPorcentajeExento(){
+                this.$q.loading.show({
+                    spinner: QSpinnerCube,
+                    spinnerColor: 'red-8',
+                    spinnerSize: 140,
+                    message: 'Calculando..',
+                });
+
+                try {
+                    const year = this.selectedAnio;
+                    const month = this.selectedMes.value
+                    const rfc = this.token.rfc
+                    const response = await axios.get(this.rutaAxios + `Ingresos/GetPorcentajeIvaExentoAsync/${rfc}/${year}/${month}`);
+                    this.$q.loading.hide()
+                    return response.data;
+                } catch (error) {
+                    console.log(error);
+                    this.$q.loading.hide()
+                    return null;
+                }
             },
         },
     }
