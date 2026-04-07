@@ -498,15 +498,18 @@
               <div v-for="(task, index) in tasks" :key="index" class="q-mb-md">
                 <div class="text-subtitle1">
                   {{ task.title }}
+
                 </div>
+                <q-checkbox v-if="task.title == 'Reporte IVA'" v-model="ivaExento" label="Tiene IVA Exento?" />
+
 
                 <div class="row items-center">
                   <div class="col-12 row no-wrap">
                     <q-linear-progress class="q-mr-md" :value="task.progress" :color="task.status === 'success'
-                        ? 'green'
-                        : task.status === 'error'
-                          ? 'red'
-                          : 'primary'
+                      ? 'green'
+                      : task.status === 'error'
+                        ? 'red'
+                        : 'primary'
                       " rounded striped size="20px" />
                     <q-btn round v-if="task.status !== 'loading'"
                       :icon="task.status === 'error' ? 'mdi-update' : 'mdi-update'" color="primary"
@@ -571,7 +574,7 @@ import axios from "axios";
 import drawerPerfil from "../DrawerPerfil/DrawerPerfil.vue";
 import drawerEmpresas from "../DrawerEmpresas/DrawerEmpresas.vue";
 import moment from "moment";
-import { startOfMonth, endOfMonth, format, parse, parseISO , lastDayOfMonth, differenceInDays, utcToZonedTime} from "date-fns";
+import { startOfMonth, endOfMonth, format, parse, parseISO, lastDayOfMonth, differenceInDays, utcToZonedTime } from "date-fns";
 import { es } from "date-fns/locale";
 import { QSpinnerCube } from "quasar";
 import {
@@ -1233,10 +1236,20 @@ export default {
       dataIvaRetenidoNeteado: [],
       dataISRRetenidoFavor: [],
       dataComprobantesConceptos: [],
-      dataAnticiposGastos:[],
-      dataAnticiposIngresos:[],
-      dataCuentasPagar:[],
-      dataCuentasCobrar:[]
+      dataAnticiposGastos: [],
+      dataAnticiposIngresos: [],
+      dataCuentasPagar: [],
+      dataCuentasCobrar: [],
+
+      //REGISTROS DEL IVA
+      fabIva: false,
+      ivaSat16: null,
+      ivaSat8: null,
+      ivaSat0: null,
+      ivaSatExento: null,
+
+      //PARA EL IVA EXENTO
+      ivaExento: false,
     };
   },
 
@@ -3753,6 +3766,7 @@ export default {
         this.selectedMesI.label,
         this.selectedMesF.label,
         this.dataComprobantes,
+        this.ivaExento,
         this.dataIvaRetenido,
         this.dataSueldos,
         this.dataAsimilados,
@@ -3785,7 +3799,7 @@ export default {
         this.dataISRRetenidoFavor,
         this.dataComprobantesConceptos,
         this.$store.state.empresaStore.rfc,
-        
+
         this.dataAnticiposIngresos,
         this.dataAnticiposGastos,
         this.dataCuentasPagar,
@@ -3809,6 +3823,16 @@ export default {
       // } else {
       //   await this.GetReporteIva2024();
       // }
+
+      const respuesta16 = await this.GetComparativa(this.selectedAnio, 'IVA_visor_sat_16');
+      const respuesta8 = await this.GetComparativa(this.selectedAnio, 'IVA_visor_sat_8');
+      const respuesta0 = await this.GetComparativa(this.selectedAnio, 'IVA_visor_sat_0');
+      const respuestaExento = await this.GetComparativa(this.selectedAnio, 'IVA_visor_sat_exento');
+      this.ivaSat16 = respuesta16;
+      this.ivaSat8 = respuesta8;
+      this.ivaSat0 = respuesta0;
+      this.ivaSatExento = respuestaExento;
+
       const rfc = this.token.rfc;
 
       if (rfc.length == 12) {
@@ -3830,7 +3854,59 @@ export default {
         }
       }
 
+
+      //CONSULTAMOS LO DE LOS EXENTOS
+      if (this.ivaExento) {
+        const porcentajeE = await this.getPorcentajeExento();
+
+        this.columns.push(
+          { name: 'porcentajeE', align: 'right', label: 'porcentajeE', field: 'porcentajeE' }
+        );
+        this.columns.push(
+          { name: 'calculoE', align: 'right', label: 'Calculo Exento', field: 'calculoE' }
+        );
+
+        let contE = 0;
+        console.log('this.dataComprobantes', this.dataComprobantes)
+        for (let i of this.dataComprobantes) {
+
+          if (i.ivaFavor > 0) {
+            const calculo = i.ivaFavor * porcentajeE[contE]
+            console.log(calculo)
+            this.dataComprobantes[contE].porcentajeE = porcentajeE[contE];
+            // this.dataComprobantes[contE].porcentajeE = 0;
+            this.dataComprobantes[contE].calculoE = parseFloat(calculo.toFixed(2));
+            // this.dataComprobantes[contE].ivaFavor = parseFloat(calculo.toFixed(2));
+            contE++;
+          }
+        }
+      }
+
+
       this.$q.loading.hide();
+    },
+
+    //PARA EL IVA EXENTO
+    async getPorcentajeExento() {
+      this.$q.loading.show({
+        spinner: QSpinnerCube,
+        spinnerColor: 'red-8',
+        spinnerSize: 140,
+        message: 'Calculando..',
+      });
+
+      try {
+        const year = this.selectedAnio;
+        const month = this.selectedMesF.value
+        const rfc = this.token.rfc
+        const response = await axios.get(this.rutaAxios + `Ingresos/GetPorcentajeIvaExentoAsync/${rfc}/${year}/${month}`);
+        this.$q.loading.hide()
+        return response.data;
+      } catch (error) {
+        console.log(error);
+        this.$q.loading.hide()
+        return null;
+      }
     },
 
     async GetReporteIva(ivaCargo) {
@@ -3889,61 +3965,61 @@ export default {
           ObjIva = {};
         }
 
-        let objetoTotales = {
-          año: "TOTAL",
-          mes: "",
+        // let objetoTotales = {
+        //   año: "TOTAL",
+        //   mes: "",
 
-          baseIvaTrasladado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
-            0
-          ),
-          importeIvaTrasladado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
-            0
-          ),
-          detallesTrasladado: [],
+        //   baseIvaTrasladado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
+        //     0
+        //   ),
+        //   importeIvaTrasladado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
+        //     0
+        //   ),
+        //   detallesTrasladado: [],
 
-          baseIvaAcreditado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
-            0
-          ),
-          importeIvaAcreditado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
-            0
-          ),
-          detallesAcreditado: [],
+        //   baseIvaAcreditado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
+        //     0
+        //   ),
+        //   importeIvaAcreditado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
+        //     0
+        //   ),
+        //   detallesAcreditado: [],
 
-          ivaRetenidoAnterior: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
-            0
-          ),
-          ivaRetenido: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.ivaRetenido,
-            0
-          ),
-          ivaCargo: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.ivaCargo,
-            0
-          ),
-          ivaFavor: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.ivaFavor,
-            0
-          ),
-          cargoRegistrado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
-            0
-          ),
-          favorRegistrado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.favorRegistrado,
-            0
-          ),
-          comparativa: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.comparativa,
-            0
-          ),
-        };
+        //   ivaRetenidoAnterior: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
+        //     0
+        //   ),
+        //   ivaRetenido: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.ivaRetenido,
+        //     0
+        //   ),
+        //   ivaCargo: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.ivaCargo,
+        //     0
+        //   ),
+        //   ivaFavor: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.ivaFavor,
+        //     0
+        //   ),
+        //   cargoRegistrado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
+        //     0
+        //   ),
+        //   favorRegistrado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.favorRegistrado,
+        //     0
+        //   ),
+        //   comparativa: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.comparativa,
+        //     0
+        //   ),
+        // };
 
-        this.dataComprobantes.push(objetoTotales);
+        // this.dataComprobantes.push(objetoTotales);
       } catch (error) {
         console.log(this.dataComprobantes);
         this.$q.loading.hide();
@@ -4024,60 +4100,60 @@ export default {
           ObjIva = {};
         }
 
-        let objetoTotales = {
-          año: "Total",
-          mes: "Total",
+        // let objetoTotales = {
+        //   año: "Total",
+        //   mes: "Total",
 
-          baseIvaTrasladado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
-            0
-          ),
-          importeIvaTrasladado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
-            0
-          ),
-          detallesTrasladado: [],
+        //   baseIvaTrasladado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
+        //     0
+        //   ),
+        //   importeIvaTrasladado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
+        //     0
+        //   ),
+        //   detallesTrasladado: [],
 
-          baseIvaAcreditado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
-            0
-          ),
-          importeIvaAcreditado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
-            0
-          ),
-          detallesAcreditado: [],
+        //   baseIvaAcreditado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
+        //     0
+        //   ),
+        //   importeIvaAcreditado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
+        //     0
+        //   ),
+        //   detallesAcreditado: [],
 
-          ivaRetenidoAnterior: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
-            0
-          ),
-          ivaRetenido: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.ivaRetenido,
-            0
-          ),
-          ivaCargo: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.ivaCargo,
-            0
-          ),
-          ivaFavor: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.ivaFavor,
-            0
-          ),
-          cargoRegistrado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
-            0
-          ),
-          favorRegistrado: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.favorRegistrado,
-            0
-          ),
-          comparativa: this.dataComprobantes.reduce(
-            (acumulador, objeto) => acumulador + objeto.comparativa,
-            0
-          ),
-        };
-        this.dataComprobantes.push(objetoTotales);
+        //   ivaRetenidoAnterior: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
+        //     0
+        //   ),
+        //   ivaRetenido: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.ivaRetenido,
+        //     0
+        //   ),
+        //   ivaCargo: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.ivaCargo,
+        //     0
+        //   ),
+        //   ivaFavor: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.ivaFavor,
+        //     0
+        //   ),
+        //   cargoRegistrado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
+        //     0
+        //   ),
+        //   favorRegistrado: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.favorRegistrado,
+        //     0
+        //   ),
+        //   comparativa: this.dataComprobantes.reduce(
+        //     (acumulador, objeto) => acumulador + objeto.comparativa,
+        //     0
+        //   ),
+        // };
+        // this.dataComprobantes.push(objetoTotales);
 
         this.$q.loading.hide();
       } catch (error) {
@@ -4191,58 +4267,58 @@ export default {
 
       this.dataComprobantes.pop();
 
-      let objetoTotales = {
-        año: "TOTAL",
-        mes: "TOTAL",
-        baseIvaTrasladado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
-          0
-        ),
-        importeIvaTrasladado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
-          0
-        ),
-        detallesTrasladado: [],
-        baseIvaAcreditado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
-          0
-        ),
-        importeIvaAcreditado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
-          0
-        ),
-        detallesAcreditado: [],
-        ivaRetenidoAnterior: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
-          0
-        ),
-        ivaRetenido: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.ivaRetenido,
-          0
-        ),
-        ivaCargo: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.ivaCargo,
-          0
-        ),
-        ivaFavor: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.ivaFavor,
-          0
-        ),
-        cargoRegistrado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
-          0
-        ),
-        favorRegistrado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.favorRegistrado,
-          0
-        ),
-        comparativa: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.comparativa,
-          0
-        ),
-      };
+      // let objetoTotales = {
+      //   año: "TOTAL",
+      //   mes: "TOTAL",
+      //   baseIvaTrasladado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
+      //     0
+      //   ),
+      //   importeIvaTrasladado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
+      //     0
+      //   ),
+      //   detallesTrasladado: [],
+      //   baseIvaAcreditado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
+      //     0
+      //   ),
+      //   importeIvaAcreditado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
+      //     0
+      //   ),
+      //   detallesAcreditado: [],
+      //   ivaRetenidoAnterior: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
+      //     0
+      //   ),
+      //   ivaRetenido: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.ivaRetenido,
+      //     0
+      //   ),
+      //   ivaCargo: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.ivaCargo,
+      //     0
+      //   ),
+      //   ivaFavor: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.ivaFavor,
+      //     0
+      //   ),
+      //   cargoRegistrado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
+      //     0
+      //   ),
+      //   favorRegistrado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.favorRegistrado,
+      //     0
+      //   ),
+      //   comparativa: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.comparativa,
+      //     0
+      //   ),
+      // };
 
-      this.dataComprobantes.push(objetoTotales);
+      // this.dataComprobantes.push(objetoTotales);
       // Asegura que existan datos
       if (this.dataComprobantes.length > 0) {
       } else {
@@ -4363,58 +4439,58 @@ export default {
 
       this.dataComprobantes.pop();
 
-      let objetoTotales = {
-        año: "TOTAL",
-        mes: "TOTAL",
-        baseIvaTrasladado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
-          0
-        ),
-        importeIvaTrasladado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
-          0
-        ),
-        detallesTrasladado: [],
-        baseIvaAcreditado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
-          0
-        ),
-        importeIvaAcreditado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
-          0
-        ),
-        detallesAcreditado: [],
-        ivaRetenidoAnterior: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
-          0
-        ),
-        ivaRetenido: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.ivaRetenido,
-          0
-        ),
-        ivaCargo: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.ivaCargo,
-          0
-        ),
-        ivaFavor: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.ivaFavor,
-          0
-        ),
-        cargoRegistrado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
-          0
-        ),
-        favorRegistrado: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.favorRegistrado,
-          0
-        ),
-        comparativa: this.dataComprobantes.reduce(
-          (acumulador, objeto) => acumulador + objeto.comparativa,
-          0
-        ),
-      };
+      // let objetoTotales = {
+      //   año: "TOTAL",
+      //   mes: "TOTAL",
+      //   baseIvaTrasladado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.baseIvaTrasladado,
+      //     0
+      //   ),
+      //   importeIvaTrasladado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.importeIvaTrasladado,
+      //     0
+      //   ),
+      //   detallesTrasladado: [],
+      //   baseIvaAcreditado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.baseIvaAcreditado,
+      //     0
+      //   ),
+      //   importeIvaAcreditado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.importeIvaAcreditado,
+      //     0
+      //   ),
+      //   detallesAcreditado: [],
+      //   ivaRetenidoAnterior: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.ivaRetenidoAnterior,
+      //     0
+      //   ),
+      //   ivaRetenido: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.ivaRetenido,
+      //     0
+      //   ),
+      //   ivaCargo: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.ivaCargo,
+      //     0
+      //   ),
+      //   ivaFavor: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.ivaFavor,
+      //     0
+      //   ),
+      //   cargoRegistrado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.cargoRegistrado,
+      //     0
+      //   ),
+      //   favorRegistrado: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.favorRegistrado,
+      //     0
+      //   ),
+      //   comparativa: this.dataComprobantes.reduce(
+      //     (acumulador, objeto) => acumulador + objeto.comparativa,
+      //     0
+      //   ),
+      // };
 
-      this.dataComprobantes.push(objetoTotales);
+      // this.dataComprobantes.push(objetoTotales);
 
       this.$q.loading.hide();
     },
@@ -7774,7 +7850,7 @@ export default {
       try {
         let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteAnticiposAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
         let x = response.data;
-        this.dataAnticiposGastos = x.filter(x=> x.total != x.totalNc)
+        this.dataAnticiposGastos = x.filter(x => x.total != x.totalNc)
         this.$q.loading.hide()
       } catch (error) {
         console.log(error)
@@ -7793,7 +7869,7 @@ export default {
       try {
         let response = await axios.get(this.rutaAxios + 'Ingresos/GetReporteAnticiposAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
         let x = response.data;
-        this.dataAnticiposIngresos = x.filter(x=> x.total != x.totalNc)
+        this.dataAnticiposIngresos = x.filter(x => x.total != x.totalNc)
         this.$q.loading.hide()
       } catch (error) {
         console.log(error)
@@ -7805,89 +7881,89 @@ export default {
     async GetReporteCuentasPagar() {
       this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
       this.dataCuentasPagar = []
-                const fI = `${this.selectedAnio}-01-01`;
-                const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
-                const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
-                try {
-                    let response = await axios.get(this.rutaAxios + 'Gastos/GetCxPAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
-                    let x = response.data;
-                    this.dataCuentasPagar = x.filter(x => x.porPagar < 0)
-                   
-                    this.$q.loading.hide()
+      const fI = `${this.selectedAnio}-01-01`;
+      const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+      try {
+        let response = await axios.get(this.rutaAxios + 'Gastos/GetCxPAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
+        let x = response.data;
+        this.dataCuentasPagar = x.filter(x => x.porPagar < 0)
 
-                    //VAMOS A TRATAR DE OBTENER LOS DIAS DE CREDITO
-                    for (var c of this.dataCuentasPagar) {
-                        const mas_grande = this.ObtenerFechaMasGrande(c.detalles)
-                        const fecha_ = parseISO(c.fecha);
-                        const fechaPago_ = parseISO(mas_grande);
-                        const diferencia = differenceInDays(fechaPago_, fecha_);
-                        c.dias = diferencia;
-                    }
-                    
-                } catch (error) {
-                    console.log(error)
-                    this.$q.loading.hide()
-                }
-            },
+        this.$q.loading.hide()
 
-            async GetReporteCuentasCobrar() {
-              this.dataCuentasCobrar = []
-                this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
-                const fI = `${this.selectedAnio}-01-01`;
-                const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
-                const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+        //VAMOS A TRATAR DE OBTENER LOS DIAS DE CREDITO
+        for (var c of this.dataCuentasPagar) {
+          const mas_grande = this.ObtenerFechaMasGrande(c.detalles)
+          const fecha_ = parseISO(c.fecha);
+          const fechaPago_ = parseISO(mas_grande);
+          const diferencia = differenceInDays(fechaPago_, fecha_);
+          c.dias = diferencia;
+        }
 
-                try {
-                    let response = await axios.get(this.rutaAxios + 'Ingresos/GetCxCAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
-                    let x = response.data;
-                    this.dataCuentasCobrar = x.filter(x => x.porCobrar < 0)
+      } catch (error) {
+        console.log(error)
+        this.$q.loading.hide()
+      }
+    },
 
-                    this.$q.loading.hide()
+    async GetReporteCuentasCobrar() {
+      this.dataCuentasCobrar = []
+      this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
+      const fI = `${this.selectedAnio}-01-01`;
+      const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
 
-                    //VAMOS A TRATAR DE OBTENER LOS DIAS DE CREDITO
-                    for (var c of this.dataCuentasCobrar) {
-                        const mas_grande = this.ObtenerFechaMasGrande(c.detalles)
-                        const fecha_ = parseISO(c.fecha);
-                        const fechaPago_ = parseISO(mas_grande);
-                        const diferencia = differenceInDays(fechaPago_, fecha_);
-                        c.dias = diferencia;
-                    }
-                } catch (error) {
-                    console.log(error)
-                    this.$q.loading.hide()
-                }
-            },
+      try {
+        let response = await axios.get(this.rutaAxios + 'Ingresos/GetCxCAsync/erp_' + this.token.rfc + '/' + fI + '/' + fF);
+        let x = response.data;
+        this.dataCuentasCobrar = x.filter(x => x.porCobrar < 0)
 
-            ObtenerFechaMasGrande(array) {
-                if (array.length === 0) {
-                    const fechaActual = new Date();
-                    const fechaFormateada = format(fechaActual, "yyyy-MM-dd'T'HH:mm:ss'Z'");
-                    return fechaFormateada;
-                }
-                return array.reduce((fechaMasGrande, objeto) => {
-                    const fechaActual = objeto.fechaPago;
+        this.$q.loading.hide()
 
-                    // Compara las fechas y actualiza fechaMasGrande si la fechaActual es mayor
-                    return fechaActual > fechaMasGrande ? fechaActual : fechaMasGrande;
-                }, array[0].fechaPago); // Inicializa con la fecha del primer objeto
-            },
+        //VAMOS A TRATAR DE OBTENER LOS DIAS DE CREDITO
+        for (var c of this.dataCuentasCobrar) {
+          const mas_grande = this.ObtenerFechaMasGrande(c.detalles)
+          const fecha_ = parseISO(c.fecha);
+          const fechaPago_ = parseISO(mas_grande);
+          const diferencia = differenceInDays(fechaPago_, fecha_);
+          c.dias = diferencia;
+        }
+      } catch (error) {
+        console.log(error)
+        this.$q.loading.hide()
+      }
+    },
 
-            async GetReporteAnticipos(){
-              await this.GetReporteAnticiposIngresos();
-              await this.GetReporteAnticiposGastos();
-              console.log('dataAnticiposIngresos', this.dataAnticiposIngresos)
-              console.log('dataAnticiposGastos', this.dataAnticiposGastos)
+    ObtenerFechaMasGrande(array) {
+      if (array.length === 0) {
+        const fechaActual = new Date();
+        const fechaFormateada = format(fechaActual, "yyyy-MM-dd'T'HH:mm:ss'Z'");
+        return fechaFormateada;
+      }
+      return array.reduce((fechaMasGrande, objeto) => {
+        const fechaActual = objeto.fechaPago;
+
+        // Compara las fechas y actualiza fechaMasGrande si la fechaActual es mayor
+        return fechaActual > fechaMasGrande ? fechaActual : fechaMasGrande;
+      }, array[0].fechaPago); // Inicializa con la fecha del primer objeto
+    },
+
+    async GetReporteAnticipos() {
+      await this.GetReporteAnticiposIngresos();
+      await this.GetReporteAnticiposGastos();
+      console.log('dataAnticiposIngresos', this.dataAnticiposIngresos)
+      console.log('dataAnticiposGastos', this.dataAnticiposGastos)
 
 
-            },
+    },
 
-            async GetReporteCuentasCobrarPagar(){
-              await this.GetReporteCuentasPagar();
-              await this.GetReporteCuentasCobrar();
+    async GetReporteCuentasCobrarPagar() {
+      await this.GetReporteCuentasPagar();
+      await this.GetReporteCuentasCobrar();
 
-              console.log('cuentascobrar', this.dataCuentasCobrar)
-              console.log('cuentaspagar', this.dataCuentasPagar)
-            }
+      console.log('cuentascobrar', this.dataCuentasCobrar)
+      console.log('cuentaspagar', this.dataCuentasPagar)
+    }
   },
 
   // Convertir hexadecimal a RGB
