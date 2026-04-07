@@ -548,9 +548,9 @@
                     this.columns.push(
                         { name: 'porcentajeE', align: 'right', label: 'porcentajeE', field: 'porcentajeE' }
                     );
-                    this.columns.push(
-                        { name: 'calculoE', align: 'right', label: 'calculoE', field: 'calculoE' }
-                    );
+                    // this.columns.push(
+                    //     { name: 'calculoE', align: 'right', label: 'calculoE', field: 'calculoE' }
+                    // );
 
                     let contE = 0;
                     for(let i of this.dataComprobantes ){
@@ -558,8 +558,8 @@
                             const calculo = i.ivaFavor * porcentajeE[contE]
                             console.log(calculo)
                             this.dataComprobantes[contE].porcentajeE = porcentajeE[contE];
-                            // this.dataComprobantes[contE].porcentajeE = 0;
                             this.dataComprobantes[contE].calculoE = parseFloat(calculo.toFixed(2));
+                            this.dataComprobantes[contE].ivaFavor = parseFloat(calculo.toFixed(2));
                             contE++;
                         }
                     }
