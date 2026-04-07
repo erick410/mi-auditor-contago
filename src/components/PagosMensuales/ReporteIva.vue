@@ -488,6 +488,7 @@
         },
 
         methods: {
+            
             async GetReporte() {
                 //VALIDAMOS 
                 if (!this.selectedAnio) {

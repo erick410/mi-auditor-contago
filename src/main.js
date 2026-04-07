@@ -6,8 +6,8 @@ import './quasar'
 import axios from 'axios'
 
 Vue.config.productionTip = false
-axios.defaults.baseURL = "https://localhost:44394/api/"
-// axios.defaults.baseURL = "https://api-erp.contago.com.mx/api/"
+// axios.defaults.baseURL = "https://localhost:44394/api/"
+axios.defaults.baseURL = "https://api-erp.contago.com.mx/api/"
 
 new Vue({
   router,

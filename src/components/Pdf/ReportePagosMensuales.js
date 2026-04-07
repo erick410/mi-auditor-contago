@@ -2,29 +2,29 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
-  // --- FORMATO PESOS MXN ---
-  function formatoPesos(v) {
-    if(v == null){
-      return ""
-    }
-    return (
-      new Intl.NumberFormat("es-MX", {
-        style: "currency",
-        currency: "MXN",
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }).format(v ?? 0) ?? 0
-    );
+// --- FORMATO PESOS MXN ---
+function formatoPesos(v) {
+  if (v == null) {
+    return ""
   }
+  return (
+    new Intl.NumberFormat("es-MX", {
+      style: "currency",
+      currency: "MXN",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(v ?? 0) ?? 0
+  );
+}
 
-  // --- FECHA REPORTE ---
-  function fechaActual() {
-    return new Date().toLocaleDateString("es-MX", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  }
+// --- FECHA REPORTE ---
+function fechaActual() {
+  return new Date().toLocaleDateString("es-MX", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
 
 function FormatoPorcentaje(numero) {
   if (numero === "---") {
@@ -37,7 +37,7 @@ function FormatoPorcentaje(numero) {
 
 
 
- 
+
 function FormatoCantidad(numero) {
   if (numero === "---") {
     return "";
@@ -71,32 +71,32 @@ function agruparPorMoneda(data) {
 const agregarPaginaFlujoComparativa = async (
   doc,
   resumen,
-  y 
+  y
 ) => {
   y += 20;
 
   doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      y = agregarTextoConSaltos(doc, "COMPARATIVA FLUJO EMITIDO - RECIBIDO", 40, y, 520, 14);
-      y += 5; // espacio entre secciones
+  doc.setFont("helvetica", "bold");
+  y = agregarTextoConSaltos(doc, "COMPARATIVA FLUJO EMITIDO - RECIBIDO", 40, y, 520, 14);
+  y += 5; // espacio entre secciones
 
   const agrupado = agruparPorMoneda(resumen)
 
   Object.keys(agrupado).forEach(moneda => {
-  
-  
+
+
     const contenido = generarContenidoTabla(agrupado[moneda])
 
     let totalE = 0
     let totalR = 0
     let totalD = 0
-  
+
     contenido.forEach(row => {
       totalE += parseFloat(row[1].toString().replace(/,/g, ''))
       totalR += parseFloat(row[2].toString().replace(/,/g, ''))
       totalD += parseFloat(row[3].toString().replace(/,/g, ''))
     })
-  
+
     contenido.push([
       'TOTAL',
       totalE.toLocaleString('es-MX', { minimumFractionDigits: 2 }),
@@ -110,14 +110,14 @@ const agregarPaginaFlujoComparativa = async (
       'Total Recibidos PUE',
       'Diferencia'
     ]
-  
+
     let columnStyles = {
       0: { halign: "left" },
       1: { halign: "right" },
       2: { halign: "right" },
       3: { halign: "right" }
     }
-  
+
     doc.autoTable({
       head: [header],
       body: contenido,
@@ -139,7 +139,7 @@ const agregarPaginaFlujoComparativa = async (
 
         if (data.section === 'body' && data.column.index === 3) {
           const valor = parseFloat(data.cell.raw.toString().replace(/,/g, ''))
-      
+
           if (valor > 0) {
             data.cell.styles.textColor = [0, 150, 0]
             data.cell.styles.fontStyle = 'bold'
@@ -148,7 +148,7 @@ const agregarPaginaFlujoComparativa = async (
             data.cell.styles.fontStyle = 'bold'
           }
         }
-      
+
         if (
           data.section === 'body' &&
           data.row.index === data.table.body.length - 1
@@ -158,13 +158,13 @@ const agregarPaginaFlujoComparativa = async (
           data.cell.styles.fontStyle = 'bold'
         }
       },
-      
+
     })
 
     y = doc.lastAutoTable.finalY + 20;
 
   })
-  
+
 };
 
 
@@ -296,18 +296,18 @@ function justificarLinea(doc, line, x, y, maxWidth) {
 }
 function mesNumeroALetra(mes) {
   const meses = [
-      "ENERO",
-      "FEBRERO",
-      "MARZO",
-      "ABRIL",
-      "MAYO",
-      "JUNIO",
-      "JULIO",
-      "AGOSTO",
-      "SEPTIEMBRE",
-      "OCTUBRE",
-      "NOVIEMBRE",
-      "DICIEMBRE",
+    "ENERO",
+    "FEBRERO",
+    "MARZO",
+    "ABRIL",
+    "MAYO",
+    "JUNIO",
+    "JULIO",
+    "AGOSTO",
+    "SEPTIEMBRE",
+    "OCTUBRE",
+    "NOVIEMBRE",
+    "DICIEMBRE",
   ];
 
   if (mes < 1 || mes > 12) return "";
@@ -315,11 +315,12 @@ function mesNumeroALetra(mes) {
   return meses[mes - 1];
 }
 
-export async function  generarReporte(
+export async function generarReporte(
   anio,
   mesI,
   mesF,
   datos,
+  ivaExento,
   retencionesIva,
   dataSueldos,
   dataAsimilados,
@@ -407,34 +408,38 @@ export async function  generarReporte(
 
   let columnasFisicas = [
     "Mes",
-        "Base IVA Trasladado",
-        "Importe IVA Trasladado",
-        "Base IVA Acreditado",
-        "Importe IVA Acreditado",
-        "IVA Retenido",
-        "IVA Cargo",
-        "IVA Favor",
-        "Cargo Registrado",
-        "Favor Registrado",
-        "Comparativa",
+    "Base IVA Trasladado",
+    "Importe IVA Trasladado",
+    "Base IVA Acreditado",
+    "Importe IVA Acreditado",
+    "IVA Retenido",
+    "IVA Cargo",
+    "IVA Favor",
+    "Cargo Registrado",
+    "Favor Registrado",
+    "Comparativa",
+  
   ]
 
   let columnasMorales = [
     "Mes",
-        "Base IVA Trasladado",
-        "Importe IVA Trasladado",
-        "Base IVA Acreditado",
-        "Importe IVA Acreditado",
-        "IVA Retenido",
-        "IVA Retenido Anterior",
-        "IVA Cargo",
-        "IVA Favor",
-        "Cargo Registrado",
-        "Favor Registrado",
-        "Comparativa",
+    "Base IVA Trasladado",
+    "Importe IVA Trasladado",
+    "Base IVA Acreditado",
+    "Importe IVA Acreditado",
+    "IVA Retenido",
+    "IVA Retenido Anterior",
+    "IVA Cargo",
+    "IVA Favor",
+    "Cargo Registrado",
+    "Favor Registrado",
+    "Comparativa",
+   
   ]
 
-  let datosIva = null 
+  
+
+  let datosIva = null
 
   let datosFisicas = datos.map((x) => [
     x.mes,
@@ -448,6 +453,7 @@ export async function  generarReporte(
     formatoPesos(x.cargoRegistrado),
     formatoPesos(x.favorRegistrado),
     formatoPesos(x.comparativa),
+    formatoPesos(x.calculoE),
   ])
 
   let datosMorales = datos.map((x) => [
@@ -457,28 +463,31 @@ export async function  generarReporte(
     formatoPesos(x.baseIvaAcreditado),
     formatoPesos(x.importeIvaAcreditado),
     formatoPesos(x.ivaRetenido),
-      formatoPesos(x.ivaRetenidoAnterior),
+    formatoPesos(x.ivaRetenidoAnterior),
     formatoPesos(x.ivaCargo),
     formatoPesos(x.ivaFavor),
     formatoPesos(x.cargoRegistrado),
     formatoPesos(x.favorRegistrado),
     formatoPesos(x.comparativa),
+    formatoPesos(x.calculoE),
   ])
 
-  if(rfcEmpresa.length == 12){
+  if (rfcEmpresa.length == 12) {
     columnasIva = columnasMorales
     datosIva = datosMorales
-  }else if(rfcEmpresa.length == 13){
+  } else if (rfcEmpresa.length == 13) {
     columnasIva = columnasFisicas
     datosIva = datosFisicas
   }
- 
 
+  if(ivaExento){
+    columnasIva.push("Calculo Exento");
+  }
 
   autoTable(doc, {
     startY: y,
     head: [[...columnasIva]],
-    body:datosIva ,
+    body: datosIva,
     headStyles: {
       fillColor: "#E74747",
       textColor: "#FFF",
@@ -502,17 +511,10 @@ export async function  generarReporte(
       9: { halign: "right" },
       10: { halign: "right" },
       11: { halign: "right" },
+      12: { halign: "right" },
     },
 
-    didParseCell: function (data) {
-      if (data.section === "body") {
-        if (data.row.index === datosIva.length - 1) {
-          data.cell.styles.fillColor = "#F7C1C1";
-          data.cell.styles.textColor = [0, 0, 0];
-          data.cell.styles.fontStyle = "bold";
-        }
-      }
-    },
+
     didDrawPage: function (data) {
       // Pie de página
       const page = doc.internal.getNumberOfPages();
@@ -586,92 +588,92 @@ export async function  generarReporte(
 
   // y = agregarTextoConSaltos(doc, "Otro comentario…", 40, y, 520, 14);
   let ultimoivar = retencionesIva[retencionesIva.length - 1]
-  if(ultimoivar.diferencia != 0){
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  doc.text("RETENCIONES DE IVA", 40, y);
+  if (ultimoivar.diferencia != 0) {
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("RETENCIONES DE IVA", 40, y);
 
-  y += 15; // espacio entre secciones
+    y += 15; // espacio entre secciones
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  y = agregarTextoConSaltos(
-    doc,
-    "En las retenciones de IVA el sistema compara lo que determina con base en comprobantes, contra lo que se declara ante el SAT, encontrando las siguientes diferencias:",
-    40,
-    y,
-    520,
-    14
-  );
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    y = agregarTextoConSaltos(
+      doc,
+      "En las retenciones de IVA el sistema compara lo que determina con base en comprobantes, contra lo que se declara ante el SAT, encontrando las siguientes diferencias:",
+      40,
+      y,
+      520,
+      14
+    );
 
-  y += 5; // espacio entre secciones
+    y += 5; // espacio entre secciones
 
-  autoTable(doc, {
-    startY: y,
-    head: [["Mes", "Importe IVA", "Comparativa", "Diferencia"]],
-    body: retencionesIva.map((x) => [
-      x.mes,
-      formatoPesos(x.importeIva),
-      formatoPesos(x.comparativa),
-      formatoPesos(x.diferencia),
-    ]),
-    headStyles: {
-      fillColor: "#E74747",
-      textColor: "#FFF",
-      fontSize: 6,
-      halign: "center",
-      valign: "middle",
-    },
-    styles: {
-      fontSize: 6,
-      cellPadding: 3,
-    },
-    columnStyles: {
-      1: { halign: "right" },
-      2: { halign: "right" },
-      3: { halign: "right" },
-    },
-    didParseCell: function (data) {
-      if (data.section === "body") {
-        if (data.row.index === retencionesIva.length - 1) {
-          data.cell.styles.fillColor = "#F7C1C1";
-          data.cell.styles.textColor = [0, 0, 0];
-          data.cell.styles.fontStyle = "bold";
+    autoTable(doc, {
+      startY: y,
+      head: [["Mes", "Importe IVA", "Comparativa", "Diferencia"]],
+      body: retencionesIva.map((x) => [
+        x.mes,
+        formatoPesos(x.importeIva),
+        formatoPesos(x.comparativa),
+        formatoPesos(x.diferencia),
+      ]),
+      headStyles: {
+        fillColor: "#E74747",
+        textColor: "#FFF",
+        fontSize: 6,
+        halign: "center",
+        valign: "middle",
+      },
+      styles: {
+        fontSize: 6,
+        cellPadding: 3,
+      },
+      columnStyles: {
+        1: { halign: "right" },
+        2: { halign: "right" },
+        3: { halign: "right" },
+      },
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          if (data.row.index === retencionesIva.length - 1) {
+            data.cell.styles.fillColor = "#F7C1C1";
+            data.cell.styles.textColor = [0, 0, 0];
+            data.cell.styles.fontStyle = "bold";
+          }
         }
-      }
-    },
-    didDrawPage: function (data) {
-      // Pie de página
-      const page = doc.internal.getNumberOfPages();
-      doc.setFontSize(9);
-      doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
-        align: "center",
-      });
-    },
-  });
+      },
+      didDrawPage: function (data) {
+        // Pie de página
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
+          align: "center",
+        });
+      },
+    });
 
-  y = doc.lastAutoTable.finalY += 20;
+    y = doc.lastAutoTable.finalY += 20;
 
-  const condicion11 =
-    "Las diferencias positivas pueden ser observadas por la autoridad y requeridas su aclaración.";
-  const condicion22 =
-    "Las diferencias negativas son pagos de lo indebido, las que se pueden recuperar mediante solicitud de devolución.";
-  let condicion33 =
-    "Asi mismo el impuesto (a cargo) del mes " +
-    mesAnterior(mesF).toUpperCase() +
-    " se entera a más tardar el 17 de " +
-    mesF;
+    const condicion11 =
+      "Las diferencias positivas pueden ser observadas por la autoridad y requeridas su aclaración.";
+    const condicion22 =
+      "Las diferencias negativas son pagos de lo indebido, las que se pueden recuperar mediante solicitud de devolución.";
+    let condicion33 =
+      "Asi mismo el impuesto (a cargo) del mes " +
+      mesAnterior(mesF).toUpperCase() +
+      " se entera a más tardar el 17 de " +
+      mesF;
 
     if (esAñoActual(anio) == false) {
       condicion33 = "";
     }
-    
-  
-  
+
+
+
     const valores1 = retencionesIva.map((d) => d.diferencia);
     const hayPositivos1 = valores1.some((v) => v > 5);
     const hayNegativos1 = valores1.some((v) => v < -5);
-  
+
     let texto2 = "";
     if (hayPositivos1 && hayNegativos1) {
       console.log("Hay valores positivos y negativos");
@@ -685,7 +687,7 @@ export async function  generarReporte(
     } else {
       console.log("Solo hay ceros o la lista está vacía");
     }
-  
+
     if (dia < 17) {
       console.log("Hoy es antes del día 17");
       texto2 = texto2 + " " + condicion33;
@@ -695,10 +697,10 @@ export async function  generarReporte(
       console.log("Hoy ES el día 17");
       texto2 = texto2 + " " + condicion33;
     }
-  
+
     // ---- SELECCIONAR SOLO UNA ----
     let condicionSeleccionada2 = texto2;
-  
+
     // ---- CALCULAR ESPACIO ----
     y = agregarTextoConSaltos(
       doc,
@@ -708,12 +710,12 @@ export async function  generarReporte(
       520, // ancho máximo
       14 // lineHeight
     );
-    
-  }
-    y += 10;  
 
-    let ultimoivare = dataIvaRetenidoNeteado[dataIvaRetenidoNeteado.length - 1]
-    if(ultimoivare.diferencia != 0){
+  }
+  y += 10;
+
+  let ultimoivare = dataIvaRetenidoNeteado[dataIvaRetenidoNeteado.length - 1]
+  if (ultimoivare.diferencia != 0) {
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.text("IVA RETENIDO EMITIDO", 40, y);
@@ -765,10 +767,10 @@ export async function  generarReporte(
       },
     });
 
-  y = doc.lastAutoTable.finalY += 20;
+    y = doc.lastAutoTable.finalY += 20;
 
 
-    }
+  }
   y += 10; // espacio entre secciones
 
   doc.setFontSize(11);
@@ -1112,7 +1114,7 @@ export async function  generarReporte(
     }
     const valores4 = dataOtros.map((d) => d.diferencia);
     const hayPositivos4 = valores4.some((v) => v > 5);
-    const hayNegativos4 = valores4.some((v) => v < -5);   
+    const hayNegativos4 = valores4.some((v) => v < -5);
 
     let texto5 = "";
     if (hayPositivos4 && hayNegativos4) {
@@ -1402,7 +1404,7 @@ export async function  generarReporte(
 
     autoTable(doc, {
       startY: y,
-      head: [["Mes", "Importe" ]],
+      head: [["Mes", "Importe"]],
       body: dataISRRetenidoFavor.map((x) => [
         mesNumeroALetra(x.mes),
         formatoPesos(x.importe),
@@ -1449,140 +1451,140 @@ export async function  generarReporte(
 
   let ultimo = provisionalesISR[provisionalesISR.length - 1]
 
-  if(ultimo.comparativa != 0){
-  doc.setFontSize(11);
-  doc.setFont("helvetica", "bold");
-  y = agregarTextoConSaltos(doc, "PAGOS PROVISIONALES DE ISR", 40, y, 520, 14);
+  if (ultimo.comparativa != 0) {
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "PAGOS PROVISIONALES DE ISR", 40, y, 520, 14);
 
-  y += 5; // espacio entre secciones
+    y += 5; // espacio entre secciones
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  y = agregarTextoConSaltos(
-    doc,
-    "En la determinación de los Pagos Provisionales de ISR, el sistema compara lo que determina con base en comprobantes y lo que se declara ante el SAT, encontrando las siguientes diferencias:",
-    40,
-    y,
-    520,
-    14
-  ); 
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    y = agregarTextoConSaltos(
+      doc,
+      "En la determinación de los Pagos Provisionales de ISR, el sistema compara lo que determina con base en comprobantes y lo que se declara ante el SAT, encontrando las siguientes diferencias:",
+      40,
+      y,
+      520,
+      14
+    );
 
-  y += 10; // espacio entre secciones
+    y += 10; // espacio entre secciones
 
-  const columnasOcultables = ["ptuPagada", "perdidasFiscalesPorAplicar", "accionesD", "accionesG"];
+    const columnasOcultables = ["ptuPagada", "perdidasFiscalesPorAplicar", "accionesD", "accionesG"];
 
-  const filaTotales = provisionalesISR[provisionalesISR.length - 1];
+    const filaTotales = provisionalesISR[provisionalesISR.length - 1];
 
-  const ocultarColumnas = columnasOcultables.every(
-    (field) => Number(filaTotales[field] || 0) === 0
-  );
-  
-  let columnasFinales = columnas;
+    const ocultarColumnas = columnasOcultables.every(
+      (field) => Number(filaTotales[field] || 0) === 0
+    );
 
-  console.log(columnas);
-if (ocultarColumnas) {
-  columnasFinales = columnas.filter(
-    (c) => !columnasOcultables.includes(c.field)
-  );
-}
+    let columnasFinales = columnas;
 
-
-  // Construir el encabezado dinámico
-  const head = [columnasFinales.map((c) => c.label)];
-
-  const body = provisionalesISR.map((row) =>
-    columnasFinales.map((c) => {
-      let label = c.field
-      let value = row[c.field];
-      // Si es número, aplicamos formato pesos
-      if (typeof value === "number" && label != 'porcentaje') {
-        return formatoPesos(value);
-      }
-      return value ?? "";
-    })
-  );
-
-  // ColumnStyles dinámico SOLO para campos que van a la derecha
-  let columnStyles = {};
-  columnasFinales.forEach((c, idx) => {
-    if (c.align === "right") {
-      columnStyles[idx] = { halign: "right" };
+    console.log(columnas);
+    if (ocultarColumnas) {
+      columnasFinales = columnas.filter(
+        (c) => !columnasOcultables.includes(c.field)
+      );
     }
-  });
 
-  // Crear la tabla
-  autoTable(doc, {
-    startY: y,
-    head:head,
-    body: body,
-    headStyles: {
-      fillColor: "#E74747",
-      textColor: "#FFF",
-      fontSize: 4,
-      halign: "center",
-      valign: "middle",
-    },
-    styles: {
-      fontSize: 4,
-      cellPadding: 3,
-    },
-    columnStyles: columnStyles,
-    didParseCell: function (data) {
-      if (data.section === "body") {
-        if (data.row.index === body.length - 1) {
-          data.cell.styles.fillColor = "#F7C1C1";
-          data.cell.styles.textColor = [0, 0, 0];
-          data.cell.styles.fontStyle = "bold";
+
+    // Construir el encabezado dinámico
+    const head = [columnasFinales.map((c) => c.label)];
+
+    const body = provisionalesISR.map((row) =>
+      columnasFinales.map((c) => {
+        let label = c.field
+        let value = row[c.field];
+        // Si es número, aplicamos formato pesos
+        if (typeof value === "number" && label != 'porcentaje') {
+          return formatoPesos(value);
         }
+        return value ?? "";
+      })
+    );
+
+    // ColumnStyles dinámico SOLO para campos que van a la derecha
+    let columnStyles = {};
+    columnasFinales.forEach((c, idx) => {
+      if (c.align === "right") {
+        columnStyles[idx] = { halign: "right" };
       }
-    },
-    didDrawPage: function (data) {
-      const page = doc.internal.getNumberOfPages();
-      doc.setFontSize(9);
-      doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
-        align: "center",
-      });
-    },
-  });
+    });
 
-  y = doc.lastAutoTable.finalY + 20;
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  const condicioni1 =
-    "Las diferencias positivas y negativas podran ser requeridas por la autoridad y se deben a una determinación incorrecta del pago provisional, se reflejarán en el impuesto anual como un financiamiento a cargo o una disminución de impuesto a pagar";
-  let condicioni2 =
-    "Asi mismo el impuesto (a cargo) del mes " +
-    mesAnterior(mesF).toUpperCase() +
-    " se entera a más tardar el 17 de " +
-    mesF;
+    // Crear la tabla
+    autoTable(doc, {
+      startY: y,
+      head: head,
+      body: body,
+      headStyles: {
+        fillColor: "#E74747",
+        textColor: "#FFF",
+        fontSize: 4,
+        halign: "center",
+        valign: "middle",
+      },
+      styles: {
+        fontSize: 4,
+        cellPadding: 3,
+      },
+      columnStyles: columnStyles,
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          if (data.row.index === body.length - 1) {
+            data.cell.styles.fillColor = "#F7C1C1";
+            data.cell.styles.textColor = [0, 0, 0];
+            data.cell.styles.fontStyle = "bold";
+          }
+        }
+      },
+      didDrawPage: function (data) {
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
+          align: "center",
+        });
+      },
+    });
 
-  if (esAñoActual(anio) == false) {
-    condicioni2 = "";
+    y = doc.lastAutoTable.finalY + 20;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    const condicioni1 =
+      "Las diferencias positivas y negativas podran ser requeridas por la autoridad y se deben a una determinación incorrecta del pago provisional, se reflejarán en el impuesto anual como un financiamiento a cargo o una disminución de impuesto a pagar";
+    let condicioni2 =
+      "Asi mismo el impuesto (a cargo) del mes " +
+      mesAnterior(mesF).toUpperCase() +
+      " se entera a más tardar el 17 de " +
+      mesF;
+
+    if (esAñoActual(anio) == false) {
+      condicioni2 = "";
+    }
+    let texto7 = "";
+    if (dia < 17) {
+      texto7 = condicioni1 + " " + condicioni2;
+    } else if (dia > 17) {
+      texto7 = condicioni1;
+    } else {
+      console.log("Hoy ES el día 17");
+      texto7 = condicioni1 + " " + condicioni2;
+    }
+
+    // ---- SELECCIONAR SOLO UNA ----
+    let condicionSeleccionada7 = texto7;
+
+    // ---- CALCULAR ESPACIO ----
+    y = agregarTextoConSaltos(
+      doc,
+      condicionSeleccionada7,
+      40, // margen izquierdo
+      y, // continuar donde se quedó la tabla
+      520, // ancho máximo
+      14 // lineHeight
+    );
+
   }
-  let texto7 = "";
-  if (dia < 17) {
-    texto7 = condicioni1 + " " + condicioni2;
-  } else if (dia > 17) {
-    texto7 = condicioni1;
-  } else {
-    console.log("Hoy ES el día 17");
-    texto7 = condicioni1 + " " + condicioni2;
-  }
-
-  // ---- SELECCIONAR SOLO UNA ----
-  let condicionSeleccionada7 = texto7;
-
-  // ---- CALCULAR ESPACIO ----
-  y = agregarTextoConSaltos(
-    doc,
-    condicionSeleccionada7,
-    40, // margen izquierdo
-    y, // continuar donde se quedó la tabla
-    520, // ancho máximo
-    14 // lineHeight
-  );
-
-}
   y += 10; // espacio entre secciones
 
   doc.setFontSize(11);
@@ -1687,18 +1689,18 @@ if (ocultarColumnas) {
     14 // lineHeight
   );
 
-  let totaldeclaracion = dataAnual.reduce((acumulador, objeto) => acumulador + (objeto.columna2 - objeto.columna3) , 0)
-console.log(totaldeclaracion)
-console.log(dataAnual)
-  if(esAñoActual(anio)== false && totaldeclaracion != 0){
+  let totaldeclaracion = dataAnual.reduce((acumulador, objeto) => acumulador + (objeto.columna2 - objeto.columna3), 0)
+  console.log(totaldeclaracion)
+  console.log(dataAnual)
+  if (esAñoActual(anio) == false && totaldeclaracion != 0) {
     y += 20;
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     y = agregarTextoConSaltos(doc, "DECLARACIÓN ANUAL", 40, y, 520, 14);
-  
+
     y += 5; // espacio entre secciones
-  
+
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
     y = agregarTextoConSaltos(
@@ -1710,7 +1712,7 @@ console.log(dataAnual)
       14
     );
     y += 5; // espacio entre secciones
-  
+
     autoTable(doc, {
       startY: y,
       head: [["DECLARACION ANUAL", "DETERMINADO", "DECLARADO", "DIFERENCIA"]],
@@ -1737,7 +1739,7 @@ console.log(dataAnual)
         3: { halign: "right" },
         4: { halign: "right" },
       },
-      
+
       didDrawPage: function (data) {
         // Pie de página
         const page = doc.internal.getNumberOfPages();
@@ -1749,31 +1751,31 @@ console.log(dataAnual)
     });
     y = doc.lastAutoTable.finalY + 20;
 
-  }else{
+  } else {
     y += 20; // espacio entre secciones
 
   }
 
-if(comentarios.trim() != ''){
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  y = agregarTextoConSaltos(doc, "COMENTARIOS", 40, y, 520, 14);
+  if (comentarios.trim() != '') {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "COMENTARIOS", 40, y, 520, 14);
 
-  y += 5; // espacio entre secciones
+    y += 5; // espacio entre secciones
 
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  y = agregarTextoConSaltos(
-    doc,
-    comentarios,
-    40,
-    y,
-    520,
-    14
-  );
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    y = agregarTextoConSaltos(
+      doc,
+      comentarios,
+      40,
+      y,
+      520,
+      14
+    );
 
-  y += 20;
-}
+    y += 20;
+  }
 
   if (dataVentas.length != 0) {
 
@@ -2501,35 +2503,35 @@ if(comentarios.trim() != ''){
       },
     });
 
-  y = doc.lastAutoTable.finalY + 20;
+    y = doc.lastAutoTable.finalY + 20;
 
   }
 
 
-   doc.setFontSize(10);
-      doc.setFont("helvetica", "bold");
-      y = agregarTextoConSaltos(doc, "RIESGO FISCAL", 40, y, 520, 14);
-      y += 5; // espacio entre secciones
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  y = agregarTextoConSaltos(doc, "RIESGO FISCAL", 40, y, 520, 14);
+  y += 5; // espacio entre secciones
 
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
-      y = agregarTextoConSaltos(
-        doc,
-        "A continuación se relacionan los comprobantes que no cumplan con el anexo 20 de la RMF por lo que puede la autoridad rechazarlos.",
-        40,
-        y,
-        520,
-        14
-      );
- 
-      y += 20;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  y = agregarTextoConSaltos(
+    doc,
+    "A continuación se relacionan los comprobantes que no cumplan con el anexo 20 de la RMF por lo que puede la autoridad rechazarlos.",
+    40,
+    y,
+    520,
+    14
+  );
+
+  y += 20;
 
   for (let tab of datosRiesgoFiscal) {
     if (tab.datos.length != 0) {
-     
+
       y += 5; // espacio entre secciones
-    
-     
+
+
 
       if (
         tab.titulo ==
@@ -2642,81 +2644,81 @@ if(comentarios.trim() != ''){
 
         y = doc.lastAutoTable.finalY + 10;
       }
-    else {
-      y += 5; // espacio entre secciones
+      else {
+        y += 5; // espacio entre secciones
 
-      doc.setFontSize(9);
-      doc.setFont("helvetica", "bold");
-      y = agregarTextoConSaltos(doc, tab.titulo, 40, y, 520, 14);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        y = agregarTextoConSaltos(doc, tab.titulo, 40, y, 520, 14);
 
-      y += 5; // espacio entre secciones
+        y += 5; // espacio entre secciones
 
-      autoTable(doc, {
-        startY: y,
-        head: [
-          [
-            "RFC",
-            "Nombre",
-            "SubTotal",
-            "Total Impuesto Transladados",
-            "Total Impuesto Retenidos",
-            "Total",
+        autoTable(doc, {
+          startY: y,
+          head: [
+            [
+              "RFC",
+              "Nombre",
+              "SubTotal",
+              "Total Impuesto Transladados",
+              "Total Impuesto Retenidos",
+              "Total",
+            ],
           ],
-        ],
-        body: tab.datos.map((x) => [
-          x.rfc,
-          x.nombre,
-          formatoPesos(x.subTotal),
-          formatoPesos(x.totalImpuestosTrasladados),
-          formatoPesos(x.totalImpuestosRetenidos),
-          formatoPesos(x.total),
-        ]),
-        headStyles: {
-          fillColor: "#E74747",
-          textColor: "#FFF",
-          fontSize: 6,
-          halign: "center",
-          valign: "middle",
-        },
-        styles: {
-          fontSize: 6,
-          cellPadding: 3,
-        },
-        columnStyles: {
-          2: { halign: "right" },
-          3: { halign: "right" },
-          4: { halign: "right" },
-          5: { halign: "right" },
-        },
-        didParseCell: function (data) {
-          if (data.section === "body") {
-            if (data.row.index === tab.datos.length - 1) {
-              data.cell.styles.fillColor = "#F7C1C1";
-              data.cell.styles.textColor = [0, 0, 0];
-              data.cell.styles.fontStyle = "bold";
+          body: tab.datos.map((x) => [
+            x.rfc,
+            x.nombre,
+            formatoPesos(x.subTotal),
+            formatoPesos(x.totalImpuestosTrasladados),
+            formatoPesos(x.totalImpuestosRetenidos),
+            formatoPesos(x.total),
+          ]),
+          headStyles: {
+            fillColor: "#E74747",
+            textColor: "#FFF",
+            fontSize: 6,
+            halign: "center",
+            valign: "middle",
+          },
+          styles: {
+            fontSize: 6,
+            cellPadding: 3,
+          },
+          columnStyles: {
+            2: { halign: "right" },
+            3: { halign: "right" },
+            4: { halign: "right" },
+            5: { halign: "right" },
+          },
+          didParseCell: function (data) {
+            if (data.section === "body") {
+              if (data.row.index === tab.datos.length - 1) {
+                data.cell.styles.fillColor = "#F7C1C1";
+                data.cell.styles.textColor = [0, 0, 0];
+                data.cell.styles.fontStyle = "bold";
+              }
             }
-          }
-        },
+          },
 
-        didDrawPage: function (data) {
-          // Pie de página
-          const page = doc.internal.getNumberOfPages();
-          doc.setFontSize(9);
-          doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
-            align: "center",
-          });
-        },
-      });
+          didDrawPage: function (data) {
+            // Pie de página
+            const page = doc.internal.getNumberOfPages();
+            doc.setFontSize(9);
+            doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, {
+              align: "center",
+            });
+          },
+        });
 
-      y = doc.lastAutoTable.finalY + 10;
+        y = doc.lastAutoTable.finalY + 10;
+      }
     }
-  }
   }
 
   for (let tab of datosRiesgoFiscalPagos) {
     if (tab.datos.length != 0) {
       y += 10; // espacio entre secciones
- 
+
 
       doc.setFontSize(9);
       doc.setFont("helvetica", "bold");
@@ -2771,7 +2773,7 @@ if(comentarios.trim() != ''){
 
   y += 20;
 
-  if(dataAnticiposIngresos.length != 0){
+  if (dataAnticiposIngresos.length != 0) {
     y = doc.lastAutoTable.finalY + 20;
 
 
@@ -2835,7 +2837,7 @@ if(comentarios.trim() != ''){
         8: { halign: "center" },
         9: { halign: "center" },
       },
-      
+
       didDrawPage: function (data) {
         // Pie de página
         const page = doc.internal.getNumberOfPages();
@@ -2848,7 +2850,7 @@ if(comentarios.trim() != ''){
 
   }
 
-  if(dataAnticiposGastos.length != 0){
+  if (dataAnticiposGastos.length != 0) {
     y = doc.lastAutoTable.finalY + 20;
 
 
@@ -2912,7 +2914,7 @@ if(comentarios.trim() != ''){
         8: { halign: "center" },
         9: { halign: "center" },
       },
-      
+
       didDrawPage: function (data) {
         // Pie de página
         const page = doc.internal.getNumberOfPages();
@@ -2926,7 +2928,7 @@ if(comentarios.trim() != ''){
   }
 
 
-  if(dataCuentasCobrar.length != 0){
+  if (dataCuentasCobrar.length != 0) {
     y = doc.lastAutoTable.finalY + 20;
 
 
@@ -2990,7 +2992,7 @@ if(comentarios.trim() != ''){
         8: { halign: "center" },
         9: { halign: "center" },
       },
-      
+
       didDrawPage: function (data) {
         // Pie de página
         const page = doc.internal.getNumberOfPages();
@@ -3003,9 +3005,9 @@ if(comentarios.trim() != ''){
 
   }
 
-  if(dataCuentasPagar.length != 0){
+  if (dataCuentasPagar.length != 0) {
     y = doc.lastAutoTable.finalY + 20;
-    
+
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     y = agregarTextoConSaltos(doc, "CUENTAS POR PAGAR", 40, y, 520, 14);
@@ -3066,7 +3068,7 @@ if(comentarios.trim() != ''){
         8: { halign: "center" },
         9: { halign: "center" },
       },
-      
+
       didDrawPage: function (data) {
         // Pie de página
         const page = doc.internal.getNumberOfPages();
@@ -3090,18 +3092,18 @@ if(comentarios.trim() != ''){
 
   y = doc.lastAutoTable.finalY + 20;
 
-  if(dataComprobantesConceptos.length != 0){
-    
+  if (dataComprobantesConceptos.length != 0) {
+
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     y = agregarTextoConSaltos(doc, "COMPARATIVA POR CONCEPTO", 40, y, 520, 14);
     y += 5; // espacio entre secciones
 
-   
-    
+
+
     const dataOrdenada = dataComprobantesConceptos
-  .filter(x => x.diferencia > 20000 || x.diferencia < -20000)
-  .sort((a, b) => b.diferencia - a.diferencia)
+      .filter(x => x.diferencia > 20000 || x.diferencia < -20000)
+      .sort((a, b) => b.diferencia - a.diferencia)
 
     autoTable(doc, {
       startY: y,
@@ -3140,7 +3142,7 @@ if(comentarios.trim() != ''){
         4: { halign: "right" },
         5: { halign: "right" },
       },
-      
+
       didDrawPage: function (data) {
         // Pie de página
         const page = doc.internal.getNumberOfPages();
@@ -3154,19 +3156,19 @@ if(comentarios.trim() != ''){
 
   y = doc.lastAutoTable.finalY + 50;
 
-// Altura total de la página
-const pageHeight = doc.internal.pageSize.height;
+  // Altura total de la página
+  const pageHeight = doc.internal.pageSize.height;
 
-// Margen inferior que quieres respetar
-const bottomMargin = 40;
+  // Margen inferior que quieres respetar
+  const bottomMargin = 40;
 
-// Función helper para validar espacio
-function checkAddPage(extraSpace = 0) {
-  if (y + extraSpace > pageHeight - bottomMargin) {
-    doc.addPage();
-    y = 40; // margen superior de la nueva página
+  // Función helper para validar espacio
+  function checkAddPage(extraSpace = 0) {
+    if (y + extraSpace > pageHeight - bottomMargin) {
+      doc.addPage();
+      y = 40; // margen superior de la nueva página
+    }
   }
-}
 
   checkAddPage(80);
 
@@ -3184,32 +3186,30 @@ function checkAddPage(extraSpace = 0) {
     y,
     { align: "center" }
   );
-console.log(usuario)
+  console.log(usuario)
   // Nombre y puesto
-  if(usuario.toLowerCase() == 'admin')
-    {
-  y += 12;
-  doc.text("OSCAR JESUS LUENGAS SOLANO", doc.internal.pageSize.width / 2, y, {
-    align: "center",
-  });
+  if (usuario.toLowerCase() == 'admin') {
+    y += 12;
+    doc.text("OSCAR JESUS LUENGAS SOLANO", doc.internal.pageSize.width / 2, y, {
+      align: "center",
+    });
 
-  y += 10;
-  doc.text("DIRECTOR LAUDEM AVE", doc.internal.pageSize.width / 2, y, {
-    align: "center",
-  });
-}
+    y += 10;
+    doc.text("DIRECTOR LAUDEM AVE", doc.internal.pageSize.width / 2, y, {
+      align: "center",
+    });
+  }
 
-if(usuario.toLowerCase() != 'admin')
-  {
-y += 12;
-doc.text("ALIANZAS ESTRATÉGICAS", doc.internal.pageSize.width / 2, y, {
-  align: "center",
-});
-y += 10;
-doc.text("LAUDEM AVE", doc.internal.pageSize.width / 2, y, {
-  align: "center",
-});
-}
+  if (usuario.toLowerCase() != 'admin') {
+    y += 12;
+    doc.text("ALIANZAS ESTRATÉGICAS", doc.internal.pageSize.width / 2, y, {
+      align: "center",
+    });
+    y += 10;
+    doc.text("LAUDEM AVE", doc.internal.pageSize.width / 2, y, {
+      align: "center",
+    });
+  }
 
 
   // DESCARGAR PDF
