@@ -556,11 +556,11 @@
                     let contE = 0;
                     for(let i of this.dataComprobantes ){
                         if(i.ivaFavor > 0){
-                            const calculo = i.ivaFavor * porcentajeE[contE]
+                            const calculo = i.importeIvaAcreditado * porcentajeE[contE]
                             console.log(calculo)
                             this.dataComprobantes[contE].porcentajeE = porcentajeE[contE];
                             this.dataComprobantes[contE].calculoE = parseFloat(calculo.toFixed(2));
-                            this.dataComprobantes[contE].ivaFavor = parseFloat(calculo.toFixed(2));
+                            this.dataComprobantes[contE].importeIvaAcreditado = parseFloat(calculo.toFixed(2));
                             contE++;
                         }
                     }
