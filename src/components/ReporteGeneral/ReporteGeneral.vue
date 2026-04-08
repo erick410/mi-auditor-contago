@@ -549,6 +549,25 @@
                 </q-table>
               </div>
               <div class="row no-wrap justify-between q-mb-md">
+  <q-file
+    v-model="imagenFile"
+    label="Seleccionar imagen"
+    accept="image/*"
+    filled
+    class="full-width"
+     @input="onFileChange"
+  >
+    <template v-slot:prepend>
+      <q-icon name="image" />
+    </template>
+  </q-file>
+</div>
+
+<!-- <span> span {{ imagenBase64 }}</span> -->
+<div v-if="imagenBase64" class="q-mb-md">
+  <img :src="imagenBase64" style="max-width:100%; border-radius: 10px;" />
+</div>
+              <div class="row no-wrap justify-between q-mb-md">
                 <q-input v-model="comentarios" filled autogrow label="Comentarios" class="full-width" />
               </div>
 
@@ -1250,6 +1269,9 @@ export default {
 
       //PARA EL IVA EXENTO
       ivaExento: false,
+
+      imagenFile: null,
+    imagenBase64: null,
     };
   },
 
@@ -3803,7 +3825,8 @@ export default {
         this.dataAnticiposIngresos,
         this.dataAnticiposGastos,
         this.dataCuentasPagar,
-        this.dataCuentasCobrar
+        this.dataCuentasCobrar, 
+        this.imagenBase64
 
       );
       this.$q.loading.hide();
@@ -7963,7 +7986,20 @@ export default {
 
       console.log('cuentascobrar', this.dataCuentasCobrar)
       console.log('cuentaspagar', this.dataCuentasPagar)
+    },
+
+    onFileChange (file) {
+    if (!file) return
+
+    const reader = new FileReader()
+
+    reader.onload = (e) => {
+      this.imagenBase64 = e.target.result
+      console.log('Base64:', this.imagenBase64)
     }
+
+    reader.readAsDataURL(file)
+  }
   },
 
   // Convertir hexadecimal a RGB
