@@ -353,7 +353,8 @@ export async function generarReporte(
   dataAnticiposIngresos,
   dataAnticiposGastos,
   dataCuentasPagar,
-  dataCuentasCobrar
+  dataCuentasCobrar,
+  imagenBase64
 ) {
   const doc = new jsPDF({
     orientation: "portrait",
@@ -1776,6 +1777,41 @@ export async function generarReporte(
 
     y += 20;
   }
+  
+  if (imagenBase64) {
+
+    if (!imagenBase64.startsWith('data:image')) {
+      imagenBase64 = 'data:image/png;base64,' + imagenBase64
+    }
+
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
+
+    const marginX = 40
+    const maxWidth = pageWidth - (marginX * 2)
+
+    const imgProps = doc.getImageProperties(imagenBase64)
+    const imgHeight = (imgProps.height * maxWidth) / imgProps.width
+
+    if (y + imgHeight > pageHeight) {
+      doc.addPage()
+      y = 40
+    }
+
+    doc.addImage(
+      imagenBase64,
+      imgProps.fileType || 'PNG',
+      marginX,
+      y,
+      maxWidth,
+      imgHeight
+    )
+
+    y += imgHeight + 20
+  }
+
+
+  
 
   if (dataVentas.length != 0) {
 
