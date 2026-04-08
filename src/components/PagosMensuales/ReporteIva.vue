@@ -561,6 +561,31 @@
                             this.dataComprobantes[contE].porcentajeE = porcentajeE[contE];
                             this.dataComprobantes[contE].calculoE = parseFloat(calculo.toFixed(2));
                             this.dataComprobantes[contE].importeIvaAcreditado = parseFloat(calculo.toFixed(2));
+
+                            //RECALCULAMOS
+                            const ivaCargo_ = this.dataComprobantes[contE].importeIvaTrasladado;
+                            const ivaAcreditado_ = this.dataComprobantes[contE].importeIvaAcreditado;
+                            const ivaRetenido_ = this.dataComprobantes[contE].ivaRetenido;
+                            const ivaRetenidoAnterior_ = this.dataComprobantes[contE].ivaRetenidoAnterior;
+                            
+                            const calculo_ = parseFloat((ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_).toFixed(2));
+                            if (calculo_ > 0) {
+                                this.dataComprobantes[contE].ivaCargo = calculo_
+                                this.dataComprobantes[contE].ivaFavor = 0
+                            } else {
+                                this.dataComprobantes[contE].ivaCargo = 0
+                                if(calculo_ != 0){
+                                    this.dataComprobantes[contE].ivaFavor = calculo_ * -1
+                                }else{
+                                    this.dataComprobantes[contE].ivaFavor = calculo_ 
+                                }
+                            }
+
+                            let comparativa_ = (this.dataComprobantes[contE].ivaCargo - this.dataComprobantes[contE].ivaFavor - this.dataComprobantes[contE].cargoRegistrado + this.dataComprobantes[contE].favorRegistrado) * -1
+                            if (comparativa_ != 0) {
+                                comparativa_ = comparativa_ * -1;
+                            }
+                            this.dataComprobantes[contE].comparativa = comparativa_;
                             contE++;
                         }
                     }
