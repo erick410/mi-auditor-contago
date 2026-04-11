@@ -3224,28 +3224,40 @@ export async function generarReporte(
   );
   console.log(usuario)
   // Nombre y puesto
-  if (usuario.toLowerCase() == 'admin') {
-    y += 12;
-    doc.text("OSCAR JESUS LUENGAS SOLANO", doc.internal.pageSize.width / 2, y, {
-      align: "center",
-    });
+  const user = usuario.toLowerCase();
 
-    y += 10;
-    doc.text("DIRECTOR LAUDEM AVE", doc.internal.pageSize.width / 2, y, {
-      align: "center",
-    });
-  }
+if (user === 'admin') {
+  y += 12;
+  doc.text("OSCAR JESUS LUENGAS SOLANO", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
 
-  if (usuario.toLowerCase() != 'admin') {
-    y += 12;
-    doc.text("ALIANZAS ESTRATÉGICAS", doc.internal.pageSize.width / 2, y, {
-      align: "center",
-    });
-    y += 10;
-    doc.text("LAUDEM AVE", doc.internal.pageSize.width / 2, y, {
-      align: "center",
-    });
-  }
+  y += 10;
+  doc.text("DIRECTOR LAUDEM AVE", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
+
+} else if (user === 'francisco cheschistz') {
+  y += 12;
+  doc.text("FRANCISCO JAVIER CHESCHISTZ", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
+  y += 10;
+  doc.text("FLORES VERDAD", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
+
+} else {
+  y += 12;
+  doc.text("ALIANZAS ESTRATÉGICAS", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
+
+  y += 10;
+  doc.text("LAUDEM AVE", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
+}
 
 
   // DESCARGAR PDF
