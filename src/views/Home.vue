@@ -1,469 +1,489 @@
 <template>
-  <div class="q-ml-xl q-mr-lg">
-    <q-dialog
-      v-model="dialogAviso"
-      transition-show="scale"
-      transition-hide="scale"
-    >
-      <q-card>
-        <q-card-section>
-          <div class="text-h6">Aviso importante</div>
-          <div class="text-h6">
-            Actualización de la herramienta de carga de XML
-          </div>
-        </q-card-section>
+  <div class="page">
 
-        <q-card-section class="q-pt-none">
-          <p>
-            Por el momento no se pueden realizar descargas directamente desde la
-            aplicación, por lo que se les proporciona una herramienta la cual se
-            puede instalar en equipos Windows, con la cual se pueden cargar los
-            comprobantes al sistema, directamente desde su equipo personal.
-          </p>
-          <p>
-            Para cualquier duda se pueden comunicar vía telefónica al número 222
-            622 6540.
-          </p>
-          <p>
-            Estamos trabajando, para que a la brevedad se restablezca el
-            servicio de descargas, además de proporcionar nuevas herramientas
-            para agilizar el proceso y ofrecerles el mejor servicio.
-          </p>
-          <div class="text-center">
-            <q-btn
-              dense
-              round
-              color="green"
-              icon="mdi-download"
-              class="q-mr-sm"
-              @click="DescargaHerramienta()"
-            >
-              <q-tooltip> Descargar herramienta </q-tooltip>
-            </q-btn>
-          </div>
-          <p>PASOS PARA INSTALACION Y USO DE LA HERRAMIENTA</p>
-          <p>
-            En caso de haber instalado la herramienta previamente, debe de
-            desintalar dicha versión y actualizar con la que se porporciona en
-            este moneto
-          </p>
-          <p>1.- Se debe descomprimir el archivo zip</p>
-          <p>
-            2.- Copiar y pegar la carpeta "CATALOGOS SAT JSON" directamente en
-            C://
-          </p>
-          <p>3.- Instalar el programa "CargaXml.msi"</p>
-          <p>Listo</p>
-          <p>
-            Con esta actualización deberas poder subir tus XML al sistema sin
-            necesidad de renombar los archivos como en la versión anterios
-          </p>
-        </q-card-section>
 
-        <q-card-actions align="right">
-          <q-btn flat label="OK" color="primary" v-close-popup />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
-    <div class="text-center q-my-xl">
-      <img
-        class="logo-home"
-        alt="Contago logo"
-        src="../assets/logo_contago_sin_fondo.png"
-      />
+    <div class="content-logo">
+      <img class="wb-logo" src="../assets/logo_contago_sin_fondo.png" alt="Contago" />
     </div>
 
-    <div class="row flex-center q-pr-xl q-pl-xl" style="gap: 20px">
-      <div class="col-xs-12 col-sm-4 col-md-1 text-center" style="width: auto">
-        <span
-          @click="irIngresos()"
-          class="q-pa-lg shadow-6 mb-3 inline-block surface-card"
-          style="
-            background: #e74747;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 160px;
-          "
-        >
-          <q-icon
-            name="mdi-file-document-plus q-pb-xs"
-            style="color: aliceblue; font-size: 4em"
-          />
-          <div class="text-h5 text-weight-bolder" style="color: aliceblue">
-            Ingresos
+    <!-- MÓDULOS -->
+    <div class="content">
+      <div class="welcome-band">
+
+        <div class="wb-left">
+          <div class="wb-text">
+            <div class="wb-title">¡Bienvenido!</div>
+            <div class="wb-sub">¿Qué deseas hacer hoy?</div>
+            <div class="wb-fecha">{{ fechaHoy }}</div>
           </div>
-        </span>
+        </div>
+
+        <div class="wb-right">
+          <div class="ind" :style="{
+            background: colorFondo(semaforo.emitidos),
+            borderColor: colorBorde(semaforo.emitidos)
+          }">
+            <div class="ind-dot" :style="{ background: colorDot(semaforo.emitidos) }"></div>
+            <div class="ind-info">
+              <span class="ind-tipo" :style="{ color: colorTipo(semaforo.emitidos) }">Emitidos</span>
+              <span class="ind-fecha" :style="{ color: colorFecha(semaforo.emitidos) }">
+                {{ formatFecha(descarga.emitidos?.ultimaFecha) }}
+              </span>
+              <span class="ind-label" :style="{ color: colorLabel(semaforo.emitidos) }">
+                {{ labelEstado(semaforo.emitidos) }}
+              </span>
+            </div>
+          </div>
+
+          <div class="ind" :style="{
+            background: colorFondo(semaforo.recibidos),
+            borderColor: colorBorde(semaforo.recibidos)
+          }">
+            <div class="ind-dot" :style="{ background: colorDot(semaforo.recibidos) }"></div>
+            <div class="ind-info">
+              <span class="ind-tipo" :style="{ color: colorTipo(semaforo.recibidos) }">Recibidos</span>
+              <span class="ind-fecha" :style="{ color: colorFecha(semaforo.recibidos) }">
+                {{ formatFecha(descarga.recibidos?.ultimaFecha) }}
+              </span>
+              <span class="ind-label" :style="{ color: colorLabel(semaforo.recibidos) }">
+                {{ labelEstado(semaforo.recibidos) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- UN SOLO BOTÓN -->
+          <q-btn flat round dense icon="mdi-plus-circle-outline" size="md" color="grey-7" @click="crearSolicitud">
+            <q-tooltip content-style="font-size:13px">
+              Crear solicitud de descarga
+            </q-tooltip>
+          </q-btn>
+        </div>
+      </div>
+      <div class="sec">
+        <div class="sec-hdr">
+          <span class="sec-name">Menú</span>
+          <div class="sec-line"></div>
+        </div>
+        <div class="cards">
+          <div class="card" v-for="m in modulosComprobantes" :key="m.name" @click="m.action()">
+            <div class="card-top">
+              <div class="card-icon" style="background:#FCEBEB">
+                <q-icon :name="m.icon" size="25px" style="color:#A32D2D" />
+              </div>
+              <span class="card-arr">→</span>
+            </div>
+            <div>
+              <div class="card-label">{{ m.name }}</div>
+              <div class="card-sub">{{ m.sub }}</div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div class="col-xs-12 col-sm-4 col-md-1 text-center" style="width: auto">
-        <span
-          @click="irCompras()"
-          class="q-pa-lg shadow-6 mb-3 inline-block surface-card"
-          style="
-            background: #e74747;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 160px;
-          "
-        >
-          <q-icon
-            name="mdi-file-document-minus  q-pb-xs"
-            style="color: aliceblue; font-size: 4em"
-          />
-          <div class="text-h5 text-weight-bolder" style="color: aliceblue">
-            Compras
+      <template v-if="esGasolinero">
+        <div class="sec">
+          <div class="sec-hdr">
+            <span class="sec-name">Gasolinería</span>
+            <span class="gas-badge">Solo Gasolineros</span>
+            <div class="sec-line"></div>
           </div>
-        </span>
-      </div>
-
-      <div class="col-xs-12 col-sm-4 col-md-1 text-center" style="width: auto">
-        <span
-          @click="irNomina()"
-          class="q-pa-lg shadow-6 mb-3 inline-block surface-card"
-          style="
-            background: #e74747;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 160px;
-          "
-        >
-          <q-icon
-            name="mdi-account-cash q-pb-xs"
-            style="color: aliceblue; font-size: 4em"
-          />
-          <div class="text-h5 text-weight-bolder" style="color: aliceblue">
-            Nómina
+          <div class="cards" style="grid-template-columns: repeat(auto-fill, minmax(180px, 220px))">
+            <div class="card" @click="$router.push({ name: 'Gasolineria' })">
+              <div class="card-top">
+                <div class="card-icon" style="background:#FAEEDA">
+                  <q-icon name="mdi-gas-station" size="22px" style="color:#854F0B" />
+                </div>
+                <span class="card-arr">→</span>
+              </div>
+              <div>
+                <div class="card-label">Gasolinerias</div>
+                <div class="card-sub">Control de estaciones</div>
+              </div>
+            </div>
           </div>
-        </span>
-      </div>
-
-      <div class="col-xs-12 col-sm-4 col-md-1 text-center" style="width: auto">
-        <span
-          @click="irDescargas()"
-          class="q-pa-lg shadow-6 mb-3 inline-block surface-card"
-          style="
-            background: #e74747;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 160px;
-          "
-        >
-          <q-icon
-            name="mdi-download-box q-pb-xs"
-            style="color: aliceblue; font-size: 4em"
-          />
-          <div class="text-h5 text-weight-bolder" style="color: aliceblue">
-            Descargas
-          </div>
-        </span>
-      </div>
-
-      <!-- <div class="col-12 col-md-1 text-center q-mx-lg">
-        <span @click="irDescarga()" class="q-pa-lg  shadow-6 mb-3 inline-block surface-card"
-          style="background: #E74747;  border-radius: 10px; cursor: pointer;  width: 160px;">
-          <q-icon name="mdi-download-box q-pb-xs" style="color: aliceblue;font-size: 4em;" />
-          <div class="text-h5 text-weight-bolder" style="color: aliceblue;">Descargas Web Service</div>
-        </span>
-      </div> -->
-
-      <div class="col-xs-12 col-sm-6 col-md-1 text-center" style="width: auto">
-        <span
-          @click="irPagosMensuales()"
-          class="q-py-lg shadow-6 inline-block surface-card"
-          style="
-            background: #e74747;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 160px;
-          "
-        >
-          <q-icon
-            name="mdi-cash-clock  "
-            style="color: aliceblue; font-size: 4em"
-          />
-          <div
-            class="text-weight-bolder q-mt-md"
-            style="font-size: 15px; color: aliceblue"
-          >
-            Pagos Mensuales
-          </div>
-        </span>
-      </div>
-
-      <!-- <div class="col-12 col-md-1 text-center q-mx-lg">
-        <span @click="irCancelados" class="q-pa-lg shadow-6 inline-block surface-card"
-          style="background: #E74747;  border-radius: 10px; cursor: pointer;  width: 160px;">
-          <q-icon name="mdi-cancel q-pb-xs" style="color: aliceblue;font-size: 4em;" />
-          <div class=" text-weight-bolder" style="font-size: 20px; color: aliceblue;">Cancelados</div>
-        </span>
-      </div> -->
-
-      <!-- <div class="col-12 col-md-1 text-center q-mx-lg">
-        <span @click="irFlujo" class="q-pa-lg  shadow-6 mb-3 inline-block surface-card"
-          style="background: #E74747;  border-radius: 10px; cursor: pointer;  width: 160px;">
-          <q-icon name="mdi-cash-multiple q-pb-xs" style="color: aliceblue;font-size: 4em;" />
-          <div class="text-h5 text-weight-bolder" style="color: aliceblue;">Flujo</div>
-        </span>
-      </div>-->
-
-      <div
-        class="col-xs-12 col-sm-6 col-md-1 text-center"
-        style="width: auto"
-        v-show="this.$store.state.usuario.rol == 'Gasolinero'"
-      >
-        <span
-          @click="irGasolineria"
-          class="q-pa-lg shadow-6 mb-3 inline-block surface-card"
-          style="
-            background: #e74747;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 160px;
-          "
-        >
-          <q-icon
-            name="mdi-gas-station q-pb-xs"
-            style="color: aliceblue; font-size: 4em"
-          />
-          <div
-            class="text-weight-bolder"
-            style="font-size: 20px; color: aliceblue"
-          >
-            Gasolinerias
-          </div>
-        </span>
-      </div>
-
-      <!--<div class="col-12 col-md-1 text-center q-mx-lg">
-        <span @click="irlista69b" class="q-pa-lg  shadow-6 mb-3 inline-block surface-card"
-          style="background: #E74747;  border-radius: 10px; cursor: pointer;  width: 160px;">
-          <q-icon name="mdi-account-search q-pb-xs" style="color: aliceblue;font-size: 4em;" />
-          <div class=" text-weight-bolder" style="font-size: 20px; color: aliceblue;">69B</div>
-        </span>
-      </div> -->
-
-      <div class="col-xs-12 col-sm-6 col-md-1 text-center" style="width: auto">
-        <span
-          @click="irReporteEmpresarial"
-          class="q-py-md shadow-6 inline-block surface-card"
-          style="
-            background: #e74747;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 160px;
-          "
-        >
-          <q-icon
-            name="mdi-file-chart"
-            style="color: aliceblue; font-size: 4em"
-          />
-          <div
-            class="text-weight-bolder"
-            style="font-size: 18px; color: aliceblue"
-          >
-            Reporte <br />
-            Empresarial
-          </div>
-        </span>
-      </div>
-
-      <!-- <div class="col-12 col-md-1 text-center q-mx-lg">
-         <span @click="irReporteEmpresarial" class="q-py-md shadow-6 inline-block surface-card"
-           style="background: #E74747;  border-radius: 10px; cursor: pointer;  width: 160px;">
-           <q-icon name="mdi-file-chart" style="color: aliceblue;font-size: 4em;" />
-           <div class=" text-weight-bolder" style="font-size: 18px; color: aliceblue;">Reportes</div>
-         </span>
-       </div> -->
-
-      <!-- Sustitucion de CFDI -->
-      <div class="col-xs-12 col-sm-6 col-md-1 text-center" style="width: auto">
-        <span
-          @click="irSustitucionCFDI"
-          class="q-py-md shadow-6 inline-block surface-card"
-          style="
-            background: #e74747;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 160px;
-          "
-        >
-          <q-icon
-            name="mdi-file-replace"
-            style="color: aliceblue; font-size: 4em"
-          />
-          <div
-            class="text-weight-bolder"
-            style="font-size: 18px; color: aliceblue"
-          >
-            Sustitucion <br />
-            CFDIs
-          </div>
-        </span>
-      </div>
-
-       
-
-
-      <div class="col-xs-12 col-sm-4 col-md-1 text-center" style="width: auto">
-        <span
-          @click="irConceptos()"
-          class="q-pa-lg shadow-6 mb-3 inline-block surface-card"
-          style="
-            background: #e74747;
-            border-radius: 10px;
-            cursor: pointer;
-            width: 160px;
-          "
-        >
-          <q-icon
-            name="mdi-format-list-checkbox"
-            style="color: aliceblue; font-size: 4em"
-          />
-          <div class="text-h5 text-weight-bolder" style="color: aliceblue">
-            Conceptos
-          </div>
-        </span>
-      </div>
+        </div>
+      </template>
 
     </div>
   </div>
 </template>
 
-<!-- <script>
-// @ is an alias to /src
-import HelloWorld from '@/components/HelloWorld.vue'
-
-export default {
-  name: 'Home',
-  components: {
-    HelloWorld
-  }
-}
-</script> -->
 <script>
-import axios from "axios";
+import axios from 'axios'
 
 export default {
   data() {
     return {
-      menuOptions: [
-        { name: "Opción 1", icon: "mdi-home" },
-        { name: "Opción 2", icon: "mdi-account" },
-        { name: "Opción 3", icon: "mdi-settings" },
-      ],
-      dialogAviso: false,
-    };
+      descarga: { emitidos: null, recibidos: null },
+      semaforo: { emitidos: null, recibidos: null },
+      modulosComprobantes: [
+        { name: 'Ingresos', sub: 'CFDIs emitidos', icon: 'mdi-file-document-plus', action: () => this.$router.push({ name: 'Ingresos' }) },
+        { name: 'Compras', sub: 'CFDIs recibidos', icon: 'mdi-file-document-minus', action: () => this.$router.push({ name: 'Compras' }) },
+        { name: 'Nómina', sub: 'Comprobantes de pago', icon: 'mdi-account-cash', action: () => this.$router.push({ name: 'Nomina' }) },
+        { name: 'Sustitución CFDIs', sub: 'Reemplazar comprobantes', icon: 'mdi-file-replace', action: () => this.$router.push({ name: 'MainSustitucion' }) },
+        { name: 'Descargas SAT', sub: 'Solicitudes al SAT', icon: 'mdi-download-box', action: () => this.$router.push({ name: 'DescargasScraper' }) },
+        { name: 'Pagos Mensuales', sub: 'Declaraciones y pagos', icon: 'mdi-cash-clock', action: () => this.$router.push({ name: 'PagosMensuales' }) },
+        { name: 'Conceptos', sub: 'Catálogo de conceptos', icon: 'mdi-format-list-checkbox', action: () => this.$router.push({ name: 'Conceptos' }) },
+        { name: 'Reporte Empresarial', sub: 'Análisis general', icon: 'mdi-file-chart', action: () => this.$router.push({ name: 'ReporteGeneral' }) },
+      ]
+    }
   },
+
+  computed: {
+    esGasolinero() { return this.$store.state.usuario.rol === 'Gasolinero' },
+    fechaHoy() {
+      return new Date().toLocaleDateString('es-MX', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+      })
+    },
+    fechaMasVieja() {
+      const fe = this.descarga.emitidos?.ultimaFecha
+      const fr = this.descarga.recibidos?.ultimaFecha
+
+      if (!fe && !fr) return null
+      if (!fe) return fr
+      if (!fr) return fe
+
+      // Regresa la más antigua
+      return new Date(fe) < new Date(fr) ? fe : fr
+    }
+  },
+
   created() {
-    this.listaEmpresas();
+    this.listaEmpresas()
+    this.cargarSemaforo()
   },
+
   methods: {
-    irIngresos() {
-      this.$router.push({ name: "Ingresos" });
-    },
-    irCompras() {
-      this.$router.push({ name: "Compras" });
-    },
-    irNomina() {
-      this.$router.push({ name: "Nomina" });
-    },
-    irDescarga() {
-      this.$router.push({ name: "Descargas" });
-    },
-    irDescargas() {
-      this.$router.push({ name: "DescargasScraper" });
-    },
-    irPagosMensuales() {
-      this.$router.push({ name: "PagosMensuales" });
-    },
-    irCancelados() {
-      this.$router.push({ name: "Cancelados" });
-    },
-    irFlujo() {
-      this.$router.push({ name: "Flujo" });
-    },
-    irGasolineria() {
-      this.$router.push({ name: "Gasolineria" });
-    },
-    irlista69b() {
-      this.$router.push({ name: "Lista69B" });
-    },
-    irReporteEmpresarial() {
-      this.$router.push({ name: "ReporteGeneral" });
-    },
-    irSustitucionCFDI() {
-      this.$router.push({ name: "MainSustitucion" });
-    },
-    irConceptos(){
-      this.$router.push({ name: "Conceptos" });
-
-    },
-
-    DescargaHerramienta() {
+    async cargarSemaforo() {
       try {
-        const rutaArchivo = "/CargaXml.zip";
-        const enlaceTemporal = document.createElement("a");
-        enlaceTemporal.href = rutaArchivo;
-        enlaceTemporal.download = "CargaXml.zip";
-        document.body.appendChild(enlaceTemporal);
-        enlaceTemporal.click();
-        document.body.removeChild(enlaceTemporal);
-      } catch (error) {
-        console.log(erro);
-      }
-    },
-
-    listaEmpresas(item) {
-      axios
-        .get(
-          "https://api-framework.contago.com.mx/api/Usuarios/Empresas/" +
-            this.$store.state.usuario.idusuariosApp +
-            "/" +
-            "DESERIALIZADOR"
+        const rfc = this.$store.state.usuario.rfc
+        if (!rfc) return
+        const { data } = await axios.get(
+          `https://api-erp.contago.com.mx/api/Descargas/GetUltimaDescarga/${rfc}`
         )
-        .then((response) => {
-          this.$store.state.listaEmpresasStore = response.data.sort(
-            this.comparar
-          );
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
-    },
-
-    comparar(a, b) {
-      const nombreA = a.nombre_e.toUpperCase();
-      const nombreB = b.nombre_e.toUpperCase();
-
-      let comparacion = 0;
-      if (nombreA > nombreB) {
-        comparacion = 1;
-      } else if (nombreA < nombreB) {
-        comparacion = -1;
+        this.descarga = { emitidos: data.emitidos, recibidos: data.recibidos }
+        this.semaforo = { emitidos: data.emitidos?.semaforo, recibidos: data.recibidos?.semaforo }
+      } catch (e) {
+        console.error('Semáforo no disponible', e)
       }
-      return comparacion;
     },
-  },
-};
+    colorDot(v) { return { rojo: '#E24B4A', amarillo: '#EF9F27', verde: '#639922' }[v] || '#ccc' },
+    colorFondo(v) { return { rojo: '#FCEBEB', amarillo: '#FAEEDA', verde: '#EAF3DE' }[v] || '#f4f5f7' },
+    colorBorde(v) { return { rojo: '#F09595', amarillo: '#FAC775', verde: '#97C459' }[v] || '#e3e3e3' },
+
+    // ← estos son los que necesitas corregir
+    colorTipo(v) { return { rojo: '#791F1F', amarillo: '#633806', verde: '#27500A' }[v] || '#aaa' },
+    colorFecha(v) { return { rojo: '#A32D2D', amarillo: '#854F0B', verde: '#3B6D11' }[v] || '#111' },
+    colorLabel(v) { return { rojo: '#A32D2D', amarillo: '#854F0B', verde: '#3B6D11' }[v] || '#aaa' },
+
+
+    labelEstado(v) { return { rojo: 'Desactualizado', amarillo: 'Por actualizar', verde: 'Al día' }[v] || '—' },
+    formatFecha(fecha) {
+      if (!fecha) return '—'
+      return new Date(fecha).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })
+    },
+    listaEmpresas() {
+      axios.get(`https://api-framework.contago.com.mx/api/Usuarios/Empresas/${this.$store.state.usuario.idusuariosApp}/DESERIALIZADOR`)
+        .then(r => { this.$store.state.listaEmpresasStore = r.data.sort((a, b) => a.nombre_e.toUpperCase().localeCompare(b.nombre_e.toUpperCase())) })
+        .catch(console.error)
+    },
+
+    // async crearSolicitud(tipo, model) {
+    //   console.log(tipo)
+    //   console.log(this.$store.state.empresaStore)
+
+    //   const datos = tipo === 'Emitido' ? this.descarga.emitidos : this.descarga.recibidos
+
+    //   if (!datos?.fechaInicioNuevaSolicitud) {
+    //     this.$q.notify({
+    //       type: 'warning',
+    //       message: 'No hay fecha disponible para crear la solicitud',
+    //       position: 'top-right'
+    //     })
+    //     return
+    //   }
+
+    //   let objeto = {
+    //     Rfc: this.$store.state.usuario.rfc,
+    //     razon_social: this.$store.state.empresaStore.nombre,
+    //     fecha_de_la_solicitud: model.ultimaFecha,
+    //     tipo : tipo
+    //   }
+
+    //   try {
+    //     let response = await axios.post('Descargas/PostSolicitudDescargarSignalR', objeto);
+    //     console.log(response)
+    //     this.$q.notify({
+    //       type: 'positive',
+    //       message: 'Se ha creado la solicitud de descarga automatica.',
+    //       position: 'top-right'
+    //     })
+    //   }catch{
+    //     this.$q.notify({
+    //       type: 'negative',
+    //       message: 'Error al registra los datos',
+    //       position: 'top-right'
+    //     })
+    //   }
+
+    //   console.log(objeto)
+    // }
+
+    async crearSolicitud() {
+      if (!this.fechaMasVieja) {
+        this.$q.notify({
+          type: 'warning',
+          message: 'No hay fecha disponible para crear la solicitud',
+          position: 'top-right'
+        })
+        return
+      }
+
+      const objeto = {
+        Rfc: this.$store.state.usuario.rfc,
+        razon_social: this.$store.state.empresaStore.nombre,
+        fecha_de_la_solicitud: this.fechaMasVieja,
+        tipo: 'Ambos'  // ya no es por tipo individual
+      }
+
+      try {
+        await axios.post('Descargas/PostSolicitudDescargarSignalR', objeto)
+        this.$q.notify({
+          type: 'positive',
+          message: 'Solicitud de descarga creada correctamente.',
+          position: 'top-right'
+        })
+      } catch {
+        this.$q.notify({
+          type: 'negative',
+          message: 'Error al registrar la solicitud',
+          position: 'top-right'
+        })
+      }
+    }
+  }
+}
 </script>
 
-<style>
-.logo-home {
-  max-width: 60%;
-  height: auto;
+<style scoped>
+.page {
+  background: #f4f5f7;
 }
 
-.main-menu {
+.welcome-band {
+  padding: 0px 0px;
   display: flex;
-  justify-content: space-around;
   align-items: center;
-  height: 100vh;
+  justify-content: space-between;
+  gap: 32px;
+  flex-wrap: wrap;
+  width: 100%;
+  /* ← agrega esto */
+  margin: 0;
 }
 
-.menu-option {
+.wb-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.wb-logo {
+  height: 150px;
+  width: auto;
+  object-fit: contain;
+  padding: 0px 0px;
+}
+
+.wb-text {
   display: flex;
   flex-direction: column;
+  gap: 3px;
+}
+
+.wb-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #303030;
+}
+
+.wb-sub {
+  font-size: 16px;
+  color: rgba(83, 83, 83, 0.7);
+}
+
+.wb-fecha {
+  font-size: 11px;
+  color: rgba(80, 80, 80, 0.5);
+  margin-top: 1px;
+}
+
+.wb-right {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ind {
+  border-radius: 12px;
+  padding: 12px 16px;
+  display: flex;
   align-items: center;
+  gap: 10px;
+  min-width: 155px;
+  border: 0.5px solid transparent;
+}
+
+.ind-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ind-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ind-tipo {
+  font-size: 10px;
+  color: rgba(255, 255, 255, .55);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  font-weight: 600;
+}
+
+.ind-fecha {
+  font-size: 12px;
+  color: #fff;
+  font-weight: 600;
+}
+
+.ind-label {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.content-logo {
+  padding: 40px 0px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ← límite de ancho */
+
+.content {
+  padding: 10px 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  max-width: 1400px;
+  /* ← límite de ancho */
+  margin: 0 auto;
+  /* ← centra el contenido */
+  width: 100%;
+}
+
+.sec {
+  display: flex;
+  flex-direction: column;
+}
+
+.sec-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.sec-line {
+  flex: 1;
+  height: 0.5px;
+  background: #ddd;
+}
+
+.sec-name {
+  font-size: 11px;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gas-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: #FAEEDA;
+  color: #633806;
+  font-weight: 600;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  background: #fff;
+  border: 0.5px solid #e3e3e3;
+  border-radius: 16px;
+  padding: 20px 18px 18px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: border-color .15s, background .15s;
+}
+
+.card:hover {
+  border-color: #bbb;
+  background: #fafafa;
+}
+
+.card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.card-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-arr {
+  font-size: 18px;
+  color: #ddd;
+  transition: color .15s;
+  margin-top: 2px;
+}
+
+.card:hover .card-arr {
+  color: #E74747;
+}
+
+.card-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111;
+  line-height: 1.3;
+}
+
+.card-sub {
+  font-size: 14px;
+  color: #aaa;
+  margin-top: 3px;
 }
 </style>

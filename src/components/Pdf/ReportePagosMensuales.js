@@ -2963,8 +2963,12 @@ export async function generarReporte(
 
   }
 
+  const dataOrdenadaCuentasCobrar = dataCuentasPagar
+  .filter(x => x.porCobrar > 5 || x.porCobrar < - 5)
+  .sort((a, b) => b.porCobrar - a.porCobrar) 
 
-  if (dataCuentasCobrar.length != 0) {
+
+  if (dataOrdenadaCuentasCobrar.length != 0) {
     y = doc.lastAutoTable.finalY + 20;
 
 
@@ -2991,7 +2995,7 @@ export async function generarReporte(
           "Dias",
         ],
       ],
-      body: dataCuentasCobrar.map((x) => [
+      body: dataOrdenadaCuentasCobrar.map((x) => [
         // x.serie,
         // x.folio,
         x.rfc,
@@ -3041,7 +3045,12 @@ export async function generarReporte(
 
   }
 
-  if (dataCuentasPagar.length != 0) {
+  
+  const dataOrdenadaCuentasPagar = dataCuentasPagar
+  .filter(x => x.porPagar > 5 || x.porPagar < -5)
+  .sort((a, b) => b.porPagar - a.porPagar) 
+
+  if (dataOrdenadaCuentasPagar.length != 0) {
     y = doc.lastAutoTable.finalY + 20;
 
     doc.setFontSize(9);
@@ -3067,7 +3076,7 @@ export async function generarReporte(
           "Dias",
         ],
       ],
-      body: dataCuentasPagar.map((x) => [
+      body: dataOrdenadaCuentasPagar.map((x) => [
         // x.serie,
         // x.folio,
         x.rfc,
@@ -3247,7 +3256,17 @@ if (user === 'admin') {
     align: "center",
   });
 
-} else {
+} else if (user === 'lude') {
+  y += 12;
+  doc.text("CP FRANCISCO SADA", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
+  y += 10;
+  doc.text("ALIANZAS ESTRATÉGICAS LAUDEM AVE", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
+
+}  else {
   y += 12;
   doc.text("ALIANZAS ESTRATÉGICAS", doc.internal.pageSize.width / 2, y, {
     align: "center",
