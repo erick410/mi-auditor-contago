@@ -547,6 +547,9 @@
               <div class="row no-wrap justify-between q-mb-md">
                 <q-table class="full-width no-shadow" bordered title="Declaraciones Anuales" :data="dataAnual"
                   :columns="columnsAnual" row-key="columna1">
+                  <template v-slot:top-right>
+                    <q-btn color="primary" label="Guardar Declaraciones" @click="guardarDeclaraciones()" />
+                  </template>
                   <template v-slot:body="props">
                     <q-tr :props="props">
                       <q-td key="columna1" :props="props">
@@ -1216,26 +1219,7 @@ export default {
       dataPremiumU: [],
       dataDieselU: [],
       dataAnual: [
-        {
-          columna1: "COEFICIENTE DE UTILIDAD DEL EJERCICIO",
-          columna2: 0,
-          columna3: 0,
-          columna4: 0,
-        },
-        {
-          columna1: "TOTAL DE INGRESOS ACUMULABLES",
-          columna2: 0,
-          columna3: 0,
-          columna4: 0,
-        },
-        {
-          columna1: "TOTAL DE DEDUCCIONES AUTORIZADAS",
-          columna2: 0,
-          columna3: 0,
-          columna4: 0,
-        },
-        { columna1: "PÉRDIDA FISCAL ", columna2: 0, columna3: 0, columna4: 0 },
-        { columna1: "UTILIDAD FISCAL", columna2: 0, columna3: 0, columna4: 0 },
+        
       ],
       columnsAnual: [
         {
@@ -7897,8 +7881,9 @@ export default {
     async runAll() {
       for (let i = 0; i < this.tasks.length; i++) {
         await this.runTask(i);
-        if (this.tasks[i].status === "error") break; // detener si falla
+        if (this.tasks[i].status === "error") break;  
       }
+      await this.GetDeclaraciones();
     },
 
     // Pequeña animación visual del progreso
@@ -8050,7 +8035,75 @@ export default {
     }
 
     reader.readAsDataURL(file)
-  }
+  },
+
+  async guardarDeclaraciones(){
+    this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
+      console.log(this.dataAnual)  
+      let objeto = {
+        _id : '',
+        año: this.selectedAnio,
+        mesI: this.selectedMesI.label,
+        mesF:this.selectedMesF.label,
+        data: this.dataAnual
+      }
+
+      console.log(objeto)
+      try {
+        let response = await axios.post(this.rutaAxios + 'ReporteGeneral/PostDeclaracionesAnuales/erp_' + this.token.rfc, objeto);
+        let x = response.data;
+        console.log('declaraciones', x)
+        this.$q.loading.hide()
+        this.$q.notify({
+          type: "positive",
+          message: `Declaraciones guardadas`,
+          position: "top-right",
+        });
+      } catch (error) {
+        console.log(error)
+        this.$q.loading.hide()
+      }
+  },
+
+  async GetDeclaraciones() {
+      this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
+      this.dataAnual = []
+      try {
+        let response = await axios.get(this.rutaAxios + 'ReporteGeneral/GetDeclaracionesAnuelaes/erp_' + this.token.rfc + '/' + this.selectedAnio + '/' + this.selectedMesI.label + '/' + this.selectedMesF.label);
+        let x = response.data;
+        console.log('declaraciones', x)
+        if (x==''){
+          this.dataAnual = [
+            {
+              columna1: "COEFICIENTE DE UTILIDAD DEL EJERCICIO",
+              columna2: 0,
+              columna3: 0,
+              columna4: 0,
+            },
+            {
+              columna1: "TOTAL DE INGRESOS ACUMULABLES",
+              columna2: 0,
+              columna3: 0,
+              columna4: 0,
+            },
+            {
+              columna1: "TOTAL DE DEDUCCIONES AUTORIZADAS",
+              columna2: 0,
+              columna3: 0,
+              columna4: 0,
+            },
+            { columna1: "PÉRDIDA FISCAL ", columna2: 0, columna3: 0, columna4: 0 },
+            { columna1: "UTILIDAD FISCAL", columna2: 0, columna3: 0, columna4: 0 }
+          ]
+        }else{
+          this.dataAnual = x.data
+        }
+        this.$q.loading.hide()
+      } catch (error) {
+        console.log(error)
+        this.$q.loading.hide()
+      }
+    },
   },
 
   // Convertir hexadecimal a RGB

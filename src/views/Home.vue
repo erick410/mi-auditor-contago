@@ -51,8 +51,8 @@
             </div>
           </div>
 
-          <!-- UN SOLO BOTÓN -->
-          <q-btn flat round dense icon="mdi-plus-circle-outline" size="md" color="grey-7" @click="crearSolicitud">
+          <q-btn v-if="solicitudDisponible " flat round dense icon="mdi-plus-circle-outline" size="md" color="grey-7"
+            @click="crearSolicitud">
             <q-tooltip content-style="font-size:13px">
               Crear solicitud de descarga
             </q-tooltip>
@@ -65,7 +65,7 @@
           <div class="sec-line"></div>
         </div>
         <div class="cards">
-          <div class="card" v-for="m in modulosComprobantes" :key="m.name" @click="m.action()">
+          <div class="card" v-for="m in modulosFiltrados" :key="m.name" @click="m.action()">
             <div class="card-top">
               <div class="card-icon" style="background:#FCEBEB">
                 <q-icon :name="m.icon" size="25px" style="color:#A32D2D" />
@@ -117,19 +117,45 @@ export default {
       descarga: { emitidos: null, recibidos: null },
       semaforo: { emitidos: null, recibidos: null },
       modulosComprobantes: [
-        { name: 'Ingresos', sub: 'CFDIs emitidos', icon: 'mdi-file-document-plus', action: () => this.$router.push({ name: 'Ingresos' }) },
-        { name: 'Compras', sub: 'CFDIs recibidos', icon: 'mdi-file-document-minus', action: () => this.$router.push({ name: 'Compras' }) },
-        { name: 'Nómina', sub: 'Comprobantes de pago', icon: 'mdi-account-cash', action: () => this.$router.push({ name: 'Nomina' }) },
-        { name: 'Sustitución CFDIs', sub: 'Reemplazar comprobantes', icon: 'mdi-file-replace', action: () => this.$router.push({ name: 'MainSustitucion' }) },
-        { name: 'Descargas SAT', sub: 'Solicitudes al SAT', icon: 'mdi-download-box', action: () => this.$router.push({ name: 'DescargasScraper' }) },
-        { name: 'Pagos Mensuales', sub: 'Declaraciones y pagos', icon: 'mdi-cash-clock', action: () => this.$router.push({ name: 'PagosMensuales' }) },
-        { name: 'Conceptos', sub: 'Catálogo de conceptos', icon: 'mdi-format-list-checkbox', action: () => this.$router.push({ name: 'Conceptos' }) },
-        { name: 'Reporte Empresarial', sub: 'Análisis general', icon: 'mdi-file-chart', action: () => this.$router.push({ name: 'ReporteGeneral' }) },
+        { name: 'Ingresos', sub: 'CFDIs emitidos', icon: 'mdi-file-document-plus', action: () => this.$router.push({ name: 'Ingresos' }), bloqueados: [] },
+        { name: 'Compras', sub: 'CFDIs recibidos', icon: 'mdi-file-document-minus', action: () => this.$router.push({ name: 'Compras' }), bloqueados: [] },
+        { name: 'Nómina', sub: 'Comprobantes de pago', icon: 'mdi-account-cash', action: () => this.$router.push({ name: 'Nomina' }), bloqueados: ['ALICIA BALDERAS', 'KARINA GIRON', 'ANA ADAME'] },
+        { name: 'Sustitución CFDIs', sub: 'Reemplazar comprobantes', icon: 'mdi-file-replace', action: () => this.$router.push({ name: 'MainSustitucion' }), bloqueados: [] },
+        { name: 'Descargas SAT', sub: 'Solicitudes al SAT', icon: 'mdi-download-box', action: () => this.$router.push({ name: 'DescargasScraper' }), bloqueados: [] },
+        { name: 'Pagos Mensuales', sub: 'Declaraciones y pagos', icon: 'mdi-cash-clock', action: () => this.$router.push({ name: 'PagosMensuales' }), bloqueados: [] },
+        { name: 'Conceptos', sub: 'Catálogo de conceptos', icon: 'mdi-format-list-checkbox', action: () => this.$router.push({ name: 'Conceptos' }), bloqueados: [] },
+        { name: 'Reporte Empresarial', sub: 'Análisis general', icon: 'mdi-file-chart', action: () => this.$router.push({ name: 'ReporteGeneral' }), bloqueados: ['ALICIA BALDERAS', 'KARINA GIRON', 'ANA ADAME'] },
       ]
     }
   },
 
   computed: {
+  solicitudDisponible() {
+    if (!this.fechaMasVieja) return false
+
+    const hoy = new Date()
+    const fecha = new Date(this.fechaMasVieja)
+
+    const esHoy = (
+      fecha.getDate()     === hoy.getDate()   &&
+      fecha.getMonth()    === hoy.getMonth()  &&
+      fecha.getFullYear() === hoy.getFullYear()
+    )
+
+    const emitidosAlDia  = this.semaforo.emitidos  === 'verde'
+    const recibidosAlDia = this.semaforo.recibidos === 'verde'
+
+    return !esHoy && !(emitidosAlDia && recibidosAlDia)
+},
+    usuarioActual() {
+      return this.$store.state.usuario.nombre;
+    },
+    modulosFiltrados() {
+      return this.modulosComprobantes.filter(m =>
+        !m.bloqueados.includes(this.usuarioActual.toUpperCase())
+      );
+    },
+
     esGasolinero() { return this.$store.state.usuario.rol === 'Gasolinero' },
     fechaHoy() {
       return new Date().toLocaleDateString('es-MX', {
@@ -144,7 +170,6 @@ export default {
       if (!fe) return fr
       if (!fr) return fe
 
-      // Regresa la más antigua
       return new Date(fe) < new Date(fr) ? fe : fr
     }
   },
@@ -160,10 +185,12 @@ export default {
         const rfc = this.$store.state.usuario.rfc
         if (!rfc) return
         const { data } = await axios.get(
-          `https://api-erp.contago.com.mx/api/Descargas/GetUltimaDescarga/${rfc}`
+          `Descargas/GetUltimaDescarga/${rfc}`
         )
         this.descarga = { emitidos: data.emitidos, recibidos: data.recibidos }
         this.semaforo = { emitidos: data.emitidos?.semaforo, recibidos: data.recibidos?.semaforo }
+
+        console.log(data)
       } catch (e) {
         console.error('Semáforo no disponible', e)
       }
@@ -239,6 +266,7 @@ export default {
         })
         return
       }
+      this.$q.loading.show({ message: 'Generando solicitud...' })
 
       const objeto = {
         Rfc: this.$store.state.usuario.rfc,
@@ -254,12 +282,14 @@ export default {
           message: 'Solicitud de descarga creada correctamente.',
           position: 'top-right'
         })
+        this.$q.loading.hide()
       } catch {
         this.$q.notify({
           type: 'negative',
           message: 'Error al registrar la solicitud',
           position: 'top-right'
         })
+        this.$q.loading.hide()
       }
     }
   }
