@@ -102,4 +102,12 @@ export default {
 }
 </script>
 
-<style></style>
+<style>
+.q-page {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+body {
+  background: #f4f5f7 !important;
+}
+</style>

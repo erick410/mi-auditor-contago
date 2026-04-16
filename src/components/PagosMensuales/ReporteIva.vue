@@ -677,6 +677,7 @@
                         comparativa: this.dataComprobantes.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
                     }
                     this.dataComprobantes.push(objetoTotales);
+                    console.log( this.dataComprobantes,' this.dataComprobantes')
                     await this.GenerarGrafica(this.dataComprobantes);
 
                     this.$q.loading.hide()
@@ -952,6 +953,7 @@
                             timeout: 240000 // 120 segundos
                         }
                     );
+                    console.log('GetIvaTrasladado', response)
                     this.$q.loading.hide()
                     return response.data;
                 } catch (error) {
@@ -967,6 +969,7 @@
                     let fechaF = this.selectedAnio + '-' + this.selectedMes.value + '-01';
 
                     let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
+                    console.log(response)
                     return response.data;
                 } catch (error) {
                     console.log(error)

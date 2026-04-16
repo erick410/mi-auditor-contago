@@ -627,6 +627,7 @@ export default {
                 this.PostRetencionesSueldos(),
                 this.PostRetencionesArrendamientos(),
                 this.PostRetencionesHonorarios(),
+                this.PostRetencionesIVA()
             ]);
             this.loadingRegistrar = false;
             this.$q.notify({ type: 'positive', message: 'Comparativas registradas', position: 'top-right' });
@@ -725,6 +726,11 @@ export default {
             ));
         },
 
+        async PostRetencionesIVA() {
+            await this._post(this._buildComparativa('IVARetenido', d =>
+                this.getImpuesto(d, 'IVARETENCIONES')?.a_cargo ?? 0
+            ));
+        },
         // ── Formato ───────────────────────────────────────────────────────────
 
         fmt(n) {

@@ -4,19 +4,43 @@
       <Index style="max-width: 600px; min-width: 600px"></Index>
     </q-dialog>
 
-    <q-header elevated>
-      <q-toolbar>
-        <q-btn flat dense round icon="mdi-home" aria-label="Menu" @click="$router.push({ name: 'Home' })" />
-        <q-toolbar-title>
-          <div class="text-h6 text-weight-bolder">REPORTES</div>
-        </q-toolbar-title>
-        <div class="text-h6 q-mr-lg">{{ $store.state.usuario.rfc }}</div>
-        <q-btn flat class="q-mx-sm" round dense icon="mdi-chat-question" @click="dialogAsistente = true" />
+    <q-header v-if="logueado" style="background:#E74747">
+            <q-toolbar style="min-height:60px">
 
-        <q-btn flat class="q-mx-sm" round dense icon="mdi-domain" @click="drawerEmpresas = !drawerEmpresas" />
-        <q-btn flat class="q-mx-sm" round dense icon="mdi-account" @click="drawerPerfil = !drawerPerfil" />
-      </q-toolbar>
-    </q-header>
+                <q-btn flat dense round @click="irInicio" style="background:rgba(255,255,255,.12)">
+                    <q-icon name="mdi-home" color="white" size="23px" />
+                </q-btn>
+
+                <q-toolbar-title>
+                    <span style="font-size:16px;font-weight:500;letter-spacing:.01em">
+                        REPORTES
+                    </span>
+                </q-toolbar-title>
+
+                <div class="rfc-chip "  style="font-size:16px;">{{ $store.state.usuario.rfc }}</div>
+
+                <q-btn flat round dense class="header-btn" @click="irSolicitudCancelacion()">
+                    <q-icon name="mdi-bell" color="white" size="23px" />
+                    <q-badge color="red-8" floating style="font-size:9px">
+                        {{ cuentaSolicitudes }}
+                    </q-badge>
+                    <q-tooltip content-style="font-size:13px">
+                        Solicitudes de cancelación
+                    </q-tooltip>
+                </q-btn>
+
+                <q-btn flat round dense class="header-btn" @click="drawerEmpresas = !drawerEmpresas">
+                    <q-icon name="mdi-domain" color="white" size="23px" />
+                    <q-tooltip content-style="font-size:13px">Empresas</q-tooltip>
+                </q-btn>
+
+                <q-btn flat round dense class="header-btn" @click="drawerPerfil = !drawerPerfil">
+                    <q-icon name="mdi-account" color="white" size="23px" />
+                    <q-tooltip content-style="font-size:13px">Perfil</q-tooltip>
+                </q-btn>
+
+            </q-toolbar>
+        </q-header>
 
     <!-- DRAWER DERECHO -->
     <q-drawer :width="350" v-model="drawerPerfil" behavior="mobile" side="right" bordered>
@@ -523,6 +547,9 @@
               <div class="row no-wrap justify-between q-mb-md">
                 <q-table class="full-width no-shadow" bordered title="Declaraciones Anuales" :data="dataAnual"
                   :columns="columnsAnual" row-key="columna1">
+                  <template v-slot:top-right>
+                    <q-btn color="primary" label="Guardar Declaraciones" @click="guardarDeclaraciones()" />
+                  </template>
                   <template v-slot:body="props">
                     <q-tr :props="props">
                       <q-td key="columna1" :props="props">
@@ -620,6 +647,7 @@ export default {
   },
   data() {
     return {
+      cuentaSolicitudes: 0,
       dialogAsistente: false,
       drawerEmpresas: false,
       drawerPerfil: false,
@@ -1191,26 +1219,7 @@ export default {
       dataPremiumU: [],
       dataDieselU: [],
       dataAnual: [
-        {
-          columna1: "COEFICIENTE DE UTILIDAD DEL EJERCICIO",
-          columna2: 0,
-          columna3: 0,
-          columna4: 0,
-        },
-        {
-          columna1: "TOTAL DE INGRESOS ACUMULABLES",
-          columna2: 0,
-          columna3: 0,
-          columna4: 0,
-        },
-        {
-          columna1: "TOTAL DE DEDUCCIONES AUTORIZADAS",
-          columna2: 0,
-          columna3: 0,
-          columna4: 0,
-        },
-        { columna1: "PÉRDIDA FISCAL ", columna2: 0, columna3: 0, columna4: 0 },
-        { columna1: "UTILIDAD FISCAL", columna2: 0, columna3: 0, columna4: 0 },
+        
       ],
       columnsAnual: [
         {
@@ -1276,6 +1285,7 @@ export default {
   },
 
   computed: {
+    logueado() { return this.$store.state.usuario },
     token() {
       return this.$store.state.usuario;
     },
@@ -1294,6 +1304,7 @@ export default {
     this.fechaActual();
     // this.GetReporteDos();
     this.GetDatosEmpresa();
+    this.getSolicitudes()
 
     // Inicializar disabledItems para cada sección
     Object.keys(this.sections).forEach((sectionName) => {
@@ -1307,7 +1318,31 @@ export default {
     },
   },
   methods: {
-    checkConcentradosSelected(sectionName) {
+    irInicio() {
+            this.$router.push({ name: 'Home' })
+        },
+        irSolicitudCancelacion() {
+            this.$router.push({ name: 'SolicitudCancelacion' })
+        },
+        async getSolicitudes() {
+            try {
+                this.$q.loading.show({
+                    spinner: QSpinnerCube,
+                    spinnerColor: 'red-8',
+                    spinnerSize: 140,
+                    message: 'Consultando...'
+                })
+                const { data } = await axios.get(
+                    `${this.rutaAxios}Comprobante/GetSolicitudesCancelacionAsync/${this.token.rfc}`
+                )
+                this.cuentaSolicitudes = data.length
+            } catch (e) {
+                console.error(e)
+            } finally {
+                this.$q.loading.hide()
+            }
+        },
+         checkConcentradosSelected(sectionName) {
       const section = this.sections[sectionName];
       if (!section || !section.items) return false;
 
@@ -7846,8 +7881,9 @@ export default {
     async runAll() {
       for (let i = 0; i < this.tasks.length; i++) {
         await this.runTask(i);
-        if (this.tasks[i].status === "error") break; // detener si falla
+        if (this.tasks[i].status === "error") break;  
       }
+      await this.GetDeclaraciones();
     },
 
     // Pequeña animación visual del progreso
@@ -7999,7 +8035,75 @@ export default {
     }
 
     reader.readAsDataURL(file)
-  }
+  },
+
+  async guardarDeclaraciones(){
+    this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
+      console.log(this.dataAnual)  
+      let objeto = {
+        _id : '',
+        año: this.selectedAnio,
+        mesI: this.selectedMesI.label,
+        mesF:this.selectedMesF.label,
+        data: this.dataAnual
+      }
+
+      console.log(objeto)
+      try {
+        let response = await axios.post(this.rutaAxios + 'ReporteGeneral/PostDeclaracionesAnuales/erp_' + this.token.rfc, objeto);
+        let x = response.data;
+        console.log('declaraciones', x)
+        this.$q.loading.hide()
+        this.$q.notify({
+          type: "positive",
+          message: `Declaraciones guardadas`,
+          position: "top-right",
+        });
+      } catch (error) {
+        console.log(error)
+        this.$q.loading.hide()
+      }
+  },
+
+  async GetDeclaraciones() {
+      this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
+      this.dataAnual = []
+      try {
+        let response = await axios.get(this.rutaAxios + 'ReporteGeneral/GetDeclaracionesAnuelaes/erp_' + this.token.rfc + '/' + this.selectedAnio + '/' + this.selectedMesI.label + '/' + this.selectedMesF.label);
+        let x = response.data;
+        console.log('declaraciones', x)
+        if (x==''){
+          this.dataAnual = [
+            {
+              columna1: "COEFICIENTE DE UTILIDAD DEL EJERCICIO",
+              columna2: 0,
+              columna3: 0,
+              columna4: 0,
+            },
+            {
+              columna1: "TOTAL DE INGRESOS ACUMULABLES",
+              columna2: 0,
+              columna3: 0,
+              columna4: 0,
+            },
+            {
+              columna1: "TOTAL DE DEDUCCIONES AUTORIZADAS",
+              columna2: 0,
+              columna3: 0,
+              columna4: 0,
+            },
+            { columna1: "PÉRDIDA FISCAL ", columna2: 0, columna3: 0, columna4: 0 },
+            { columna1: "UTILIDAD FISCAL", columna2: 0, columna3: 0, columna4: 0 }
+          ]
+        }else{
+          this.dataAnual = x.data
+        }
+        this.$q.loading.hide()
+      } catch (error) {
+        console.log(error)
+        this.$q.loading.hide()
+      }
+    },
   },
 
   // Convertir hexadecimal a RGB
