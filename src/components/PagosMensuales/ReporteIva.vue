@@ -555,7 +555,7 @@
 
                     let contE = 0;
                     for(let i of this.dataComprobantes ){
-                        if(i.ivaFavor > 0){
+                        // if(i.ivaFavor > 0){
                             const calculo = i.importeIvaAcreditado * porcentajeE[contE]
                             console.log(calculo)
                             this.dataComprobantes[contE].porcentajeE = porcentajeE[contE];
@@ -587,7 +587,7 @@
                             }
                             this.dataComprobantes[contE].comparativa = comparativa_;
                             contE++;
-                        }
+                        // }
                     }
                 }
                 // console.log(this.dataComprobantes)
