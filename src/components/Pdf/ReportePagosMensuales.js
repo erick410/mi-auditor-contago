@@ -73,7 +73,8 @@ const agregarPaginaFlujoComparativa = async (
   resumen,
   y
 ) => {
-  y += 20;
+  // y += 20;
+  y = doc.lastAutoTable.finalY + 20;
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");

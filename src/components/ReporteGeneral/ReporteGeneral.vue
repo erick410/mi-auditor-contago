@@ -8050,7 +8050,7 @@ export default {
 
       console.log(objeto)
       try {
-        let response = await axios.post(this.rutaAxios + 'ReporteGeneral/PostDeclaracionesAnuales/erp_' + this.token.rfc, objeto);
+        let response = await axios.post(this.rutaAxios + 'ReporteGeneral/PostDeclaracionesAnuales/' + this.token.rfc, objeto);
         let x = response.data;
         console.log('declaraciones', x)
         this.$q.loading.hide()
@@ -8069,7 +8069,7 @@ export default {
       this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
       this.dataAnual = []
       try {
-        let response = await axios.get(this.rutaAxios + 'ReporteGeneral/GetDeclaracionesAnuelaes/erp_' + this.token.rfc + '/' + this.selectedAnio + '/' + this.selectedMesI.label + '/' + this.selectedMesF.label);
+        let response = await axios.get(this.rutaAxios + 'ReporteGeneral/GetDeclaracionesAnuelaes/' + this.token.rfc + '/' + this.selectedAnio + '/' + this.selectedMesI.label + '/' + this.selectedMesF.label);
         let x = response.data;
         console.log('declaraciones', x)
         if (x==''){
