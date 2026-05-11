@@ -53,7 +53,7 @@ import ListaDeRaya from "../components/Nomina/ListaDeRaya.vue";
 
 import MainDescargas from "../components/Descargas/MainDescargas.vue";
 import Descargas from "../components/Descargas/Descargas.vue";
-import DescargasUUID from "../components/Descargas/DescargasUUID.vue";
+import DescargasWebService from "../components/Descargas/DescargasWebService.vue";
 import DescargasXMLS from "../components/Descargas/DescargasXMLS.vue";
 import DescargasMetadata from "../components/Descargas/DescargasMetadata.vue";
 
@@ -691,6 +691,12 @@ const routes = [
         path: "DescargasPagos",
         component: SatScraperPagos,
         name: "DescargasPagos",
+        meta: { Administrador: true, Gasolinero: true },
+      },
+      {
+        path: "DescargasWebService",
+        component: DescargasWebService,
+        name: "DescargasWebService",
         meta: { Administrador: true, Gasolinero: true },
       },
     ],

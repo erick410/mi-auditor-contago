@@ -1,572 +1,579 @@
 <template>
-    <q-page>
-        <div class="row q-ma-md">
-            <div class="col-12 col-md-2 " color="bg-primary">
-                <div class="row">
-                    <div class="col-12  " color="bg-primary">
-                        <q-input filled v-model="fechaIFormated" label="Fecha Inicial">
-                            <template v-slot:prepend>
-                                <q-icon name="event" class="cursor-pointer">
-                                    <q-popup-proxy transition-show="scale" transition-hide="scale">
-                                        <q-date v-model="fechaI" @input="UltimoDiaMes">
-                                            <div class="row items-center justify-end">
-                                                <q-btn v-close-popup label="Ok" color="primary" flat />
-                                            </div>
-                                        </q-date>
-                                    </q-popup-proxy>
-                                </q-icon>
-                            </template>
-                        </q-input>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12 " color="bg-primary">
-                        <q-input filled v-model="fechaFFormated" label="Fecha Final">
-                            <template v-slot:prepend>
-                                <q-icon name="event" class="cursor-pointer">
-                                    <q-popup-proxy transition-show="scale" transition-hide="scale">
-                                        <q-date name="event" v-model="fechaF" mask="YYYY-MM-DD">
-                                            <div class="row items-center justify-end">
-                                                <q-btn v-close-popup label="Ok" color="primary" flat />
-                                            </div>
-                                        </q-date>
-                                    </q-popup-proxy>
-                                </q-icon>
-                            </template>
-                        </q-input>
-                    </div>
-                </div>
-            </div>
+    <div class="dsc-panel">
+        <div class="dsc-filters">
+            <div class="dsc-filters__row">
 
-            <div class="col-12 col-md-2" color="bg-primary">
-                <div class="row">
-                    <div class="col-12" color="bg-primary">
-                        <q-input class="q-mb-none q-pb-none" filled v-model="horaI" mask="fulltime"
-                            :rules="['fulltime']" label="Hora Inicial">
-                            <template v-slot:append>
-                                <q-icon name="access_time" class="cursor-pointer">
-                                    <q-popup-proxy transition-show="scale" transition-hide="scale">
-                                        <q-time v-model="horaI" with-seconds format24h>
-                                            <div class="row items-center justify-end">
-                                                <q-btn v-close-popup label="Close" color="primary" flat />
-                                            </div>
-                                        </q-time>
-                                    </q-popup-proxy>
-                                </q-icon>
-                            </template>
-                        </q-input>
-                    </div>
+                <!-- Fecha+Hora inicial -->
+                <div class="dsc-field" style="min-width:185px">
+                    <div class="dsc-field__label">Inicio</div>
+                    <date-time-input v-model="dtInicial" color="primary" icon-name="mdi-calendar-arrow-right"
+                        @input="autoFechaFinal" />
                 </div>
-                <div class="row">
-                    <div class="col-12" color="bg-primary">
-                        <q-input filled class="q-mb-none q-pb-none" v-model="horaF" mask="fulltime"
-                            :rules="['fulltime']" label="Hora Final">
-                            <template v-slot:append>
-                                <q-icon name="access_time" class="cursor-pointer">
-                                    <q-popup-proxy transition-show="scale" transition-hide="scale">
-                                        <q-time v-model="horaF" with-seconds format24h>
-                                            <div class="row items-center justify-end">
-                                                <q-btn v-close-popup label="Close" color="primary" flat />
-                                            </div>
-                                        </q-time>
-                                    </q-popup-proxy>
-                                </q-icon>
-                            </template>
-                        </q-input>
-                    </div>
-                </div>
-            </div>
 
-            <div class="col-12 col-md-2" color="bg-primary">
-                <div class="row">
-                    <div class="col-12" color="bg-primary">
-                        <q-select filled :options="itemsTipo" v-model="tipo" label="Tipo">
-                        </q-select>
-                    </div>
+                <!-- Fecha+Hora final -->
+                <div class="dsc-field" style="min-width:185px">
+                    <div class="dsc-field__label">Fin</div>
+                    <date-time-input v-model="dtFinal" color="primary" icon-name="mdi-calendar-arrow-left" />
                 </div>
-                <div class="row">
-                    <div class="col-12" color="bg-primary">
-                        <q-select filled :options="itemsTipoComprobante" v-model="TipoComprobante" option-label="tipo"
-                            label="Tipo Comprobante">
-                        </q-select>
-                    </div>
+
+                <!-- Tipo -->
+                <div class="dsc-field dsc-field--sm">
+                    <div class="dsc-field__label">Tipo</div>
+                    <q-select dense outlined v-model="tipo" :options="['Emitido', 'Recibido']" class="dsc-input" />
+                </div>
+
+                <!-- Comprobante -->
+                <div class="dsc-field">
+                    <div class="dsc-field__label">Comprobante</div>
+                    <q-select dense outlined v-model="tipoComprobante" :options="catComprobante" option-label="tipo"
+                        class="dsc-input" />
+                </div>
+
+                <!-- Botones -->
+                <div class="dsc-field dsc-field--btns">
+                    <q-btn dense unelevated color="primary" icon="mdi-send" label="Solicitar" :loading="cargando"
+                        :disable="cargando" class="dsc-btn" @click="solicitar" />
+                    <q-btn dense unelevated outline color="primary" icon="mdi-refresh" label="Actualizar"
+                        :loading="cargando" :disable="cargando" class="dsc-btn" @click="getHistorial" />
                 </div>
 
             </div>
 
-            <div class="col-12 col-md-6" color="bg-primary">
-                <div class="row justify-end q-pa-sm">
-                    <div class="col-12 col-md-4 text-center" color="bg-primary">
-                        <q-btn color="green" icon="mdi-check-circle" class="full-width" label="Solicitar"
-                            @click="solicitarDescarga()">
-                            <q-tooltip>
-                                Solicitar Descarga
-                            </q-tooltip>
-                        </q-btn>
-                    </div>
-                </div>
-
-                <div class="row justify-end q-pa-sm">
-                    <div class="col-12 col-md-4 " col-md-4 color="bg-primary">
-                        <q-btn color="blue" icon="mdi-check-circle" class="full-width" label="Solicitar por Tipo"
-                            @click="solicitarDescargaPorTipo()">
-                            <q-tooltip>
-                                Solicitar por tipo de Comprobantes
-                            </q-tooltip>
-                        </q-btn>
-                    </div>
-                </div>
-                <div class="row justify-end q-pa-sm">
-                    <div class="col-12 col-md-4 " col-md-4 color="bg-primary">
-                        <q-btn color="secondary" icon="mdi-update" class="full-width" label="Actualizar"
-                            @click="getHistorial()">
-                            <q-tooltip>
-                                Actualizar Solicitudes
-                            </q-tooltip>
-                        </q-btn>
-                    </div>
-                </div>
+            <!-- Aviso descarga activa -->
+            <div v-if="descargandoId" class="dsc-alert">
+                <q-spinner-dots color="primary" size="1.1em" />
+                <span>Descarga en progreso — no cierre la ventana ni repita la acción hasta que el estatus cambie a
+                    <b>Descargado</b>.</span>
             </div>
         </div>
-        <q-bar class="bg-blue-1 q-mt-md">
-            <q-btn dense flat icon="info" />
-            <div class="text-weight-bold">
-                Info
-            </div>
-            <div style="font-size: 13px;">Tenga en cuenta que el SAT solo permite realizar hasta tres solicitudes con
-                los mismos criterios. Una vez que finalice sus descargas, concilie la información para garantizar que
-                los datos se actualicen correctamente. (Apartado de gráficas)</div>
-        </q-bar>
-        <q-table :filter="filter" title="Historial de Descargas CFDI" sortBy="fechaSolicitud" :descending="false"
-            :data="historial" :pagination.sync="pagination" :columns="columns" row-key="solicitud"
-            :rows-per-page-options="[10]">
-            <template v-slot:top-right>
-                <q-input filled dense debounce="300" v-model="filter" placeholder="Search">
-                    <template v-slot:append>
-                        <q-icon name="search" />
-                    </template>
-                </q-input>
-            </template>
 
-            <template v-slot:body="props">
-                <q-tr :props="props" sortBy="fechaSolicitud" :descending="false">
-                    <!--<q-td key="solicitud" :props="props">{{ props.row.solicitud }}</q-td>-->
-                    <q-td key="fechaSolicitud" :props="props">{{ formatDate(props.row.fechaSolicitud) }}</q-td>
-                    <q-td key="tipo" :props="props">{{ props.row.tipo }}</q-td>
-                    <!--<q-td key="tipoSolicitud" :props="props">{{ props.row.tipoSolicitud }}</q-td>-->
-                    <q-td key="tipoComprobante" :props="props">{{ props.row.tipoComprobante }}</q-td>
-                    <q-td key="fechaInicial" :props="props">{{ formatDate(props.row.fechaInicial) }}</q-td>
-                    <q-td key="fechaFinal" :props="props">{{ formatDate(props.row.fechaFinal) }}</q-td>
-                    <q-td key="numComprobantes" :props="props">{{ props.row.numComprobantes }}</q-td>
-                    <!--<q-td key="numComprobantesDescargados" :props="props">{{ props.row.numComprobantesDescargados
-                        }}</q-td>-->
-                    <q-td key="estatusSolicitud" :props="props">{{ props.row.estatusSolicitud }}</q-td>
-                    <q-td key="Acciones" auto-width>
-                        <template v-if="props.row.estatusSolicitud == 'Listo para Descargar'">
-                            <q-btn keysize="sm" color="green" round dense @click="descargarSolicitud(props.row)"
-                                icon="mdi-download">
-                                <q-tooltip>
-                                    Descargar Solicitud
-                                </q-tooltip>
-                            </q-btn>
-                        </template>
-                        <template v-if="props.row.estatusSolicitud.includes('Procesando')">
-                            <q-btn keysize="sm" color="blue" round dense @click="actualizarSolicitud(props.row)"
-                                icon="mdi-update">
-                                <q-tooltip>
-                                    Actualizar Solicitud
-                                </q-tooltip>
-                            </q-btn>
-                        </template>
+        <!-- ╔══════════════════════════════════════════╗ -->
+        <!-- ║  TABLA                                   ║ -->
+        <!-- ╚══════════════════════════════════════════╝ -->
+        <div class="dsc-table-wrap">
+            <q-table dense flat bordered :data="historial" :columns="columns" :filter="filter"
+                :pagination.sync="pagination" :rows-per-page-options="[15, 25, 50]" row-key="solicitud" class="dsc-table">
+                <template v-slot:top>
+                    <div class="dsc-table__top">
+                        <span class="dsc-table__title">
+                            Historial CFDI
+                        </span>
+                        <q-input dense outlined v-model="filter" placeholder="Buscar…" style="width:200px">
+                            <template v-slot:prepend><q-icon name="search" size="16px" /></template>
+                        </q-input>
+                    </div>
+                </template>
 
-                        <template v-if="props.row.estatusSolicitud == 'Solicitud Realizada'">
-                            <q-btn keysize="sm" color="accent" round dense @click="actualizarSolicitud(props.row)"
-                                icon="mdi-update">
-                                <q-tooltip>
-                                    Actualizar Solicitud
-                                </q-tooltip>
-                            </q-btn>
-                        </template>
-                    </q-td>
-                </q-tr>
-            </template>
-        </q-table>
-    </q-page>
+                <template v-slot:body="props">
+                    <q-tr :props="props" :class="rowClass(props.row)">
+                        <q-td key="fechaSolicitud" :props="props" class="dsc-td">{{ fd(props.row.fechaSolicitud)
+                            }}</q-td>
+                        <q-td key="tipo" :props="props" class="dsc-td">
+                            <span
+                                :class="['dsc-pill', props.row.tipo === 'Emitido' ? 'dsc-pill--blue' : 'dsc-pill--purple']">
+                                {{ props.row.tipo }}
+                            </span>
+                        </q-td>
+                        <q-td key="tipoComprobante" :props="props" class="dsc-td">{{ props.row.tipoComprobante || '—'
+                            }}</q-td>
+                        <q-td key="fechaInicial" :props="props" class="dsc-td">{{ fd(props.row.fechaInicial) }}</q-td>
+                        <q-td key="fechaFinal" :props="props" class="dsc-td">{{ fd(props.row.fechaFinal) }}</q-td>
+                        <q-td key="numComprobantes" :props="props" class="dsc-td text-center">{{
+                            props.row.numComprobantes || '—' }}</q-td>
+                        <q-td key="estatusSolicitud" :props="props" class="dsc-td">
+                            <div v-if="descargandoId === props.row.solicitud" class="dsc-downloading">
+                                <q-spinner-dots size="1em" color="indigo" />&nbsp;Descargando...
+                            </div>
+                            <span v-else :class="['dsc-status', statusClass(props.row.estatusSolicitud)]">
+                                {{ props.row.estatusSolicitud }}
+                            </span>
+                        </q-td>
+                        <q-td key="acciones" :props="props" class="dsc-td" auto-width>
+                            <div class="dsc-actions">
+
+                                <q-btn v-if="props.row.estatusSolicitud === 'Listo para Descargar'" dense round
+                                    flat size="md" color="green" icon="mdi-download"
+                                    :loading="descargandoId === props.row.solicitud" :disable="descargandoId !== null"
+                                    @click="descargar(props.row)">
+                                    <q-tooltip class="dsc-tip">Descargar</q-tooltip>
+                                </q-btn>
+
+                                <q-btn
+                                    v-if="props.row.estatusSolicitud === 'Solicitud Realizada' || props.row.estatusSolicitud.includes('Procesando')"
+                                    dense round flat size="md"
+                                    :color="props.row.estatusSolicitud === 'Solicitud Realizada' ? 'orange-8' : 'blue-7'"
+                                    icon="mdi-update" :disable="!!descargandoId" @click="actualizar(props.row)">
+                                    <q-tooltip class="dsc-tip">Actualizar estatus</q-tooltip>
+                                </q-btn>
+
+                                <q-btn v-if="props.row.estatusSolicitud === 'Descargado'" dense round flat
+                                    size="md" color="grey-4" text-color="grey-6" icon="mdi-check-circle" disable>
+                                    <q-tooltip class="dsc-tip">Ya descargado</q-tooltip>
+                                </q-btn>
+                                <q-btn v-if="props.row.estatusSolicitud === 'Descargando'"
+    dense round flat size="md" color="blue-6"
+    icon="mdi-loading" disable loading>
+    <q-tooltip>Descarga en progreso en el servidor...</q-tooltip>
+</q-btn>
+                            </div>
+                        </q-td>
+                    </q-tr>
+                </template>
+
+                <template v-slot:no-data>
+                    <div class="dsc-empty">
+                        <q-icon name="mdi-inbox-outline" size="2.5rem" color="grey-4" />
+                        <div class="dsc-empty__text">Sin solicitudes registradas</div>
+                    </div>
+                </template>
+            </q-table>
+        </div>
+
+    </div>
 </template>
+
 <script>
-    import axios from "axios";
-    import moment from 'moment'
+import axios from 'axios'
+import moment from 'moment'
+import DateTimeInput from './DatetimeInput.vue'
 
-    export default {
+const CAT_COMPROBANTE = [
+    { tipo: 'Todos', value: '' }, { tipo: 'Ingreso', value: 'I' },
+    { tipo: 'Egreso', value: 'E' }, { tipo: 'Traslado', value: 'T' },
+    { tipo: 'Nomina', value: 'N' }, { tipo: 'Pago', value: 'P' },
+]
 
-        components: {
+export default {
+    name: 'DescargasCFDI',
+    components: { DateTimeInput },
+    data() {
+        return {
+            dtInicial: { fecha: '', hora: '' },
+            dtFinal: { fecha: '', hora: '' },
+            tipo: 'Emitido',
+            tipoComprobante: CAT_COMPROBANTE[0],
+            catComprobante: CAT_COMPROBANTE,
+            cargando: false, descargandoId: null,
+            filter: '',
+            pagination: { sortBy: 'fechaSolicitud', descending: true, rowsPerPage: 15 },
+            columns: [
+                { name: 'fechaSolicitud', label: 'Fecha solicitud', field: 'fechaSolicitud', align: 'left', sortable: true },
+                { name: 'tipo', label: 'Tipo', field: 'tipo', align: 'center', sortable: true },
+                { name: 'tipoComprobante', label: 'Comprobante', field: 'tipoComprobante', align: 'center', sortable: true },
+                { name: 'fechaInicial', label: 'Desde', field: 'fechaInicial', align: 'center', sortable: true },
+                { name: 'fechaFinal', label: 'Hasta', field: 'fechaFinal', align: 'center', sortable: true },
+                { name: 'numComprobantes', label: 'CFDIs', field: 'numComprobantes', align: 'center', sortable: true },
+                { name: 'estatusSolicitud', label: 'Estatus', field: 'estatusSolicitud', align: 'left', sortable: true },
+                { name: 'acciones', label: '', field: 'acciones', align: 'right' },
+            ],
+        }
+    },
+
+    computed: {
+        token() { return this.$store.state.usuario },
+        historial() { return this.$store.state.listaHistorialDescargasCFDIStore || [] },
+        ruta() { return this.$store.state.rutaDescargas },
+
+    },
+
+    created() {
+        const hoy = moment()
+        const primerDiaMes = hoy.clone().startOf('month').format('YYYY-MM-DD')
+        const ayer = hoy.clone().subtract(1, 'days').format('YYYY-MM-DD')
+        const ahoraH = hoy.format('HH:mm:ss')
+
+        // Inicio = primer día del mes actual a las 00:00:00
+        this.dtInicial = { fecha: primerDiaMes, hora: '00:00:00' }
+        // Fin = día actual a la hora actual (o ayer 23:59:59 si prefieres)
+        this.dtFinal = { fecha: hoy.format('YYYY-MM-DD'), hora: ahoraH }
+
+        this.getHistorial();
+        this.iniciarPolling();
+    },
+    beforeDestroy() {
+        this.detenerPolling()
+    },
+    methods: {
+        iniciarPolling() {
+            this.detenerPolling()
+            this._pollingTimer = setInterval(() => {
+                const hayDescargando = (this.$store.state.listaHistorialDescargasCFDIStore || [])
+                    .some(x => x.estatusSolicitud === 'Descargando')
+                if (hayDescargando) this.getHistorial()
+            }, 2 * 60 * 1000)
         },
-        data() {
-            return {
-                fechaI: new Date(),
-                fechaF: new Date(),
-                horaI: '00:00:00',
-                horaF: '23:59:59',
-                TipoSolicitud: 'CFDI',
-
-                itemsTipoComprobante: [
-                    { tipo: 'Todos', value: '' },
-                    { tipo: 'Ingreso', value: 'I' },
-                    { tipo: 'Egreso', value: 'E' },
-                    { tipo: 'Traslado', value: 'T' },
-                    { tipo: 'Nomina', value: 'N' },
-                    { tipo: 'Pago', value: 'P' }
-                ],
-                itemsEstado: [
-                    { estatus: 'Todos', value: 'Todos' },
-                    { estatus: 'Cancelado', value: 'Cancelado' },
-                    { estatus: 'Vigente', value: 'Vigente' },
-                ],
-                itemsTipo: ['Emitido', 'Recibido'
-                ],
-                RfcReceptor: '',
-                RfcEmisor: '',
-                RfcSolicitante: '',
-                TipoSolicitud: 'CFDI',
-                TipoComprobante: { tipo: 'Todos', value: '' },
-                EstadoComprobante: '',
-                tipo: 'Emitido',
-
-                columns: [
-                    // { name: 'solicitud', align: 'center', label: 'ID Solicitud', field: 'solicitud', sortable: true },
-                    { name: 'fechaSolicitud', align: 'center', label: 'Fecha de Solicitud', field: 'fechaSolicitud', sortable: true },
-                    { name: 'tipo', align: 'center', label: 'Tipo', field: 'tipo', sortable: true },
-                    // { name: 'tipoSolicitud', align: 'center', label: 'Tipo de Solicitud', field: 'tipoSolicitud', sortable: true },
-                    { name: 'tipoComprobante', align: 'center', label: 'Tipo Comprobante', field: 'tipoComprobante', sortable: true },
-                    { name: 'fechaInicial', align: 'center', label: 'Fecha Inicial', field: 'fechaInicial', sortable: true },
-                    { name: 'fechaFinal', align: 'center', label: 'Fecha Final', field: 'fechaFinal', sortable: true },
-                    { name: 'numComprobantes', align: 'center', label: 'Comprobantes', field: 'numComprobantes', sortable: true },
-                    // { name: 'numComprobantesDescargados', align: 'center', label: 'Comprobantes Descargados', field: 'numComprobantesDescargados', sortable: true },
-                    { name: 'estatusSolicitud', align: 'center', label: 'Estatus', field: 'estatusSolicitud', sortable: true },
-                    { name: 'Acciones', align: 'center', label: 'Acciones', field: 'Acciones', sortable: true },
-                ],
-                itemsDescargas: [],
-
-                pagination: {
-                    sortBy: 'fechaSolicitud',
-                    descending: true,
-                },
-
-                filter: '',
+ 
+        detenerPolling() {
+            if (this._pollingTimer) {
+                clearInterval(this._pollingTimer)
+                this._pollingTimer = null
             }
         },
-        computed: {
-            token() {
-                return this.$store.state.usuario;
-            },
-            fechaIFormated() {
-                moment.locale('es-mx');
-                return this.fechaI ? moment(this.fechaI).format('DD-MMMM-yyyy') : ''
-            },
 
-            fechaFFormated() {
-                moment.locale('es-mx');
-                return this.fechaF ? moment(this.fechaF).format('DD-MMMM-yyyy') : ''
-            },
-            historial() {
-                return this.$store.state.listaHistorialDescargasCFDIStore
-            },
-            rutaAxios() {
-                return this.$store.state.rutaMongoStore
-            },
+        autoFechaFinal() {
+            if (!this.dtInicial.fecha) return
+            const ultimoDia = moment(this.dtInicial.fecha).endOf('month').format('YYYY-MM-DD')
+            this.dtFinal = { fecha: ultimoDia, hora: '23:59:59' }
         },
 
-        watch: {
+        periodoValido() {
+            const yr = moment(this.dtInicial.fecha).year()
+            if (this.token.nombre.toLowerCase() !== 'admin' && yr < new Date().getFullYear() - 1) {
+                this.$q.notify({
+                    type: 'warning', position: 'top-right',
+                    message: 'Periodo no disponible. Contacte al 222 622 6540.'
+                })
+                return false
+            }
+            return true
         },
-        created() {
-            this.getHistorial();
-        },
-        methods: {
-            UltimoDiaMes() {
-                const fecha = new Date(this.fechaI);
-                const ultimoDia = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
-                this.fechaF = ultimoDia;
-            },
-            async solicitarDescargaPorTipo() {
-                //VALIDAMOS QUE NO SE PUEDAN DESCARGAR EJERCICIOS ANTERIORES
-                const yearI = moment(this.fechaI).year();
-                const userA = this.token.nombre.toLowerCase();
-                const anioActual = new Date().getFullYear();
-                const anioAnterior = anioActual - 1;
-                if(userA != "admin" && yearI < anioAnterior){
-                    this.$q.notify({ type: 'warning', position:'top-right', message: 'No es posible descargar el periodo seleccionado, para mayo información cominiquese con nosotros al : 222 622 6540' })
-                    this.$q.loading.hide()                    
-                    return;
-                }
-                
-                let egreso = { tipo: 'Egreso', value: 'E' }
-                await this.solicitarDescargaTipo(egreso);
 
-                let Ingreso = { tipo: 'Ingreso', value: 'I' }
-                await this.solicitarDescargaTipo(Ingreso);
-
-                let pago = { tipo: 'Pago', value: 'P' }
-                await this.solicitarDescargaTipo(pago);
-
-                let nomina = { tipo: 'Nomina', value: 'N' }
-                await this.solicitarDescargaTipo(nomina);
-
-                let traslado = { tipo: 'Traslado', value: 'T' }
-                await this.solicitarDescargaTipo(traslado);
-            },
-
-            async solicitarDescargaTipo(tipoComprobante) {
-                console.log(tipoComprobante)
-                this.$q.loading.show({ message: '<b>Generando Solicitud...' })
-                let fI = moment(this.fechaI).format('YYYY-MM-DD')
-                let fF = moment(this.fechaF).format('YYYY-MM-DD')
-                let solicitud = {
+        async solicitar() {
+            if (!this.periodoValido()) return
+            this.cargando = true
+            this.$q.loading.show({ message: '<b>Generando solicitud...</b>' })
+            try {
+                const payload = {
                     tipo: this.tipo,
-                    fechaInicial: fI + ' ' + this.horaI,
-                    fechaFinal: fF + ' ' + this.horaF,
-                    RfcReceptor: this.token.rfc,
-                    RfcEmisor: this.token.rfc,
-                    RfcSolicitante: this.token.rfc,
-                    TipoSolicitud: 'CFDI',
-                    usuario: this.token.nombre,
-                    TipoComprobante: tipoComprobante,
-                    EstadoComprobante: { estatus: 'Todos', value: 'Todos' }
+                    fechaInicial: this.dtInicial.fecha + ' ' + this.dtInicial.hora,
+                    fechaFinal: this.dtFinal.fecha + ' ' + this.dtFinal.hora,
+                    RfcReceptor: this.token.rfc, RfcEmisor: this.token.rfc, RfcSolicitante: this.token.rfc,
+                    TipoSolicitud: 'CFDI', usuario: this.token.nombre,
+                    TipoComprobante: this.tipoComprobante,
+                    EstadoComprobante: { estatus: 'Todos', value: 'Todos' },
                 }
-                console.log(solicitud)
-                try {
-                    let response = await axios.post('Descargas/PostSolicitud/erp_' + this.token.rfc, solicitud);
-                    console.log(response)
-                    solicitud.sollicitud = response.data
-                    solicitud.estatusSolicitud = "Solicitud Realizada"
+                const res = await axios.post(this.ruta+'Descargas/PostSolicitud/erp_' + this.token.rfc, payload)
+                this._push({
+                    rfc: this.token.rfc, solicitud: res.data, fechaSolicitud: new Date(),
+                    tipo: this.tipo, tipoSolicitud: 'CFDI', tipoComprobante: this.tipoComprobante.tipo,
+                    fechaInicial: payload.fechaInicial, fechaFinal: payload.fechaFinal,
+                    numComprobantes: 0, numComprobantesDescargados: 0, estatusSolicitud: 'Solicitud Realizada'
+                })
+                this.$q.notify({ type: 'positive', message: 'Solicitud creada correctamente.' })
+            } catch (e) {
+                this.$q.notify({ type: 'negative', message: e.response?.data || 'Error al solicitar.' })
+            } finally { this.cargando = false; this.$q.loading.hide() }
+        },
 
-                    let objeto = {
-                        rfc: this.token.rfc,
-                        solicitud: response.data,
-                        fechaSolicitud: new Date(),
-                        tipo: this.tipo,
-                        tipoSolicitud: 'CFDI',
-                        tipoComprobante: tipoComprobante.tipo,
-                        estadoComprobante: { estatus: 'Todos', value: 'Todos' },
-                        fechaInicial: fI + ' ' + this.horaI,
-                        fechaFinal: fF + ' ' + this.horaF,
-                        numComprobantes: 0,
-                        numComprobantesDescargados: 0,
-                        estatusSolicitud: "Solicitud Realizada"
-                    }
+        async getHistorial() {
+            this.cargando = true
+            this.$store.state.listaHistorialDescargasCFDIStore = []
+            this.$q.loading.show({ message: '<b>Cargando historial...</b>' })
+            try {
+                const res = await axios.post(this.ruta+'Descargas/GetHistorialDescargas/CFDI/erp_' + this.token.rfc)
+                this.$store.state.listaHistorialDescargasCFDIStore =
+                    (res.data || []).sort((a, b) => new Date(b.fechaSolicitud) - new Date(a.fechaSolicitud))
+            } catch (e) { console.error(e) } finally { this.cargando = false; this.$q.loading.hide() }
+        },
 
-                    this.$store.state.listaHistorialDescargasCFDIStore.push(objeto);
-
-                    this.$q.loading.hide()
-                    this.$q.notify({ type: 'positive', message: 'Solicitud creada correctamente.' })
-
-                } catch (error) {
-                    console.log(error);
-                    this.$q.loading.hide()
-                    this.$q.notify({ type: 'negative', message: error.response.data })
-                }
-            },
-            async solicitarDescarga() {
-
-                this.$q.loading.show({ message: '<b>Generando Solicitud...' })
-
-                let fI = moment(this.fechaI).format('YYYY-MM-DD')
-                let fF = moment(this.fechaF).format('YYYY-MM-DD')
-
-                //VALIDAMOS QUE NO SE PUEDAN DESCARGAR EJERCICIOS ANTERIORES
-                const yearI = moment(this.fechaI).year();
-                const userA = this.token.nombre.toLowerCase();
-                const anioActual = new Date().getFullYear();
-                const anioAnterior = anioActual - 1;
-                if(userA != "admin" && yearI < anioAnterior){
-                    this.$q.notify({ type: 'warning', position:'top-right', message: 'No es posible descargar el periodo seleccionado, para mayo información cominiquese con nosotros al : 222 622 6540' })
-                    this.$q.loading.hide()                    
-                    return;
-                }
-
-                let solicitud = {
-                    tipo: this.tipo,
-                    fechaInicial: fI + ' ' + this.horaI,
-                    fechaFinal: fF + ' ' + this.horaF,
-                    RfcReceptor: this.token.rfc,
-                    RfcEmisor: this.token.rfc,
-                    RfcSolicitante: this.token.rfc,
-                    TipoSolicitud: 'CFDI',
-                    usuario: this.token.nombre,
-                    TipoComprobante: this.TipoComprobante,
-                    EstadoComprobante: { estatus: 'Todos', value: 'Todos' }
-                }
-                console.log(solicitud)
-                try {
-                    let response = await axios.post('Descargas/PostSolicitud/erp_' + this.token.rfc, solicitud);
-                    console.log(response)
-                    solicitud.sollicitud = response.data
-                    solicitud.estatusSolicitud = "Solicitud Realizada"
-
-                    let objeto = {
-                        rfc: this.token.rfc,
-                        solicitud: response.data,
-                        fechaSolicitud: new Date(),
-                        tipo: this.tipo,
-                        tipoSolicitud: 'CFDI',
-                        tipoComprobante: this.TipoComprobante.tipo,
-                        estadoComprobante: { estatus: 'Todos', value: 'Todos' },
-                        fechaInicial: fI + ' ' + this.horaI,
-                        fechaFinal: fF + ' ' + this.horaF,
-                        numComprobantes: 0,
-                        numComprobantesDescargados: 0,
-                        estatusSolicitud: "Solicitud Realizada"
-                    }
-
-                    this.$store.state.listaHistorialDescargasCFDIStore.push(objeto);
-
-                    this.$q.loading.hide()
-                    this.$q.notify({ type: 'positive', message: 'Solicitud creada correctamente.' })
-
-                } catch (error) {
-                    console.log(error);
-                    this.$q.loading.hide()
-                    this.$q.notify({ type: 'negative', message: error.response.data })
-                }
-            },
-
-            async getHistorial() {
-                this.$store.state.listaHistorialDescargasCFDIStore = []
-                this.$q.loading.show({ message: '<b>Consultando datos...' })
-                try {
-                    let response = await axios.post('Descargas/GetHistorialDescargas/CFDI/erp_' + this.token.rfc);
-                    console.log(response.data)
-                    this.$store.state.listaHistorialDescargasCFDIStore = response.data
-                    this.$q.loading.hide()
-
-                } catch (error) {
-                    console.log(error);
-                    this.$q.loading.hide()
-                }
-            },
-
-            async actualizarSolicitud(item) {
-                let objetoActualizar = {
-                    solicitud: item.solicitud,
-                    rfc: item.rfc,
-                    tipoSolicitud: item.tipoSolicitud
-                }
-                console.log(objetoActualizar)
-                this.$q.loading.show({ message: '<b>Actualizando solicitud...' })
-                try {
-                    let response = await axios.put('Descargas/PutActualizaEstatus/erp_' + this.token.rfc, objetoActualizar);
-                    console.log(response.data)
-
-
-                    // if (response.data.mensaje == 'Solicitud Aceptada' && response.data.codigoEstadoSolicitud != '5002') {
-                    //     if (response.data.idsPaquetes != null) {
-                    //         item.solicitudPaquete = response.data.idsPaquetes[0]
-                    //         item.estatusSolicitud = 'Listo para Descargar'
-                    //     } else {
-                    //         item.solicitudPaquete = ''
-                    //         item.estatusSolicitud = 'Procesando'
-                    //     }
-                    // }
-                    // else if (response.data.codigoEstadoSolicitud == '5002') {
-                    //     item.estatusSolicitud = 'Se ha alcanzado el límite de solicitudes, con el mismo criterio'
-                    //     item.solicitudPaquete = ''
-
-                    // }
-                    // else {
-                    //     item.estatusSolicitud = response.data.mensaje
-                    // }
-                    if (response.data.estadoSolicitud == "6") {
-                        item.estatusSolicitud = 'Solicitud Vencida'
-                    } else if (response.data.estadoSolicitud == "5") {
-                        if (response.data.CodigoEstadoSolicitud == "5004") {
-                            item.estatusSolicitud = 'Información no Encontrada'
-                        } else if (response.data.CodigoEstadoSolicitud == "5002") {
-                            item.estatusSolicitud = 'Se ha alcanzado el límite de solicitudes, con el mismo criterio'
-                        }
-                        else {
-                            item.estatusSolicitud = 'Solicitud Rechazada'
-                        }
-                    } else if (response.data.estadoSolicitud == "4") {
-                        item.estatusSolicitud = "Solicitud Erronea";
-                    } else {
-                        if (response.data.idsPaquetes != null) {
-                            item.solicitudPaquete = response.data.idsPaquetes[0]
-                            item.estatusSolicitud = 'Listo para Descargar'
-
-                        } else {
-                            item.solicitudPaquete = ''
-                            item.estatusSolicitud = 'Procesando'
-                        }
-                    }
-                    item.numComprobantes = response.data.numeroCFDIs
-
-                    let indice = this.$store.state.listaHistorialDescargasCFDIStore.findIndex(x => x.solicitud === item.solicitud);
-                    Object.assign(this.$store.state.listaHistorialDescargasCFDIStore[indice], item)
-
-                    // this.getHistorial();
-                    this.$q.loading.hide()
-
-                } catch (error) {
-                    console.log(error);
-                    this.$q.loading.hide()
-                }
-            },
-
-            async descargarSolicitud(item) {
-                let objetoDescargar = {
-                    solicitud: item.solicitud,
-                    rfc: item.rfc,
-                    tipoSolicitud: item.tipoSolicitud,
-                    tipoComprobante: item.tipoComprobante,
-                    solicitudPaquete: item.solicitudPaquete,
-                    tipo: item.tipo
-                }
-                console.log(objetoDescargar)
-                this.$q.loading.show({ message: '<b>Descargando solicitud...' })
-                try {
-                    let response = await axios.post('Descargas/DescargarSolicitud/erp_' + this.token.rfc, objetoDescargar);
-                    console.log(response.data)
-
-                    if (response.data.mensaje == 'Se han descargado satisfactoriamente las facturas') {
-                        item.estatusSolicitud = 'Descargado'
-                        item.numComprobantesDescargados = response.data.numComprobantesDescargados
-                    } else {
-                        item.estatusSolicitud = response.data.mensaje
-                    }
-
-                    let indice = this.$store.state.listaHistorialDescargasCFDIStore.findIndex(x => x.solicitud === item.solicitud);
-                    Object.assign(this.$store.state.listaHistorialDescargasCFDIStore[indice], item);
-
-                    this.$q.loading.hide()
-
-                } catch (error) {
-                    console.log(error);
-                    this.$q.loading.hide()
-                }
-            },
-            async Ordenar() {
-                try {
-                    let response = await axios.post('Descargas/Ordenar');
-                    console.log(response)
-                } catch (error) {
-                    console.log(error);
-
-                }
-            },
-
-            formatDate(value) {
-                if (typeof value === 'string') {
-
-                    let fecha_ = value.replace(/T/g, ' ')
-                    let fecha_1 = fecha_.replace(/Z/g, ' ')
-                    let listo = new Date(fecha_1);
-
-                    moment.locale('es-mx');
-                    return moment(listo).format('YYYY-MM-DD HH:mm:ss')
+        async actualizar(item) {
+            this.$q.loading.show({ message: '<b>Actualizando...</b>' })
+            try {
+                const res = await axios.put(this.ruta+'Descargas/PutActualizaEstatus/erp_' + this.token.rfc,
+                    { solicitud: item.solicitud, rfc: item.rfc, tipoSolicitud: item.tipoSolicitud })
+                    console.log(res)
+                const d = res.data
+                if (d.estadoSolicitud === '6') item.estatusSolicitud = 'Solicitud Vencida'
+                else if (d.estadoSolicitud === '4') item.estatusSolicitud = 'Solicitud Errónea'
+                else if (d.estadoSolicitud === '5') {
+                    item.estatusSolicitud = d.codigoEstadoSolicitud === '5004' ? 'Información no Encontrada'
+                        : d.codigoEstadoSolicitud === '5002' ? 'Límite de solicitudes alcanzado' : 'Solicitud Rechazada'
                 } else {
-                    moment.locale('es-mx');
-                    return moment(value).format('YYYY-MM-DD HH:mm:ss')
+                    if (d.idsPaquetes?.length) { item.solicitudPaquete = d.idsPaquetes[0]; item.estatusSolicitud = 'Listo para Descargar' }
+                    else item.estatusSolicitud = 'Procesando'
                 }
-            },
-        }
-    }
+                item.numComprobantes = d.numeroCFDIs
+                this.updateRow('listaHistorialDescargasCFDIStore', item)
+            } catch (e) { console.error(e) } finally { this.$q.loading.hide() }
+        },
+
+        async descargar(item) {
+            this.descargandoId = item.solicitud
+            this.$q.loading.show({ message: '<b>Descargando...</b><br>Este proceso puede tardar varios minutos.' })
+            try {
+                const res = await axios.post(this.ruta+'Descargas/DescargarSolicitud/erp_' + this.token.rfc, {
+                    solicitud: item.solicitud, rfc: item.rfc,
+                    tipoSolicitud: item.tipoSolicitud, tipoComprobante: item.tipoComprobante,
+                    solicitudPaquete: item.solicitudPaquete, tipo: item.tipo,
+                })
+                console.log(res)
+                item.estatusSolicitud = res.data.mensaje === 'Se han descargado satisfactoriamente las facturas.'
+                    ? 'Descargado' : res.data.mensaje
+                item.numComprobantesDescargados = res.data.numComprobantesDescargados || 0
+                this.updateRow('listaHistorialDescargasCFDIStore', item)
+                this.$q.notify({ type: 'positive', message: '¡Descarga completada!' })
+            } catch (e) {
+                await this.getHistorial()
+                this.$q.notify({ type: 'negative', message: e.response?.data?.error || 'Error al descargar.' })
+            } finally { this.descargandoId = null; this.$q.loading.hide() }
+        },
+
+        _push(obj) {
+            const arr = [...(this.$store.state.listaHistorialDescargasCFDIStore || []), obj]
+            this.$store.state.listaHistorialDescargasCFDIStore =
+                arr.sort((a, b) => new Date(b.fechaSolicitud) - new Date(a.fechaSolicitud))
+        },
+        updateRow(key, item) {
+            const lista = this.$store.state[key] || []
+            const idx = lista.findIndex(x => x.solicitud === item.solicitud)
+            if (idx >= 0) Object.assign(lista[idx], item)
+            this.$store.state[key] = [...lista].sort((a, b) => new Date(b.fechaSolicitud) - new Date(a.fechaSolicitud))
+        },
+        rowClass(row) {
+            if (this.descargandoId === row.solicitud) return 'dsc-row--loading'
+            if (row.estatusSolicitud === 'Descargado') return 'dsc-row--done'
+            return ''
+        },
+        statusClass(s) {
+            if (!s) return ''
+            if (s === 'Descargando') return 'dsc-status--downloading'
+            if (s === 'Descargado') return 'dsc-status--done'
+            if (s === 'Listo para Descargar') return 'dsc-status--ready'
+            if (s.includes('Procesando')) return 'dsc-status--processing'
+            if (s === 'Solicitud Realizada') return 'dsc-status--sent'
+            if (s.includes('Error') || s.includes('Rechaz') || s.includes('Vencid') || s.includes('Límite'))
+                return 'dsc-status--error'
+            return 'dsc-status--neutral'
+        },
+        fd(v) {
+            if (!v) return '—'
+            moment.locale('es-mx')
+            const d = typeof v === 'string' ? new Date(v.replace('T', ' ').replace('Z', '')) : v
+            return moment(d).format('DD/MM/YY HH:mm')
+        },
+        fmtShort(v) {
+            moment.locale('es-mx')
+            return v ? moment(v).format('DD-MMM-YY') : ''
+        },
+    },
+}
 </script>
+
+<style scoped>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+.dsc-panel {
+    font-family: 'IBM Plex Sans', sans-serif;
+    background: #f4f6fb;
+    min-height: calc(100vh - 68px);
+}
+
+/* Filtros */
+.dsc-filters {
+    background: #fff;
+    border-bottom: 1px solid #e2e6f0;
+    padding: 14px 20px 12px;
+}
+
+.dsc-filters__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.dsc-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+}
+
+.dsc-field--sm {
+    min-width: 100px;
+    max-width: 115px;
+}
+
+.dsc-field--btns {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 6px;
+    min-width: auto;
+    margin-top: 16px;
+}
+
+.dsc-field__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #7b86a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.dsc-input {
+    font-size: 0.82rem;
+}
+
+.dsc-btn {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 8px !important;
+}
+
+/* Alerta */
+.dsc-alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 7px 12px;
+    background: #eef0ff;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    color: #3d5afe;
+    font-weight: 500;
+}
+
+/* Tabla */
+.dsc-table-wrap {
+    padding: 16px 20px;
+}
+
+.dsc-table {
+    border-radius: 10px;
+    overflow: hidden;
+    font-size: 0.8rem;
+}
+
+.dsc-table__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 6px 4px;
+}
+
+.dsc-table__title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #0f1623;
+    display: flex;
+    align-items: center;
+}
+
+.dsc-td {
+    font-size: 0.78rem;
+    padding: 5px 10px !important;
+}
+
+/* Pills de tipo */
+.dsc-pill {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 1px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
+
+.dsc-pill--blue {
+    background: #e8edff;
+    color: #3d5afe;
+}
+
+.dsc-pill--purple {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+
+/* Status */
+.dsc-status {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+.dsc-status--downloading { background: #dbeafe; color: #1e40af; animation: pulse .8s ease-in-out infinite alternate; }
+.dsc-status--done {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.dsc-status--ready {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.dsc-status--processing {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.dsc-status--sent {
+    background: #e0f2fe;
+    color: #0369a1;
+}
+
+.dsc-status--error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.dsc-status--neutral {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* Filas especiales */
+.dsc-row--loading {
+    background: #eef0ff !important;
+    animation: pulse .18s ease-in-out infinite alternate;
+}
+
+.dsc-row--done {
+    background: #f0fdf4 !important;
+}
+
+@keyframes pulse {
+    from {
+        background: #eef0ff;
+    }
+
+    to {
+        background: #e0e4ff;
+    }
+}
+
+/* Descargando inline */
+.dsc-downloading {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #3d5afe;
+    gap: 4px;
+}
+
+/* Acciones */
+.dsc-actions {
+    display: flex;
+    gap: 4px;
+    justify-content: flex-end;
+}
+
+/* Empty */
+.dsc-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    gap: 8px;
+}
+
+.dsc-empty__text {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* Tooltip */
+.dsc-tip {
+    font-size: 0.72rem;
+}
+</style>

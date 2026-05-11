@@ -1452,8 +1452,8 @@ export async function generarReporte(
   y += 10; // espacio entre secciones
 
   let ultimo = provisionalesISR[provisionalesISR.length - 1]
-
-  if (ultimo.comparativa != 0) {
+console.log('provisionalesISR',provisionalesISR)
+  // if (ultimo.comparativa != 0) {
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     y = agregarTextoConSaltos(doc, "PAGOS PROVISIONALES DE ISR", 40, y, 520, 14);
@@ -1531,15 +1531,7 @@ export async function generarReporte(
         cellPadding: 3,
       },
       columnStyles: columnStyles,
-      didParseCell: function (data) {
-        if (data.section === "body") {
-          if (data.row.index === body.length - 1) {
-            data.cell.styles.fillColor = "#F7C1C1";
-            data.cell.styles.textColor = [0, 0, 0];
-            data.cell.styles.fontStyle = "bold";
-          }
-        }
-      },
+      
       didDrawPage: function (data) {
         const page = doc.internal.getNumberOfPages();
         doc.setFontSize(9);
@@ -1586,7 +1578,7 @@ export async function generarReporte(
       14 // lineHeight
     );
 
-  }
+  //}
   y += 10; // espacio entre secciones
 
   doc.setFontSize(11);

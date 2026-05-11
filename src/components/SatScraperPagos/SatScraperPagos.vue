@@ -68,6 +68,10 @@
                             @click="descargarPDF()" label="Descargar Zip">
                             <template v-slot:loading><q-spinner-dots color="white" /></template>
                         </q-btn>
+                        <q-btn  :loading="loading" unelevated rounded color="primary"
+                            @click="consultar()" label="VOLVER A CONSULTAR AL SAT">
+                            <template v-slot:loading><q-spinner-dots color="white" /></template>
+                        </q-btn>
                     </div>
                 </q-card-section>
 

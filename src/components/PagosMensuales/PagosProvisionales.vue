@@ -287,7 +287,6 @@
                 </q-card-section>
             </q-card>
         </q-dialog>
-
         <!-- TABLA DE PAGOS PROVISIONALES -->
         <q-table title="Reporte ISR" :data="dataComprobantes" :columns="columns" row-key="dia"
             :rows-per-page-options="[13]">
@@ -365,7 +364,7 @@
                             <q-td auto-width>
                                 <q-btn size="md" color="primary" rounded flat dense
                                     @click="VerDetallesFlujoG(props.row, 'Gastos Pagados')"
-                                    icon="mdi-format-list-bulleted" v-if="props.row.detallesG.length != 0">
+                                    icon="mdi-format-list-bulleted" >
                                     <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                         content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
                                 </q-btn>
@@ -436,7 +435,7 @@
                             <q-td auto-width>
                                 <q-btn size="md" color="primary" rounded flat dense
                                     @click="VerDetallesFlujoG(props.row, 'Gastos Pagados')"
-                                    icon="mdi-format-list-bulleted" v-if="props.row.detallesD.length != 0">
+                                    icon="mdi-format-list-bulleted" >
                                     <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                         content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
                                 </q-btn>
@@ -1429,9 +1428,9 @@ export default {
         },
 
         VerDetallesFlujoG(item, tipo) {
-            console.log(item.detallesD, "A")
+            console.log(item.detallesG, "A")
             this.$store.state.detallesProvisionalesStore.cabecera = tipo + ' ' + item.mes + ' ' + this.selectedAnio;
-            this.$store.state.detallesProvisionalesStore.detalles = item.detallesD;
+            this.$store.state.detallesProvisionalesStore.detalles = item.detallesG;
             this.$store.state.detallesProvisionalesStore.tipo = tipo;
             // console.log(this.$store.state.detallesProvisionalesStore)
             this.dialogDetallesFlujo = true;

@@ -117,14 +117,14 @@ export default {
       descarga: { emitidos: null, recibidos: null },
       semaforo: { emitidos: null, recibidos: null },
       modulosComprobantes: [
-        { name: 'Ingresos', sub: 'CFDIs emitidos', icon: 'mdi-file-document-plus', action: () => this.$router.push({ name: 'Ingresos' }), bloqueados: [] },
+        { name: 'Ingresos', sub: 'CFDIs emitidos', icon: 'mdi-file-document-plus', action: () => this.$router.push({ name: 'Ingresos' }), bloqueados: ['ALHELI FLORES'] },
         { name: 'Compras', sub: 'CFDIs recibidos', icon: 'mdi-file-document-minus', action: () => this.$router.push({ name: 'Compras' }), bloqueados: [] },
-        { name: 'Nómina', sub: 'Comprobantes de pago', icon: 'mdi-account-cash', action: () => this.$router.push({ name: 'Nomina' }), bloqueados: ['ALICIA BALDERAS', 'KARINA GIRON', 'ANA ADAME'] },
-        { name: 'Sustitución CFDIs', sub: 'Reemplazar comprobantes', icon: 'mdi-file-replace', action: () => this.$router.push({ name: 'MainSustitucion' }), bloqueados: [] },
-        { name: 'Descargas SAT', sub: 'Solicitudes al SAT', icon: 'mdi-download-box', action: () => this.$router.push({ name: 'DescargasScraper' }), bloqueados: [] },
-        { name: 'Pagos Mensuales', sub: 'Declaraciones y pagos', icon: 'mdi-cash-clock', action: () => this.$router.push({ name: 'PagosMensuales' }), bloqueados: [] },
-        { name: 'Conceptos', sub: 'Catálogo de conceptos', icon: 'mdi-format-list-checkbox', action: () => this.$router.push({ name: 'Conceptos' }), bloqueados: [] },
-        { name: 'Reporte Empresarial', sub: 'Análisis general', icon: 'mdi-file-chart', action: () => this.$router.push({ name: 'ReporteGeneral' }), bloqueados: ['ALICIA BALDERAS', 'KARINA GIRON', 'ANA ADAME'] },
+        { name: 'Nómina', sub: 'Comprobantes de pago', icon: 'mdi-account-cash', action: () => this.$router.push({ name: 'Nomina' }), bloqueados: ['ALICIA BALDERAS', 'KARINA GIRON', 'ANA ADAME','ALHELI FLORES'] },
+        { name: 'Sustitución CFDIs', sub: 'Reemplazar comprobantes', icon: 'mdi-file-replace', action: () => this.$router.push({ name: 'MainSustitucion' }), bloqueados: ['ALHELI FLORES'] },
+        { name: 'Descargas SAT', sub: 'Solicitudes al SAT', icon: 'mdi-download-box', action: () => this.$router.push({ name: 'DescargasScraper' }), bloqueados: ['ALHELI FLORES'] },
+        { name: 'Pagos Mensuales', sub: 'Declaraciones y pagos', icon: 'mdi-cash-clock', action: () => this.$router.push({ name: 'PagosMensuales' }), bloqueados: ['ALHELI FLORES'] },
+        { name: 'Conceptos', sub: 'Catálogo de conceptos', icon: 'mdi-format-list-checkbox', action: () => this.$router.push({ name: 'Conceptos' }), bloqueados: ['ALHELI FLORES'] },
+        { name: 'Reporte Empresarial', sub: 'Análisis general', icon: 'mdi-file-chart', action: () => this.$router.push({ name: 'ReporteGeneral' }), bloqueados: ['ALICIA BALDERAS', 'KARINA GIRON', 'ANA ADAME','ALHELI FLORES'] },
       ]
     }
   },

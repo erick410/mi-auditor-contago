@@ -37,6 +37,12 @@
             <detalles-isr @CloseDialogDetalles="CloseDialogDetalles"></detalles-isr>
         </q-dialog>
 
+        <!-- DIALOG DE LOS DETALLES DE ISR POR HONORARIOS Y ARRENDAMIENTOS -->
+        <q-dialog v-model="dialogDetallesIsrAfavor" persistent transition-show="scale" transition-hide="scale" maximized>
+            <DetallesIsrAfavor @CloseDialogDetalles="CloseDialogDetalles"></DetallesIsrAfavor>
+        </q-dialog>
+
+
         <!-- DIALOG DE LA COMPARATIVA -->
         <q-dialog v-model="dialogComparativa" persistent transition-show="scale" transition-hide="scale">
             <comparativa @CloseDialogDetalles="CloseDialogDetalles"></comparativa>
@@ -288,7 +294,7 @@
             <template v-slot:body="props">
                 <q-tr :props="props" :class="'clase-total-' + props.row.mes">
                     <q-td auto-width>
-                        <q-btn size="md" color="primary" rounded flat dense @click="VerDetallesIsr(props.row, 'ISR Retenido a Favor')"
+                        <q-btn size="md" color="primary" rounded flat dense @click="VerDetallesIsrafavor(props.row, 'ISR Retenido a Favor')"
                             icon="mdi-format-list-bulleted" v-if="props.row.detalles.length != 0">
                             <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                 content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
@@ -318,6 +324,7 @@ import axios from 'axios';
 import moment from 'moment';
 import DetallesNomina from '../Nomina/DetallesNomina.vue';
 import DetallesIsr from './ReporteIsrMDet.vue';
+import DetallesIsrAfavor from './ReporteIsrMDetAFavor.vue';
 import Comparativa from '../Nomina/ComparativaNomina.vue';
 import * as xlsx from 'xlsx';
 import ChartComponent from "../Graficas/ChartComponent.vue";
@@ -328,6 +335,7 @@ export default {
         Comparativa,
             ChartComponent,
         DetallesIsr,
+        DetallesIsrAfavor
     },
     data() {
         return {
@@ -378,6 +386,7 @@ export default {
             //DATOS DE LOS DETALLES
             dialogDetalles: false,
             dialogDetallesIsr: false,
+            dialogDetallesIsrAfavor: false,
 
             //DATOS DE LA INFORMACION ADICIONAL
             dialogNotas: false,
@@ -751,6 +760,15 @@ export default {
             this.dialogDetallesIsr = true;
         },
 
+        VerDetallesIsrafavor(item, tipo) {
+            console.log(item.detalles)
+            this.$store.state.detallesIsrMStore.cabecera = tipo;
+            this.$store.state.detallesIsrMStore.origen = "ISR"
+            this.$store.state.detallesIsrMStore.tipo = tipo
+            this.$store.state.detallesIsrMStore.detalles = [...item.detalles]
+            this.dialogDetallesIsrAfavor = true;
+        },
+
         // FALTA
         ExportExcel() {
             if (this.dataSueldos.length == 0) {
@@ -804,6 +822,7 @@ export default {
             this.dialogComparativa = false;
             this.dialogDetalles = false;
             this.dialogDetallesIsr = false;
+            this.dialogDetallesIsrAfavor = false;
         },
 
         ShowNotifsWarning(mensaje) {

@@ -75,16 +75,16 @@
                         </q-item-section>
                     </q-item>
                      <q-separator />
-                    <q-item active clickable v-ripple @click="irDescargasXMLSws">
+                    <q-item active clickable v-ripple @click="irDescargasWebService">
                         <q-item-section avatar>
                             <q-icon name="mdi-file-xml-box" />
                         </q-item-section>
                         <q-item-section>
-                            Descarga XML'S Web Service
+                            Descarga CFDI/Metadata
                         </q-item-section>
                     </q-item>
                     <q-separator />
-                    <q-item active clickable v-ripple @click="irDescargasMetadata">
+                    <!-- <q-item active clickable v-ripple @click="irDescargasMetadata">
                         <q-item-section avatar>
                             <q-icon name="mdi-package-down" />
                         </q-item-section>
@@ -92,7 +92,7 @@
                             Descarga Metadata Web Service
                         </q-item-section>
                     </q-item>
-                    <q-separator />
+                    <q-separator /> -->
                     <q-item active clickable v-ripple @click="irDescargasPagos">
                         <q-item-section avatar>
                             <q-icon name="mdi-package-down" />
@@ -188,6 +188,9 @@ export default {
         },
         irSolicitudCancelacion() {
             this.$router.push({ name: 'SolicitudCancelacion' })
+        },
+        irDescargasWebService(){
+            this.$router.push({ name: 'DescargasWebService' })
         },
         async getSolicitudes() {
             try {
