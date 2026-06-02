@@ -2328,9 +2328,13 @@ export default {
       XLSX.utils.book_append_sheet(workbook, sheetItem0, "IVA 0%");
       XLSX.utils.book_append_sheet(workbook, sheetExento, "IVA Exento");
 
-      const { mes, año } = this.ObtenerMesYAño(this.item16.detalles[0].fecha);
-      //   console.log(typeof mes);
-      //   console.log(typeof año);
+      let mes, año;
+      const fuente = [this.item16, this.item8, this.item0, this.itemExento]
+        .find(item => item.detalles.length);
+
+      if (fuente) {
+        ({ mes, año } = this.ObtenerMesYAño(fuente.detalles[0].fecha));
+      }
 
       XLSX.writeFile(
         workbook,
@@ -2363,9 +2367,13 @@ export default {
       XLSX.utils.book_append_sheet(workbook, sheetItem0, "IVA 0%");
       XLSX.utils.book_append_sheet(workbook, sheetItemExento, "IVA Exento");
 
-      console.log(detalles16);
+      let mes, año;
+      const fuente = [this.item16, this.item8, this.item0, this.itemExento]
+        .find(item => item.detalles.length);
 
-      const { mes, año } = this.ObtenerMesYAño(this.item16.detalles[0].fecha);
+      if (fuente) {
+        ({ mes, año } = this.ObtenerMesYAño(fuente.detalles[0].fecha));
+      }
 
       XLSX.writeFile(
         workbook,
