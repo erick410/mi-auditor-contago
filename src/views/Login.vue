@@ -3,7 +3,7 @@
         <div class="column">
             <div class="row">
                 <!-- FORMULARIO PARA SUBIR LA FIEL -->
-                <q-card v-if="formGuardarSellos" square bordered class="q-pa-lg shadow-1">
+                <!-- <q-card v-if="formGuardarSellos" square bordered class="q-pa-lg shadow-1">
                     <template v-if="GuardandoSellos">
                         <q-card-section>
                             <div class="text-center q-py-xl">
@@ -28,7 +28,6 @@
                                 <q-space />
                             </q-bar>
                             <q-input class="q-px-md q-pb-md" @input="uploadCer" filled type="file" accept=".cer" />
-
                             <q-input class="q-px-md q-pb-md" label="Contraseña" v-model="archivo.password" filled
                                 :type="isPwd ? 'password' : 'text'">
                                 <template v-slot:append>
@@ -44,52 +43,54 @@
                                 @click="formCrearCuenta = false, formGuardarSellos = false" />
                         </q-card-actions>
                     </template>
-                </q-card>
+                </q-card> -->
 
                 <!-- FORMULARIO PARA CREAR CUENTA -->
-                <q-card style="width: 800px;" v-if="formCrearCuenta && !formGuardarSellos" square bordered
+                <q-card style="width: 800px;" v-if="formCrearCuenta" square bordered
                     class="q-pa-lg shadow-1">
                     <q-card-section>
                         <q-form class="q-gutter-md">
-                            <div class="row">
-                                <div class="col-12 col-md-4 ">
-                                    <q-input square filled v-model="nuevoUsuario.nombre" type="nombre" label="Nombre" />
-                                </div>
-                                <div class="col-12 col-md-4 ">
-                                    <q-input square filled v-model="nuevoUsuario.primerApellido" type="apellidoP"
-                                        label="Apellido Paterno" />
-                                </div>
-                                <div class="col-12 col-md-4 ">
-                                    <q-input square filled v-model="nuevoUsuario.segundoApellido" type="apellidoM"
-                                        label="Apelldio Materno" />
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-12 col-md-3">
-                                    <q-input square filled v-model="nuevoUsuario.rfc" type="rfc" label="RFC" />
-                                </div>
-                                <div class="col-12 col-md-9">
-                                    <q-input square filled v-model="nuevoUsuario.razonSocial" type="razonSocial"
-                                        label="Razón Social" />
-                                </div>
-                            </div>
-                            <div class="row">
+                            <div class="text-subtitle2 text-weight-bold">Datos de acceso</div>
+                            <div class="row q-col-gutter-sm">
                                 <div class="col-12 col-md-4">
-                                    <q-input square filled v-model="nuevoUsuario.usuario" type="usuario" label="Usuario" />
+                                    <q-input filled dense v-model="registro.usuario" label="Usuario" />
                                 </div>
                                 <div class="col-12 col-md-4">
-                                    <q-input square filled v-model="nuevoUsuario.pin" type="password" label="Contraseña" />
+                                    <q-input filled dense v-model="registro.nombreCompleto" label="Nombre Completo" />
                                 </div>
                                 <div class="col-12 col-md-4">
-                                    <q-input square filled v-model="nuevoUsuario.telefono" type="telefono"
-                                        label="Teléfono" />
+                                    <q-input filled dense v-model="registro.password" label="Contraseña"
+                                        :type="isPwd ? 'password' : 'text'">
+                                        <template v-slot:append>
+                                            <q-icon :name="isPwd ? 'visibility_off' : 'visibility'"
+                                                class="cursor-pointer" @click="isPwd = !isPwd" />
+                                        </template>
+                                    </q-input>
                                 </div>
                             </div>
-                            <div class="row">
-                                <div class="col-12 col-md-12">
-                                    <q-input square filled v-model="nuevoUsuario.correo" type="correo" label="Correo" />
+
+                            <q-separator />
+
+                            <div class="text-subtitle2 text-weight-bold">Datos de la empresa</div>
+                            <div class="row q-col-gutter-sm">
+                                <div class="col-12 col-md-4">
+                                    <q-input filled dense v-model="registro.rfc" label="RFC" />
+                                </div>
+                                <div class="col-12 col-md-8">
+                                    <q-input filled dense v-model="registro.nombre" label="Razón Social" />
                                 </div>
                             </div>
+                            <!-- <div class="row q-col-gutter-sm">
+                                <div class="col-12 col-md-6">
+                                    <q-select filled dense v-model="registro.tipo" label="Tipo de empresa"
+                                        :options="['empresa', 'gasolinero', 'sector_publico']" />
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <q-select filled dense v-model="registro.sistemas" label="Sistemas"
+                                        :options="['auditoria', 'contabilidad', 'facturacion']" multiple use-chips />
+                                </div>
+                            </div> -->
+
                         </q-form>
                     </q-card-section>
                     <q-card-actions class="q-px-md">
@@ -101,23 +102,23 @@
                 </q-card>
 
                 <!-- FORMULARIO PARA INICIAR SESION -->
-                <q-card v-if="!formGuardarSellos && !formCrearCuenta" square bordered class="q-pa-lg shadow-1">
+                <q-card v-if="!formCrearCuenta" square bordered class="q-pa-lg shadow-1">
                     <q-card-section>
-                        <q-form class="q-gutter-md">
+                        <div class="text-center">
                             <img alt="Contago logo" src="../assets/logo_contago_sin_fondo.png" style="height: 100px">
-                        </q-form>
+                        </div>
                     </q-card-section>
 
+                    <!-- PASO 1: Credenciales -->
                     <template v-if="itemsEmpresa.length == 0">
                         <q-card-section>
                             <q-form class="q-gutter-md">
-                                <!-- <img alt="Contago logo" src="../assets/logo_contago_sin_fondo.png" style="height: 100px"> -->
-                                <q-input square filled v-model="nombreU" type="usuario" label="Usuario" />
+                                <q-input square filled v-model="nombreU" label="Usuario" />
                                 <q-input square filled v-model="password" type="password" label="Contraseña"
                                     @keyup.enter="validarUsuario()" />
                             </q-form>
                         </q-card-section>
-                        <q-card-actions class="q-px-md" v-if="itemsEmpresa.length == 0">
+                        <q-card-actions class="q-px-md">
                             <q-btn unelevated color="primary" size="lg" class="full-width" @click="validarUsuario()"
                                 label="Validar Empresa" />
                             <q-btn flat color="primary" class="full-width q-mt-md" label="Crear Cuenta"
@@ -125,12 +126,13 @@
                         </q-card-actions>
                     </template>
 
+                    <!-- PASO 2: Seleccionar empresa -->
                     <template v-if="itemsEmpresa.length != 0">
                         <q-card-section>
                             <q-form class="q-gutter-md">
-                                <q-select :options="filteredOptions" filled v-model="selectEmpresa" option-label="nombre_e"
-                                    label="Empresa" use-input hide-selected fill-input @filter="filterFn" input-debounce="0"
-                                    :popup-content-style="{ height: '300px' }">
+                                <q-select :options="filteredOptions" filled v-model="selectEmpresa"
+                                    option-label="empresa" label="Empresa" use-input hide-selected fill-input
+                                    @filter="filterFn" input-debounce="0" :popup-content-style="{ height: '300px' }">
                                     <template v-slot:no-option>
                                         <q-item>
                                             <q-item-section class="text-grey">
@@ -144,50 +146,50 @@
                         <q-card-actions class="q-px-md">
                             <q-btn unelevated color="primary" size="lg" class="full-width" label="INICIAR SESIÓN"
                                 @click="ingresar()" />
-                            <q-btn flat color="primary" class="full-width q-mt-md" label="CANCELAR" @click="cancelar()" />
+                            <q-btn flat color="primary" class="full-width q-mt-md" label="CANCELAR"
+                                @click="cancelar()" />
                         </q-card-actions>
                     </template>
-
                 </q-card>
 
             </div>
         </div>
     </div>
 </template>
-  
+
 <script>
 import axios from "axios";
-import { QSpinnerGears } from 'quasar'
+
 export default {
     name: 'Login',
     data() {
         return {
-            email: '',
+            nombreU: '',
             password: '',
-            model: null,
-            options: null,
-
-            nombreU: "",
-            selectEmpresa: {
-                nombre_e: ''
-            },
+            selectEmpresa: null,
             itemsEmpresa: [],
+            filteredOptions: [],
 
+            // datos del usuario del paso 1
             idUsuario: null,
             nombreUsuario: null,
-            rolUsuario: null,
-            empresa: null,
-            empresaBase: null,
-            rfc: "",
             firma: null,
-
-            filteredOptions: [],
+            rfc: '',
 
             formCrearCuenta: false,
             GuardandoSellos: false,
             formGuardarSellos: false,
             isPwd: false,
 
+            registro: {
+                usuario:        '',
+                password:       '',
+                nombreCompleto: '',
+                nombre:         '',
+                rfc:            '',
+                tipo:           'Empresa',
+                sistemas:       ['auditor']
+            }
         }
     },
     computed: {
@@ -195,191 +197,144 @@ export default {
             return this.$store.state.nuevoUsuarioStore;
         },
         archivo() {
-            return this.$store.state.archivosStore
+            return this.$store.state.archivosStore;
         },
-        rutaAxios() {
-            return this.$store.state.rutaMongoStore
+        rutaDescargas() {
+            return this.$store.state.rutaDescargas;
         },
     },
     methods: {
-
-        filterFn(val, update, abort) {
+        filterFn(val, update) {
             update(() => {
-                const needle = val.toLowerCase()
-                this.filteredOptions = this.itemsEmpresa.filter(v => v.nombre_e.toLowerCase().indexOf(needle) > -1)
-            })
+                const needle = val.toLowerCase();
+                this.filteredOptions = this.itemsEmpresa.filter(
+                    v => v.empresa.toLowerCase().indexOf(needle) > -1
+                );
+            });
         },
 
         async validarUsuario() {
-            this.$q.loading.show({ message: '<b>Buscando Empresas...</b><br/><span class="text-orange text-weight-bold">Espere...</span>' })
+            if (this.nombreU == '') {
+                this.$q.notify({ type: 'info', message: 'Ingrese un nombre de usuario.' });
+                return;
+            }
+            if (this.password == '') {
+                this.$q.notify({ type: 'info', message: 'Ingrese su contraseña.' });
+                return;
+            }
 
-            //VALIDAMOS QUE EL USUARIO SEA VALIDO
-            if (this.nombreU == '') {
-                this.$q.notify({ type: 'info', icon: 'mdi-information', message: 'Ingrese un nombre de usuario.', timeout: 2000 })
-                return
-            }
-            if (this.nombreU == '') {
-                this.$q.notify({ type: 'info', icon: 'mdi-information', message: 'Ingrese su contraseña.', timeout: 2000 })
-                return
-            }
+            this.$q.loading.show({ message: '<b>Buscando Empresas...</b><br/><span class="text-orange text-weight-bold">Espere...</span>' });
+
             try {
-                let respuesta = await axios.post("https://api-framework.contago.com.mx/api/Usuarios/ValidaAsync", { nombre: this.nombreU, password: this.password, }
-                );
-                this.idUsuario = respuesta.data.idUsuario_;
-                this.rolUsuario = respuesta.data.rol_;
-                this.firma = respuesta.data.firma_;
-                this.rfc = respuesta.data.rfc_;
-                this.correo = respuesta.data.correo_;
-                this.listaEmpresas(respuesta.data.idUsuario_);
-                this.nombreUsuario = respuesta.data.nombre_;
-                console.log(respuesta.data);
-                this.$q.loading.hide()
-            } catch (err) {
-                console.log(err.response.status);
-                this.$q.loading.hide()
-                if (err.response.status == 400) {
-                    this.$q.notify({ type: 'negative', message: "Usuario inexistente" })
-                } else if (err.response.status == 404) {
-                    this.$q.notify({ type: 'negative', message: "Contraseña incorrecta" })
-                } else if (err.response.status == 401) {
-                    this.$q.notify({ type: 'negative', message: "El usuario ya cuenta con una sesión iniciada" })
-                } else {
-                    this.$q.notify({ type: 'negative', message: "Datos incorrectos, verifique su usuario y contraseña" })
+                let respuesta = await axios.post(this.rutaDescargas + "Login/validar", {
+                    usuario: this.nombreU,
+                    password: this.password,
+                    tipo: "auditor"
+                });
+                console.log(respuesta)
 
+                this.idUsuario = respuesta.data.idUsuario;
+                this.nombreUsuario = respuesta.data.nombre;
+                this.itemsEmpresa = respuesta.data.empresas;
+                this.filteredOptions = respuesta.data.empresas;
+                this.$q.loading.hide();
+            } catch (err) {
+                this.$q.loading.hide();
+                if (err.response && err.response.status == 401) {
+                    this.$q.notify({ type: 'negative', message: err.response.data.mensaje });
+                } else if (err.response && err.response.status == 400) {
+                    this.$q.notify({ type: 'negative', message: "Usuario inexistente" });
+                } else {
+                    this.$q.notify({ type: 'negative', message: "Datos incorrectos, verifique su usuario y contraseña" });
                 }
             }
         },
-        ingresar() {
-            if (this.selectEmpresa.nombre_e == '') {
-                this.$q.notify({ type: 'negative', message: "Seleccione uan empresa" })
-                return
+
+        async ingresar() {
+            if (!this.selectEmpresa) {
+                this.$q.notify({ type: 'negative', message: "Seleccione una empresa" });
+                return;
             }
 
-            this.$q.loading.show({ message: '<b>Iniciando Sesión...</b>' })
+            this.$q.loading.show({ message: '<b>Iniciando Sesión...</b>' });
 
-            this.empresa = this.selectEmpresa.nombre_e;
-            this.empresaBase = this.selectEmpresa.nombreBase;
-            this.rfc = this.selectEmpresa.rfc;
-
-            axios
-                .post("https://api-framework.contago.com.mx/api/Usuarios/Login", {
+            try {
+                let respuesta = await axios.post(this.rutaDescargas + "Login/login", {
                     idUsuario: this.idUsuario,
-                    nombre: this.nombreUsuario,
-                    rol: this.rolUsuario,
-                    empresa: this.empresa,
-                    empresaBase: this.empresaBase,
-                    firma: this.firma,
-                    rfc: this.rfc,
-                })
-                .then((response) => {
-                    console.log(response.data);
-                    this.$q.loading.hide()
-
-                    return response.data;
-                })
-                .then((data) => {
-                    this.$q.loading.hide()
-
-                    this.$store.dispatch("guardarToken", data.token);
-                    this.$router.push({ name: "Home" });
-                    this.nombre = "";
-                    this.password = "";
-                })
-                .catch((err) => {
-                    console.log(err);
-
-                    if (err.response.status == 500) {
-                        this.$q.notify({ type: 'negative', message: error.response.data })
-                    }
-                    this.$q.loading.hide()
-
+                    tipo: "auditor",
+                    _id_empresa: this.selectEmpresa._id_empresa
                 });
-        },
 
-        listaEmpresas(item) {
-            axios
-                .get("https://api-framework.contago.com.mx/api/Usuarios/Empresas/" + item + "/" + "DESERIALIZADOR")
-                .then((response) => {
-                    this.itemsEmpresa = response.data;
-                    console.log(this.itemsEmpresa);
-                })
-                .catch(function (error) {
-                    console.log(error);
-                });
+                this.$store.dispatch("guardarToken", respuesta.data.token);
+
+                this.$q.loading.hide();
+                this.$router.push({ name: "Home" }).catch(() => { });
+
+            } catch (err) {
+                this.$q.loading.hide();
+                if (err.response && err.response.status == 500) {
+                    this.$q.notify({ type: 'negative', message: err.response.data });
+                } else {
+                    this.$q.notify({ type: 'negative', message: "Error al iniciar sesión" });
+                }
+            }
         },
 
         cancelar() {
-            this.nombreU = ''
-            this.password = ''
-            this.itemsEmpresa = []
-
+            this.nombreU = '';
+            this.password = '';
+            this.idUsuario = null;
+            this.nombreUsuario = null;
+            this.selectEmpresa = null;
+            this.itemsEmpresa = [];
+            this.filteredOptions = [];
         },
 
         async guardarUsuario() {
-            console.log(this.nuevoUsuario)
+            // Validaciones
+            if (!this.registro.usuario) {
+                this.$q.notify({ type: 'warning', message: 'Ingrese un nombre de usuario.' }); return
+            }
+            if (!this.registro.password) {
+                this.$q.notify({ type: 'warning', message: 'Ingrese una contraseña.' }); return
+            }
+            if (!this.registro.rfc) {
+                this.$q.notify({ type: 'warning', message: 'Ingrese el RFC.' }); return
+            }
+            if (!this.registro.nombre) {
+                this.$q.notify({ type: 'warning', message: 'Ingrese la razón social.' }); return
+            }
+            if (!this.registro.tipo) {
+                this.$q.notify({ type: 'warning', message: 'Seleccione el tipo de empresa.' }); return
+            }
+            if (!this.registro.sistemas.length) {
+                this.$q.notify({ type: 'warning', message: 'Seleccione al menos un sistema.' }); return
+            }
 
-            if (this.nuevoUsuario.nombre == '') {
-                this.$q.notify({ type: 'info', icon: 'mdi-information', message: 'Ingrese su nombre.', timeout: 2000 })
-                return
-            }
-            if (this.nuevoUsuario.primerApellido == '') {
-                this.$q.notify({ type: 'info', icon: 'mdi-information', message: 'Ingrese su primer apellido.', timeout: 2000 })
-                return
-            }
-            if (this.nuevoUsuario.usuario == '') {
-                this.$q.notify({ type: 'info', icon: 'mdi-information', message: 'Ingrese un nombre de usuario.', timeout: 2000 })
-                return
-            }
-            if (this.nuevoUsuario.pin == '') {
-                this.$q.notify({ type: 'info', icon: 'mdi-information', message: 'Ingrese un pin de seguridad o contraseña.', timeout: 2000 })
-                return
-            }
-            if (this.nuevoUsuario.telefono == '') {
-                this.$q.notify({ type: 'info', icon: 'mdi-information', message: 'Ingrese su número de teléfono.', timeout: 2000 })
-                return
-            }
-            if (this.nuevoUsuario.correo == '') {
-                this.$q.notify({ type: 'info', icon: 'mdi-information', message: 'Ingrese un correo vigente.', timeout: 2000 })
-                return
-            }
-            if (this.nuevoUsuario.rfc == '') {
-                this.$q.notify({ type: 'info', icon: 'mdi-information', message: 'Ingrese el RFC de la persona fisica o moral.', timeout: 2000 })
-                return
-            }
-            if (this.nuevoUsuario.razonSocial == '') {
-                this.$q.notify({ type: 'info', icon: 'mdi-information', message: 'Ingrese la Razón Social.', timeout: 2000 })
-                return
-            }
-            this.$q.loading.show({ message: '<b>Creando Cuenta...</b><br/><span class="text-orange text-weight-bold">Espere...</span>' })
+            this.$q.loading.show({ message: '<b>Creando cuenta...</b>' })
 
             try {
-                let response = await axios.post('Registro/GuardarUsuarioMiAuditor', this.nuevoUsuario)
-                console.log(response.data)
-                this.formGuardarSellos = true
-                this.formCrearCuenta = true
+                await axios.post(this.rutaDescargas + '/Administrador/registro', this.registro)
                 this.$q.loading.hide()
-                this.$q.notify({ type: 'positive', message: 'Cuenta creada correctamente.' })
-            } catch (error) {
-                console.log(error)
+                this.$q.notify({ type: 'positive', message: 'Cuenta creada correctamente. Ingrese sus datos de acceso para iniciar sesión.' })
+                this.formCrearCuenta = false;
+            } catch (err) {
                 this.$q.loading.hide()
-                this.$q.notify({ type: 'error', icon: 'mdi-alert', message: error.response.data, timeout: 2000 });
+                this.$q.notify({
+                    type: 'negative',
+                    message: err.response?.data?.mensaje || 'Error al crear la cuenta.'
+                })
             }
         },
 
         async uploadKey(event) {
-            console.log(event)
             const file = event[0];
             try {
                 const result = await this.convertBase64(file);
-                console.log(result)
-
                 this.$store.state.archivosStore.archivoKey.base64 = result;
                 this.$store.state.archivosStore.nombreKey = file.name;
-                this.dialogKey = false
             } catch (error) {
-                console.log('error')
                 console.error(error);
-                return;
             }
         },
 
@@ -389,11 +344,8 @@ export default {
                 const result = await this.convertBase64(file);
                 this.$store.state.archivosStore.archivoCer.base64 = result;
                 this.$store.state.archivosStore.nombreCer = file.name;
-                this.dialogCer = false
             } catch (error) {
-                console.log('error')
                 console.error(error);
-                return;
             }
         },
 
@@ -407,27 +359,26 @@ export default {
         },
 
         async validarArchivos() {
-            this.archivo.tipo = "FIEL"
-
-            console.log(this.archivo)
-            this.GuardandoSellos = true
+            this.archivo.tipo = "FIEL";
+            this.GuardandoSellos = true;
             try {
-                let response = await axios.post('Validacion/PostValidarArchivos/erp_' + this.nuevoUsuario.rfc + '/' + this.nuevoUsuario.rfc, this.archivo);
-                console.log(response.data)
-                this.GuardandoSellos = false
-                this.$q.notify({ type: 'positive', message: 'Archivo guardado exitosamente.' })
-                this.formCrearCuenta = false
-                this.formGuardarSellos = false
+                let response = await axios.post(
+                    this.rutaAxios + 'Validacion/PostValidarArchivos/erp_' + this.nuevoUsuario.rfc + '/' + this.nuevoUsuario.rfc,
+                    this.archivo
+                );
+                this.GuardandoSellos = false;
+                this.formCrearCuenta = false;
+                this.formGuardarSellos = false;
+                this.$q.notify({ type: 'positive', message: 'Archivo guardado exitosamente.' });
             } catch (error) {
-                console.log(error);
-                this.GuardandoSellos = false
-                this.$q.notify({ type: 'negative', message: error.response.data })
+                this.GuardandoSellos = false;
+                this.$q.notify({ type: 'negative', message: error.response.data });
             }
         },
     }
 }
 </script>
-  
+
 <style>
 .q-card {
     width: 500px;

@@ -39,7 +39,6 @@ export default {
   created() {
     this.$store.dispatch("autoLogin");
     this.GetEmpresa(); 
-    this.listaEmpresas()
 
   },
   computed: {
@@ -66,16 +65,16 @@ export default {
       console.log(this.$q)
 
     },
-    listaEmpresas(item) {
-        axios.get('https://api-framework.contago.com.mx/api/Usuarios/Empresas/' + this.$store.state.usuario.idusuariosApp + '/' + 'DESERIALIZADOR')
-          .then(response => {
-            this.$store.state.listaEmpresasStore = response.data.sort(this.comparar);
+    // listaEmpresas(item) {
+    //     axios.get('https://api-framework.contago.com.mx/api/Usuarios/Empresas/' + this.$store.state.usuario.idusuariosApp + '/' + 'DESERIALIZADOR')
+    //       .then(response => {
+    //         this.$store.state.listaEmpresasStore = response.data.sort(this.comparar);
 
-          })
-          .catch(function (error) {
-            console.log(error);
-          });
-      },
+    //       })
+    //       .catch(function (error) {
+    //         console.log(error);
+    //       });
+    //   },
 
       moveFab (ev) {
       this.draggingFab = ev.isFirst !== true && ev.isFinal !== true

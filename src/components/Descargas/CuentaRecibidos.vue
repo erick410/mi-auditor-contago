@@ -174,6 +174,8 @@ export default {
         rutaAxios() {
             return this.$store.state.rutaMongoStore
         },
+        rutaDescargas() { return this.$store.state.rutaDescargas },
+
     },
     created() {
         this.GetReporte()
@@ -270,7 +272,7 @@ export default {
             this.dialog = true;
             let mes = this.selectedMes.label.toLowerCase();
             try {
-                let response = await axios.post('/Descargas/PostComprobantesMongoAsync/' + this.token.rfc + '/' + this.selectedAnio + '/' + mes + '/Recibido');
+                let response = await axios.post(this.rutaDescargas + '/Descargas/PostComprobantesMongoAsync/' + this.token.rfc + '/' + this.selectedAnio + '/' + mes + '/Recibido');
                 console.log(response.data)
                 this.dialog = false;
             } catch (error) {
@@ -286,7 +288,7 @@ export default {
                 this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'purple', spinnerSize: 140, message: 'Conciliando ' + mes + '...', messageColor: 'white' })
                 console.log(mes);
                 try {
-                    let response = await axios.post('Descargas/PostComprobantesMongoAsync/' + this.token.rfc + '/' + this.selectedAnio + '/' + mes + '/Recibido');
+                    let response = await axios.post(this.rutaDescargas +'Descargas/PostComprobantesMongoAsync/' + this.token.rfc + '/' + this.selectedAnio + '/' + mes + '/Recibido');
                     console.log(response.data)
                 } catch (error) {
                     console.log(error)
@@ -346,52 +348,54 @@ export default {
                         this.itemsConciliaSat.push(obj); 
                     }
                 }
+                this.dialogConciliaSat = true;
             }else{
-                const res = await this.GetConciliacionSat(mes, año, fI, fF);
-                if(!res){
-                    this.$q.notify({ type: 'negative', message: 'Error al consultar, intente nuevamente y verifique los datos de consulta' })
-                     this.$q.loading.hide();
-                    return;
-                }
-                for(let x of lista_){
-                    if(x === 'INGRESO'){
-                        let obj = {
-                            tipo : x,
-                            cuentaC: item.ingreso,
-                            cuentaS: res[0].cantidad,
-                            diferencia: item.ingreso - res[0].cantidad,
-                        }
-                        this.itemsConciliaSat.push(obj);
-                    }else if(x === 'EGRESO'){
-                        let obj = {
-                            tipo : x,
-                            cuentaC: item.notasCredito,
-                            cuentaS: res[1].cantidad,
-                            diferencia: item.notasCredito - res[1].cantidad,
-                        }
-                        this.itemsConciliaSat.push(obj); 
-                    }else if(x === 'PAGO'){
-                        let obj = {
-                            tipo : x,
-                            cuentaC: item.complementoPago,
-                            cuentaS: res[2].cantidad,
-                            diferencia: item.complementoPago - res[2].cantidad,
-                        }
-                        this.itemsConciliaSat.push(obj); 
-                    }else if(x === 'NOMINA'){
-                        let obj = {
-                            tipo : x,
-                            cuentaC: item.nomina,
-                            cuentaS: res[3].cantidad,
-                            diferencia: item.nomina - res[3].cantidad,
-                        }
-                        this.itemsConciliaSat.push(obj); 
-                    }
-                }
-                     this.$q.loading.hide();
+                this.$q.notify({ type: 'negative', position:'top-right', message: 'Sin Datos. Descargue el metadata para comparar la información.' })
+
+                // const res = await this.GetConciliacionSat(mes, año, fI, fF);
+                // if(!res){
+                //     this.$q.notify({ type: 'negative', message: 'Error al consultar, intente nuevamente y verifique los datos de consulta' })
+                //      this.$q.loading.hide();
+                //     return;
+                // }
+                // for(let x of lista_){
+                //     if(x === 'INGRESO'){
+                //         let obj = {
+                //             tipo : x,
+                //             cuentaC: item.ingreso,
+                //             cuentaS: res[0].cantidad,
+                //             diferencia: item.ingreso - res[0].cantidad,
+                //         }
+                //         this.itemsConciliaSat.push(obj);
+                //     }else if(x === 'EGRESO'){
+                //         let obj = {
+                //             tipo : x,
+                //             cuentaC: item.notasCredito,
+                //             cuentaS: res[1].cantidad,
+                //             diferencia: item.notasCredito - res[1].cantidad,
+                //         }
+                //         this.itemsConciliaSat.push(obj); 
+                //     }else if(x === 'PAGO'){
+                //         let obj = {
+                //             tipo : x,
+                //             cuentaC: item.complementoPago,
+                //             cuentaS: res[2].cantidad,
+                //             diferencia: item.complementoPago - res[2].cantidad,
+                //         }
+                //         this.itemsConciliaSat.push(obj); 
+                //     }else if(x === 'NOMINA'){
+                //         let obj = {
+                //             tipo : x,
+                //             cuentaC: item.nomina,
+                //             cuentaS: res[3].cantidad,
+                //             diferencia: item.nomina - res[3].cantidad,
+                //         }
+                //         this.itemsConciliaSat.push(obj); 
+                //     }
+                // }
+                //      this.$q.loading.hide();
 
             }
-            this.dialogConciliaSat = true;
             this.$q.loading.hide();
         },
 
@@ -439,7 +443,6 @@ export default {
                     await this.PostConciliaSat(mes, año, items)
                 }else{
                      this.$q.loading.hide();
-
                     return null;
                 }
                 return items;
@@ -458,7 +461,7 @@ export default {
                     fechaConsulta: new Date(),
                     detalle: items,
                 };
-                let response = await axios.post('/Descargas/PostConcilacionSatAsync/' + this.token.rfc, objConcilado);
+                let response = await axios.post(this.rutaDescargas +'/Descargas/PostConcilacionSatAsync/' + this.token.rfc, objConcilado);
             }catch(erro){
                 console.log(error);
             }
@@ -466,7 +469,7 @@ export default {
 
         async GetConciliaSat(año, mes){
             try{
-                let response = await axios.get('/Descargas/GetConcilacionSatAsync/' + this.token.rfc + '/' + año + '/' + mes + '/Recibidos');
+                let response = await axios.get(this.rutaDescargas +'/Descargas/GetConcilacionSatAsync/' + this.token.rfc + '/' + año + '/' + mes + '/Recibidos');
                 this.fechaConciliaSat = response.data.fechaConsulta;
                 return response.data.detalle;
             }catch(error){

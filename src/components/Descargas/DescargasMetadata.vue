@@ -86,7 +86,7 @@
             <q-td key="numComprobantes" :props="props" class="dsc-td text-center">
               {{ props.row.numComprobantes || '—' }}
             </q-td>
-            <q-td key="estatusSolicitud":props="props" class="dsc-td">
+            <q-td key="estatusSolicitud" :props="props" class="dsc-td">
               <!-- Descargando en servidor -->
               <div v-if="props.row.estatusSolicitud === 'Descargando'" class="dsc-downloading">
                 <q-spinner-dots size="1em" color="primary" />&nbsp;Descargando en servidor...

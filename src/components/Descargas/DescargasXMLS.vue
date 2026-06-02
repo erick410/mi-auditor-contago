@@ -47,9 +47,7 @@
             </div>
         </div>
 
-        <!-- ╔══════════════════════════════════════════╗ -->
-        <!-- ║  TABLA                                   ║ -->
-        <!-- ╚══════════════════════════════════════════╝ -->
+        <!-- TABLA -->
         <div class="dsc-table-wrap">
             <q-table dense flat bordered :data="historial" :columns="columns" :filter="filter"
                 :pagination.sync="pagination" :rows-per-page-options="[15, 25, 50]" row-key="solicitud" class="dsc-table">
@@ -111,10 +109,10 @@
                                     <q-tooltip class="dsc-tip">Ya descargado</q-tooltip>
                                 </q-btn>
                                 <q-btn v-if="props.row.estatusSolicitud === 'Descargando'"
-    dense round flat size="md" color="blue-6"
-    icon="mdi-loading" disable loading>
-    <q-tooltip>Descarga en progreso en el servidor...</q-tooltip>
-</q-btn>
+                                    dense round flat size="md" color="blue-6"
+                                    icon="mdi-loading" disable loading>
+                                    <q-tooltip>Descarga en progreso en el servidor...</q-tooltip>
+                                </q-btn>
                             </div>
                         </q-td>
                     </q-tr>

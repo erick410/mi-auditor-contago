@@ -98,15 +98,12 @@
                 <q-item-section avatar><q-icon name="mdi-cog" size="20px" color="grey-6" /></q-item-section>
                 <q-item-section>Configuración</q-item-section>
             </q-item>
-
             <q-separator class="q-my-xs" />
-
             <q-item clickable v-ripple class="menu-item menu-danger" @click="salir">
                 <q-item-section>Cerrar Sesión</q-item-section>
                 <q-item-section avatar><q-icon name="mdi-logout" size="20px" color="red-7" /></q-item-section>
             </q-item>
         </q-list>
-
     </div>
 </template>
 
@@ -123,7 +120,11 @@ export default {
         }
     },
     computed: {
+        rutaDescargas() {
+            return this.$store.state.rutaDescargas;
+        },
         token() { return this.$store.state.usuario },
+        empresa() { return this.$store.state.empresaStore },
         archivos() { return this.$store.state.listaArchivosVigenciaStore },
         archivo() { return this.$store.state.archivosStore },
         rutaAxios() { return this.$store.state.rutaMongoStore },
@@ -152,11 +153,13 @@ export default {
                 return this.$q.notify({ type: 'negative', message: 'Seleccione el tipo de archivo.' })
             this.GuardandoSellos = true
             try {
-                await axios.post(`Validacion/PostValidarArchivos/erp_${this.token.rfc}/${this.token.rfc}`, this.archivo)
+                let response = await axios.post(this.rutaDescargas + `Validacion/PostValidarArchivos/erp_${this.token.rfc}/${this.token.rfc}`, this.archivo)
                 this.$q.notify({ type: 'positive', message: 'Archivo guardado exitosamente.' })
                 this.GetVigenciaArchivos()
                 this.inicializar()
+                console.log(response)
             } catch (e) {
+                console.log(e.response)
                 this.$q.notify({ type: 'negative', message: e.response.data })
             } finally {
                 this.GuardandoSellos = false
@@ -166,7 +169,7 @@ export default {
         async GetVigenciaArchivos() {
             this.$store.state.listaArchivosVigenciaStore = []
             try {
-                const { data } = await axios.get(`Validacion/GetVigenciaArchivos/erp_${this.token.rfc}`)
+                const { data } = await axios.get(this.rutaDescargas + `Validacion/GetVigenciaArchivos/erp_${this.token.rfc}`)
                 this.$store.state.listaArchivosVigenciaStore = data
             } catch (e) { console.error(e) }
         },

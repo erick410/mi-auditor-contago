@@ -79,6 +79,7 @@ import VentasSinDespacho from "../components/Gasolineria/VentasSinDespacho.vue";
 import ReporteLitrosGasolineria from "../components/Gasolineria/ReporteLitrosGasolineria.vue";
 import ReporteSubTotalGasolineria from "../components/Gasolineria/ReporteSubTotalGasolineria.vue";
 import MonederoElectronico from "../components/Gasolineria/MonederoElectronico.vue";
+import ReporteViajes from "../components/Gasolineria/ReporteViajes.vue";
 
 import Lista69B from "../components/Lista69B/Lista69B.vue";
 import ReporteEmpresarial from "../components/ReporteEmpresarial/ReporteEmpresarial.vue";
@@ -176,13 +177,13 @@ const routes = [
       {
         path: "PanelAdministrador",
         component: PanelAdministrador,
-        name: "PanelAdministrador",
+        // name: "PanelAdministrador",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
         path: "Configuracion",
         component: Configuracion,
-        name: "Configuracion",
+        // name: "Configuracion",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
@@ -293,13 +294,13 @@ const routes = [
       {
         path: "PanelAdministrador",
         component: PanelAdministrador,
-        name: "PanelAdministrador",
+        // name: "PanelAdministrador",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
         path: "Configuracion",
         component: Configuracion,
-        name: "Configuracion",
+        // name: "Configuracion",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
@@ -398,13 +399,13 @@ const routes = [
       {
         path: "PanelAdministrador",
         component: PanelAdministrador,
-        name: "PanelAdministrador",
+        // name: "PanelAdministrador",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
         path: "Configuracion",
         component: Configuracion,
-        name: "Configuracion",
+        // name: "Configuracion",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
@@ -460,13 +461,13 @@ const routes = [
       {
         path: "PanelAdministrador",
         component: PanelAdministrador,
-        name: "PanelAdministrador",
+        // name: "PanelAdministrador",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
         path: "Configuracion",
         component: Configuracion,
-        name: "Configuracion",
+        // name: "Configuracion",
         meta: { Administrador: true, Gasolinero: true },
       },
       // { path: 'Descargas', component: Descargas, name: 'Descargas', meta: { Administrador: true, Gasolinero: true } },
@@ -484,13 +485,13 @@ const routes = [
       {
         path: "PanelAdministrador",
         component: PanelAdministrador,
-        name: "PanelAdministrador",
+        // name: "PanelAdministrador",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
         path: "Configuracion",
         component: Configuracion,
-        name: "Configuracion",
+        // name: "Configuracion",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
@@ -546,13 +547,13 @@ const routes = [
       {
         path: "PanelAdministrador",
         component: PanelAdministrador,
-        name: "PanelAdministrador",
+        // name: "PanelAdministrador",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
         path: "Configuracion",
         component: Configuracion,
-        name: "Configuracion",
+        // name: "Configuracion",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
@@ -572,13 +573,13 @@ const routes = [
       {
         path: "PanelAdministrador",
         component: PanelAdministrador,
-        name: "PanelAdministrador",
+        // name: "PanelAdministrador",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
         path: "Configuracion",
         component: Configuracion,
-        name: "Configuracion",
+        // name: "Configuracion",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
@@ -598,13 +599,13 @@ const routes = [
       {
         path: "PanelAdministrador",
         component: PanelAdministrador,
-        name: "PanelAdministrador",
+        // name: "PanelAdministrador",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
         path: "Configuracion",
         component: Configuracion,
-        name: "Configuracion",
+        // name: "Configuracion",
         meta: { Administrador: false, Gasolinero: true },
       },
       {
@@ -643,6 +644,12 @@ const routes = [
         name: "ReporteSubTotalGasolineria",
         meta: { Administrador: false, Gasolinero: true },
       },
+      {
+        path: "ReporteViajes",
+        component: ReporteViajes,
+        name: "ReporteViajes",
+        meta: { Administrador: false, Gasolinero: true },
+      },
     ],
   },
   //DESCARGAS SCRAPPER
@@ -654,13 +661,13 @@ const routes = [
       {
         path: "PanelAdministrador",
         component: PanelAdministrador,
-        name: "PanelAdministrador",
+        // name: "PanelAdministrador",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
         path: "Configuracion",
         component: Configuracion,
-        name: "Configuracion",
+        // name: "Configuracion",
         meta: { Administrador: true, Gasolinero: true },
       },
       {
@@ -796,36 +803,39 @@ const routes = [
   },
 ];
 
+
+
 const router = new VueRouter({
   mode: "history",
   base: process.env.BASE_URL,
   routes,
 });
-
+ 
 router.beforeEach((to, from, next) => {
   if (to.matched.some((record) => record.meta.libre)) {
     next();
-  } else if (store.state.usuario && store.state.usuario.rol == "Administrador") {
+  } else if (store.state.usuario && store.state.usuario.tipo == "Empresa") {
     if (to.matched.some((record) => record.meta.Administrador)) {
       next();
     }
-  } else if (store.state.usuario && store.state.usuario.rol == "Gasolinero") {
+  } else if (store.state.usuario && store.state.usuario.tipo == "Gasolinera") {
     if (to.matched.some((record) => record.meta.Gasolinero)) {
       next();
     }
-  } else if (store.state.usuario && store.state.usuario.rol == "PerfilA") {
-    if (to.matched.some((record) => record.meta.PerfilA)) {
-      next();
-    }
-  } else if (store.state.usuario && store.state.usuario.rol == "PerfilB") {
-    if (to.matched.some((record) => record.meta.PerfilB)) {
-      next();
-    }
-  } else if (store.state.usuario && store.state.usuario.rol == "PerfilC") {
-    if (to.matched.some((record) => record.meta.PerfilC)) {
-      next();
-    }
-  } else {
+  // } else if (store.state.usuario && store.state.usuario.rol == "PerfilA") {
+  //   if (to.matched.some((record) => record.meta.PerfilA)) {
+  //     next();
+  //   }
+  // } else if (store.state.usuario && store.state.usuario.rol == "PerfilB") {
+  //   if (to.matched.some((record) => record.meta.PerfilB)) {
+  //     next();
+  //   }
+  // } else if (store.state.usuario && store.state.usuario.rol == "PerfilC") {
+  //   if (to.matched.some((record) => record.meta.PerfilC)) {
+  //     next();
+  //   }
+  } 
+  else {
     next({
       name: "Login",
     });

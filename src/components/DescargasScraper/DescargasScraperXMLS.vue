@@ -1,319 +1,665 @@
 <template>
-    <q-page class=" q-pa-md">
-        <div class="row q-pa-md">
-            <div class="col-12 col-md-2">
-             <q-input v-model="fechaIFormated" dense filled label="Fecha Inicial" class="q-mr-sm" name="event">
-                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                    <q-date v-model="fechaI" @input="UltimoDiaMes">
-                        <div class="row items-center justify-end">
-                            <q-btn v-close-popup label="Ok" color="primary" flat />
+    <q-page class="flex column" style="height: 100vh;">
+        <div class="dsc-root">
+
+            <!-- Header -->
+            <div class="dsc-header">
+                <div class="dsc-header__left">
+                    <div>
+                        <div class="dsc-header__title">Descarga Scraper CFDIs SAT</div>
+                        <div class="dsc-header__sub">Selecciona el tipo de comprobante y el mes a descargar.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="dsc-body">
+                <div class="dsc-panel">
+                    <div class="dsc-filters">
+                        <div class="dsc-filters__row">
+
+                            <div class="dsc-field dsc-field--sm">
+                                <div class="dsc-field__label">Año</div>
+                                <q-select dense outlined v-model="anio" :options="opcionesAnios" class="dsc-input"
+                                    emit-value map-options />
+                            </div>
+
+                            <div class="dsc-field" style="min-width:130px; max-width:150px;">
+                                <div class="dsc-field__label">Mes</div>
+                                <q-select dense outlined v-model="mes" :options="opcionesMeses" class="dsc-input"
+                                    emit-value map-options />
+                            </div>
+
+                            <div class="dsc-field dsc-field--sm">
+                                <div class="dsc-field__label">Tipo</div>
+                                <q-select dense outlined v-model="tipo" :options="opcionesTipo" class="dsc-input"
+                                    emit-value map-options />
+                            </div>
+
+                            <div class="dsc-field dsc-field--btns">
+                                <q-btn dense unelevated color="primary" icon="mdi-send" label="Solicitar"
+                                    :loading="cargando" :disable="cargando" class="dsc-btn" @click="solicitar" />
+                                <q-btn dense unelevated outline color="primary" icon="mdi-refresh" label="Actualizar"
+                                    :disable="cargando" class="dsc-btn" @click="getHistorial" />
+                            </div>
+
                         </div>
-                    </q-date>
-                </q-popup-proxy>
-            </q-input>
-             
-            </div>
-            <div class="col-12 col-md-2">
-             <q-input v-model="fechaFFormated" dense filled label="Fecha Inicial" class="q-mr-sm" name="event">
-                <q-popup-proxy ref="qDateProxy" transition-show="scale" transition-hide="scale">
-                    <q-date v-model="fechaF">
-                        <div class="row items-center justify-end">
-                            <q-btn v-close-popup label="Ok" color="primary" flat />
+
+                        <div class="dsc-alert" v-if="anio && mes !== null">
+                            <q-icon name="mdi-calendar-range" size="16px" />
+                            Periodo: {{ labelPeriodo }}
                         </div>
-                    </q-date>
-                </q-popup-proxy>
-            </q-input>
-            
-            
+                    </div>
+
+                    <!-- Tabla historial -->
+                    <div class="dsc-table-wrap">
+                        <div class="dsc-table__top">
+                            <div class="dsc-table__title">
+                                <q-icon name="mdi-history" size="18px" class="q-mr-xs" />
+                                Historial de solicitudes
+                            </div>
+                            <div v-if="pollingActivo"
+                                style="display:flex;align-items:center;gap:6px;font-size:0.75rem;color:#3d5afe;">
+                                <q-spinner size="14px" color="primary" />
+                                Actualizando...
+                            </div>
+                        </div>
+
+                        <!-- Sin datos -->
+                        <div v-if="!historialLocal.length" class="dsc-empty">
+                            <q-icon name="mdi-inbox-outline" size="40px" color="grey-4" />
+                            <div class="dsc-empty__text">No hay solicitudes registradas.</div>
+                        </div>
+
+                        <!-- Filas -->
+                        <q-list v-else separator>
+                            <q-item v-for="s in historialLocal" :key="s.id"
+                                :class="['dsc-item', s.estado === 'procesando' ? 'dsc-item--procesando' : '']">
+                                <!-- Tipo + periodo -->
+                                <q-item-section>
+                                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                        <span
+                                            :class="['dsc-pill', s.tipo === 'emitidos' ? 'dsc-pill--blue' : 'dsc-pill--purple']">
+                                            {{ s.tipo === 'emitidos' ? 'Emitidos' : 'Recibidos' }}
+                                        </span>
+                                        <span class="dsc-td" style="font-weight:600;color:#0f1623;">
+                                            {{ formatPeriodo(s.fechaInicio, s.fechaFin) }}
+                                        </span>
+                                    </div>
+                                    <div style="display:flex;gap:16px;margin-top:4px;flex-wrap:wrap;">
+                                        <span class="dsc-td" style="color:#7b86a0;">
+                                            <q-icon name="mdi-clock-outline" size="13px" />
+                                            {{ formatFecha(s.fechaSolicitud) }}
+                                        </span>
+                                        <span v-if="s.fechaTermino" class="dsc-td" style="color:#7b86a0;">
+                                            <q-icon name="mdi-flag-checkered" size="13px" />
+                                            {{ formatFecha(s.fechaTermino) }}
+                                        </span>
+                                    </div>
+                                </q-item-section>
+
+                                <!-- Stats -->
+                                <q-item-section side>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        <div v-if="s.estado !== 'procesando'" style="display:flex;gap:8px;">
+                                            <span class="dsc-stat dsc-stat--ok">
+                                                <q-icon name="mdi-check" size="12px" /> {{ s.exitosos }}
+                                            </span>
+                                            <span v-if="s.errores > 0" class="dsc-stat dsc-stat--err">
+                                                <q-icon name="mdi-close" size="12px" /> {{ s.errores }}
+                                            </span>
+                                        </div>
+                                        <!-- Estado -->
+                                        <span :class="['dsc-status', `dsc-status--${s.estado}`]">
+                                            <q-spinner v-if="s.estado === 'procesando'" size="11px" class="q-mr-xs" />
+                                            {{ labelEstado(s.estado) }}
+                                        </span>
+                                        <!-- Detalle -->
+                                        <q-btn v-if="s.estado === 'completado'" flat dense round icon="mdi-eye-outline"
+                                            size="sm" color="primary" @click="verDetalle(s)" />
+                                    </div>
+                                </q-item-section>
+                            </q-item>
+                        </q-list>
+                    </div>
+                </div>
             </div>
-            <div class="col-12 col-md-2">
-                <q-select class="q-mr-md" filled dense :options="itemsTipo" v-model="tipo" label="Tipo">
-                </q-select>
-            </div>
-            
-            <div class="col-12 col-md-6 text-right">
-                <q-btn color="green" class="q-mr-md" icon="mdi-check-circle" label="Solicitar" @click="solicitarDescarga()">
-                    <q-tooltip>
-                        Solicitar Descarga
-                    </q-tooltip>
-                </q-btn>
-                <q-btn color="blue" icon="mdi-update" label="Actualizar" @click="getHistorial()">
-                    <q-tooltip>
-                        Actualizar Solicitudes
-                    </q-tooltip>
-                </q-btn>
-            </div>
+
         </div>
-        <q-table class="shadow-0" :filter="filter" title="Historial de Descargas CFDI" sortBy="fechaSolicitud" :descending="false"
-            :data="historial" :pagination.sync="pagination" :columns="columns" row-key="solicitud"
-            :rows-per-page-options="[10]">
-            <template v-slot:top-right>
-                <q-input filled dense debounce="300" v-model="filter" placeholder="Search">
-                    <template v-slot:append>
-                        <q-icon name="search" />
-                    </template>
-                </q-input>
-            </template>
-            <template v-slot:body="props">
-                 <q-tr :props="props" sortBy="fechaSolicitud" :descending="false">
-                    <q-td key="fechaSolicitud" :props="props">{{ formatDate(props.row.fechaSolicitud) }}</q-td>
-                    <q-td key="tipo" :props="props">{{ props.row.tipo }}</q-td>
-                    <q-td key="fechaInicial" :props="props">{{ props.row.fechaInicial }}</q-td>
-                    <q-td key="fechaFinal" :props="props">{{ props.row.fechaFinal }}</q-td>
-                    <q-td key="numComprobantesDescargados" :props="props">{{ props.row.numComprobantesDescargados
-                        }}</q-td>
-                </q-tr>
-            </template>
-        </q-table>
+
+        <!-- Dialog detalle -->
+        <q-dialog v-model="dialogDetalle">
+            <q-card style="min-width:520px; max-width:90vw;">
+                <q-card-section class="row items-center q-pb-none">
+                    <div class="text-subtitle1" style="font-weight:700;">
+                        Detalle — {{ detalleActivo ? formatPeriodo(detalleActivo.fechaInicio, detalleActivo.fechaFin) :
+                            '' }}
+                    </div>
+                    <q-space />
+                    <q-btn icon="close" flat round dense v-close-popup />
+                </q-card-section>
+
+                <q-card-section v-if="detalleActivo">
+                    <!-- Stats -->
+                    <div style="display:flex;gap:10px;margin-bottom:14px;">
+                        <div class="dsc-statcard dsc-statcard--ok">
+                            <div class="dsc-statcard__num">{{ detalleActivo.exitosos }}</div>
+                            <div class="dsc-statcard__lbl">exitosos</div>
+                        </div>
+                        <div class="dsc-statcard dsc-statcard--err">
+                            <div class="dsc-statcard__num">{{ detalleActivo.errores }}</div>
+                            <div class="dsc-statcard__lbl">errores</div>
+                        </div>
+                        <div class="dsc-statcard">
+                            <div class="dsc-statcard__num">{{ detalleActivo.exitosos + detalleActivo.errores }}</div>
+                            <div class="dsc-statcard__lbl">total</div>
+                        </div>
+                    </div>
+
+                    <!-- Log progreso -->
+                    <div v-if="detalleActivo.progreso && detalleActivo.progreso.length" class="q-mb-md">
+                        <div class="dsc-field__label q-mb-xs">Log de progreso</div>
+                        <div class="dsc-log">
+                            <div v-for="(msg, i) in detalleActivo.progreso" :key="i">› {{ msg }}</div>
+                        </div>
+                    </div>
+
+                    <!-- CFDIs -->
+                    <div class="dsc-field__label q-mb-xs">CFDIs descargados</div>
+                    <q-list dense separator bordered class="rounded-borders" >
+                        <q-item v-for="c in detalleActivo.cfdis" :key="c.uuid" dense style="max-height: 200px">
+                            <q-item-section>
+                                <span style="font-family:monospace;font-size:0.75rem;color:#0f1623;">{{ c.uuid }}</span>
+                            </q-item-section>
+                            <q-item-section side>
+                                <span
+                                    :class="['dsc-pill', c.tipo === 'Emitido' ? 'dsc-pill--blue' : 'dsc-pill--purple']">
+                                    {{ c.tipo }}
+                                </span>
+                            </q-item-section>
+                            <q-item-section side>
+                                <q-icon :name="c.exitoso ? 'mdi-check-circle' : 'mdi-close-circle'"
+                                    :color="c.exitoso ? 'green-7' : 'red-7'" size="18px" />
+                            </q-item-section>
+                        </q-item>
+                    </q-list>
+                </q-card-section>
+            </q-card>
+        </q-dialog>
+
     </q-page>
 </template>
+
 <script>
-    import axios from "axios";
-    import moment from 'moment'
+import axios from 'axios'
 
-    export default {
+export default {
+    name: 'DescargaCfdiPage',
 
-        components: {
+    data() {
+        const hoy = new Date()
+        const anioActual = hoy.getFullYear()
+        const mesActual = hoy.getMonth() + 1
+
+        return {
+            anio: anioActual,
+            mes: mesActual,
+            tipo: 'emitidos',
+
+            opcionesTipo: [
+                { label: 'Emitidos', value: 'emitidos' },
+                { label: 'Recibidos', value: 'recibidos' }
+            ],
+            opcionesMeses: [
+                { label: 'Enero', value: 1 },
+                { label: 'Febrero', value: 2 },
+                { label: 'Marzo', value: 3 },
+                { label: 'Abril', value: 4 },
+                { label: 'Mayo', value: 5 },
+                { label: 'Junio', value: 6 },
+                { label: 'Julio', value: 7 },
+                { label: 'Agosto', value: 8 },
+                { label: 'Septiembre', value: 9 },
+                { label: 'Octubre', value: 10 },
+                { label: 'Noviembre', value: 11 },
+                { label: 'Diciembre', value: 12 }
+            ],
+
+            historialLocal: [],
+            cargando: false,
+            pollingActivo: false,
+            pollingTimer: null,
+            solicitudId: null,
+
+            dialogDetalle: false,
+            detalleActivo: null
+        }
+    },
+
+    computed: {
+        token() { return this.$store.state.usuario },
+        rfc() { return this.token?.rfc || 'LAV1401142M6' },
+        ruta() { return 'https://api-descargas-dos.contago.com.mx/api/' },
+
+        opcionesAnios() {
+            const actual = new Date().getFullYear()
+            const anios = []
+            for (let a = actual; a >= 2018; a--) {
+                anios.push({ label: String(a), value: a })
+            }
+            return anios
         },
-        data() {
-            return {
-                itemsAnios: ['2026','2025','2024', '2023', '2022', '2021', '2020', '2019', '2018'],
-                itemsMes: [
-                    { label: 'ENERO', value: '01' },
-                    { label: 'FEBRERO', value: '02' },
-                    { label: 'MARZO', value: '03' },
-                    { label: 'ABRIL', value: '04' },
-                    { label: 'MAYO', value: '05' },
-                    { label: 'JUNIO', value: '06' },
-                    { label: 'JULIO', value: '07' },
-                    { label: 'AGOSTO', value: '08' },
-                    { label: 'SEPTIEMBRE', value: '09' },
-                    { label: 'OCTUBRE', value: '10' },
-                    { label: 'NOVIEMBRE', value: '11' },
-                    { label: 'DICIEMBRE', value: '12' },
-                ],
 
-                selectedAnio: null,
-                selectedMes: null,
+        fechaInicio() {
+            if (!this.anio || !this.mes) return ''
+            return `${this.anio}-${String(this.mes).padStart(2, '0')}-01`
+        },
+        fechaFin() {
+            if (!this.anio || !this.mes) return ''
+            const ultimo = new Date(this.anio, this.mes, 0).getDate()
+            return `${this.anio}-${String(this.mes).padStart(2, '0')}-${String(ultimo).padStart(2, '0')}`
+        },
+        labelPeriodo() {
+            const nombreMes = this.opcionesMeses.find(m => m.value === this.mes)?.label || ''
+            return `${nombreMes} ${this.anio}  (${this.fechaInicio} → ${this.fechaFin})`
+        }
+    },
 
-                fechaI: new Date(),
-                fechaF: new Date(),
-                horaI: '00:00:00',
-                horaF: '23:59:59',
+    created() {
+        this.getHistorial()
+    },
 
-                itemsTipoComprobante: [
-                    { tipo: 'Todos', value: '' },
-                    { tipo: 'Ingreso', value: 'I' },
-                    { tipo: 'Egreso', value: 'E' },
-                    { tipo: 'Traslado', value: 'T' },
-                    { tipo: 'Nomina', value: 'N' },
-                    { tipo: 'Pago', value: 'P' }
-                ],
-                itemsEstado: [
-                    { estatus: 'Todos', value: '' },
-                    { estatus: 'Cancelado', value: 0 },
-                    { estatus: 'Vigente', value: 1 },
-                ],
-                itemsTipo: ['Emitidos', 'Recibidos'
-                ],
-                TipoComprobante: { tipo: 'Todos', value: '' },
-                EstadoComprobante: '',
-                tipo: 'Emitidos',
+    beforeDestroy() {
+        this.detenerPolling()
+    },
 
-                columns: [
-                    { name: 'fechaSolicitud', align: 'center', label: 'Fecha de Solicitud', field: 'fechaSolicitud', sortable: true },
-                    { name: 'tipo', align: 'center', label: 'Tipo', field: 'tipo', sortable: true },
-                    { name: 'fechaInicial', align: 'center', label: 'Fecha Inicial', field: 'fechaInicial', sortable: true },
-                    { name: 'fechaFinal', align: 'center', label: 'Fecha Final', field: 'fechaFinal', sortable: true },
-                    { name: 'numComprobantesDescargados', align: 'center', label: 'Comprobantes Descargados', field: 'numComprobantesDescargados', sortable: true },
-                ],
-                itemsDescargas: [],
+    methods: {
+        // ── Solicitar descarga ───────────────────────────────────
+        async solicitar() {
+            this.cargando = true
+            try {
+                const { data } = await axios.post(this.ruta + `Descargas/${this.tipo}`, {
+                    FechaInicio: this.fechaInicio,
+                    FechaFin: this.fechaFin,
+                    Rfc: this.rfc,
+                    CerPath: `C:\\Documentos - MI AUDITOR\\${this.rfc}\\Fiel\\${this.rfc}.cer`,
+                    KeyPath: `C:\\Documentos - MI AUDITOR\\${this.rfc}\\Fiel\\${this.rfc}.key`,
+                    Password: '',
+                    CarpetaDestino: `C:\\DescargasMiAuditor\\${this.rfc}`
+                })
 
-                pagination: {
-                    sortBy: 'fechaSolicitud',
-                    descending: true,
-                },
+                this.solicitudId = data.solicitudId
 
-                filter: '',
+                this.historialLocal.unshift({
+                    id: data.solicitudId,
+                    rfc: this.rfc,
+                    tipo: this.tipo,
+                    fechaInicio: this.fechaInicio,
+                    fechaFin: this.fechaFin,
+                    estado: 'procesando',
+                    fechaSolicitud: new Date().toISOString(),
+                    exitosos: 0,
+                    errores: 0,
+                    progreso: [],
+                    cfdis: []
+                })
+
+                this.iniciarPolling()
+            } catch (err) {
+                this.$q.notify({
+                    type: 'negative',
+                    message: err?.response?.data?.error || 'No se pudo conectar al servidor.',
+                    timeout: 3000
+                })
+            } finally {
+                this.cargando = false
             }
         },
-        computed: {
-            token() {
-                return this.$store.state.usuario;
-            },
-            fechaIFormated() {
-                moment.locale('es-mx');
-                return this.fechaI ? moment(this.fechaI).format('DD-MMMM-yyyy') : ''
-            },
 
-            fechaFFormated() {
-                moment.locale('es-mx');
-                return this.fechaF ? moment(this.fechaF).format('DD-MMMM-yyyy') : ''
-            },
-           historial(){
-            return  this.$store.state.listaHistorialDescargasCFDIStore;
-           }
-
+        // ── Historial completo ───────────────────────────────────
+        async getHistorial() {
+            try {
+                const { data } = await axios.get(this.ruta + `Descargas/historial/${this.rfc}`)
+                this.historialLocal = data
+            } catch (_) { }
         },
 
-        watch: {
-        },
-        created() {
-            this.getHistorial();
-        },
-        methods: {
-            async solicitarDescarga() {
-                this.$q.loading.show({ message: '<b>Generando descarga, espere...' })
-                let fI = moment(this.fechaI).format('YYYY-MM-DD')
-                let fF = moment(this.fechaF).format('YYYY-MM-DD')
-
-                let yearI = moment(this.fechaI).year();
-                let monthI = moment(this.fechaI).month(); // Los meses en moment.js son 0 indexados (0-11)
-                let yearF = moment(this.fechaF).year();
-                let monthF = moment(this.fechaF).month();
-
-                //VALIDAMOS QUE NO SE PUEDAN DESCARGAR EJERCICIOS ANTERIORES
-                const userA = this.token.nombre.toLowerCase();
-                const anioActual = new Date().getFullYear();
-                const anioAnterior = anioActual - 1;
-                //console.log(this.token.nombre, anioActual, anioAnterior);
-                if(userA != "admin" && yearI < anioAnterior){
-                    this.$q.notify({ type: 'warning', position:'top-right', message: 'No es posible descargar el periodo seleccionado, para mayo información cominiquese con nosotros al : 222 622 6540' })
-                    this.$q.loading.hide()                    
-                    return;
-                }
-                if (yearI === yearF && monthI === monthF) {
-                } else {
-                    this.$q.notify({ type: 'warning', message: 'Las dos fechas deben coincidir en mes y año.' })
-                    return
-                }
-
-                let respuesta = await this.DescargaScrapper();
-                if(respuesta == 'error'){
-                    this.$q.loading.hide()
-                    return;
-                }
-                await this.delay(2000);
-                let objDescargado = await this.EncarpetaDescarga(fI, fF);
-                await this.delay(2000);
-                await this.PostHistorial(objDescargado);
-                this.$q.loading.hide()
-
-            },
-
-            async DescargaScrapper(){
-                let fI = moment(this.fechaI).format('YYYY-MM-DD')
-                let fF = moment(this.fechaF).format('YYYY-MM-DD')
+        // ── Polling de la solicitud activa ───────────────────────
+        iniciarPolling() {
+            if (this.pollingTimer) return
+            this.pollingActivo = true
+            this.pollingTimer = setInterval(async () => {
                 try {
-                    let response = await axios.get('https://api-scrapper-a.contago.com.mx/Solicitud/' + fI + '/' + fF + '/' + this.tipo + '/' + this.token.rfc);
-                    //console.log(response.data)
-                    let numComprobantes = response.data
-
-                    if(typeof(numComprobantes) == 'number'){
-                        this.$q.notify({ type: 'positive', position:'top-right', message: 'Descarga generada.' })
-                        return numComprobantes;
-                    }else {
-                        this.$q.notify({ type: 'negative', position:'top-right', message: 'Conexión fallida con el portal del SAT. Inténtelo de nuevo.' })
-                        return 'error';
-                    }  
-                } catch (error) {
-                    console.log(error);
-                    let error1 = error.message 
-                    if(error1.includes('Network Error') ){
-                        this.$q.notify({ type: 'warning', position:'top-right', message: 'Descarga incompleta. Se interrumpio la conexión, solicite la descarga nuevamente.' })
-                    this.$q.loading.hide()
-                    }else{
-                        this.$q.notify({ type: 'negative', position:'top-right', message: error })
-                    this.$q.loading.hide()
-
-                        return 'error';
+                    const { data } = await axios.get(
+                        this.ruta + `Descargas/solicitud/${this.rfc}/${this.solicitudId}`)
+                    this.actualizarEnHistorial(data)
+                    if (data.estado === 'completado' || data.estado === 'error') {
+                        this.detenerPolling()
                     }
-                    this.$q.loading.hide()
-                }
-            },
+                } catch (_) { }
+            }, 4000)
+        },
 
-            async EncarpetaDescarga(fI, fF) {
-                this.$q.loading.show({ message: '<b>Guardando XMLS, espere...' })
-                try {
-                    let response = await axios.post('Descargas/PostEncarpetaXML/' + this.token.rfc);
-                    //console.log('guardados',response)
-                    this.$q.loading.hide()
-                    let objeto = {
-                        tipo : this.tipo,
-                        fechaSolicitud  :new Date(),
-                        fechaInicial : fI,
-                        fechaFinal  :fF,
-                        numComprobantesDescargados : response.data,
-                    }
-                    this.$q.notify({ type: 'positive', position:'top-right', message: 'Archivos guardados exitosamente.' })
-                    return objeto;
-                } catch (error) {
-                    console.log(error);
-                    this.$q.notify({ type: 'negative', position:'top-right', message: 'Error...' })
-                }
-            },
+        detenerPolling() {
+            clearInterval(this.pollingTimer)
+            this.pollingTimer = null
+            this.pollingActivo = false
+        },
 
-            async PostHistorial(solicitud) {
-                try {
-                    let response = await axios.post('Descargas/PostSolicitudScrapper/erp_' + this.token.rfc, solicitud);
-                    //console.log(response)
-                    this.$store.state.listaHistorialDescargasCFDIStore.push(solicitud);
-                    this.$q.notify({ type: 'positive', position:'top-right', message: 'Solicitud registrada.' })
-                } catch (error) {
-                    console.log(error);
-                    this.$q.notify({ type: 'negative', position:'top-right', message: 'Error al registrar solicitud.' })
-                }
-            },
+        actualizarEnHistorial(solicitud) {
+            const idx = this.historialLocal.findIndex(h => h.id === solicitud.id)
+            if (idx !== -1) this.$set(this.historialLocal, idx, solicitud)
+        },
 
-            UltimoDiaMes() {
-                const fecha = new Date(this.fechaI);
-                const ultimoDia = new Date(fecha.getFullYear(), fecha.getMonth() + 1, 0);
-                this.fechaF = ultimoDia;
-            },
+        // ── Dialog detalle ───────────────────────────────────────
+        verDetalle(solicitud) {
+            this.detalleActivo = solicitud
+            this.dialogDetalle = true
+        },
 
-            FormatDates(value) {
-                let fecha_ = value.replace('T', ' ').replace('Z', ' ');
-                let listo = new Date(fecha_ + ' UTC');
-
-                moment.locale('es-mx');
-
-                return moment.utc(listo).format('DD-MMMM-YYYY HH:mm:ss');
-                },
-            
-            formatDate(value) {
-                if (typeof value === 'string') {
-
-                    let fecha_ = value.replace(/T/g, ' ')
-                    let fecha_1 = fecha_.replace(/Z/g, ' ')
-                    let listo = new Date(fecha_1);
-
-                    moment.locale('es-mx');
-                    return moment(listo).format('YYYY-MM-DD HH:mm:ss')
-                } else {
-                    moment.locale('es-mx');
-                    return moment(value).format('YYYY-MM-DD HH:mm:ss')
-                }
-            },
-
-            async getHistorial() {
-                this.$store.state.listaHistorialDescargasCFDIStore = []
-                this.$q.loading.show({ message: '<b>Consultando datos...' })
-                try {
-                    let response = await axios.post('Descargas/GetHistorialDescargasScraper/erp_' + this.token.rfc);
-                    //console.log(response.data)
-                    this.$store.state.listaHistorialDescargasCFDIStore = response.data
-                    this.$q.loading.hide()
-
-                } catch (error) {
-                    console.log(error);
-                    this.$q.loading.hide()
-                }
-            },
-        
-            delay(ms) {
-                return new Promise(resolve => setTimeout(resolve, ms));
+        // ── Helpers de formato ───────────────────────────────────
+        formatFecha(iso) {
+            if (!iso) return ''
+            return new Date(iso).toLocaleString('es-MX', {
+                day: '2-digit', month: '2-digit', year: 'numeric',
+                hour: '2-digit', minute: '2-digit'
+            })
+        },
+        formatPeriodo(ini, fin) {
+            if (!ini || !fin) return ''
+            const f = s => s.split('T')[0]   // quita hora si viene con ISO
+            return `${f(ini)} → ${f(fin)}`
+        },
+        labelEstado(estado) {
+            const map = {
+                procesando: 'Procesando',
+                completado: 'Completado',
+                error: 'Error'
             }
-            
+            return map[estado] || estado
         }
     }
+}
 </script>
+
+<style scoped>
+.dsc-root {
+    --ink: #0f1623;
+    --ink-soft: #5a6480;
+    --indigo: #E74747;
+    --indigo-dk: #E74747;
+    --surface: #f4f6fb;
+    --border: #e2e6f0;
+    background: var(--surface);
+    min-height: 100vh;
+}
+
+.dsc-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 14px 24px;
+    background: #fff;
+    border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, .05);
+}
+
+.dsc-header__left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dsc-header__title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+.dsc-header__sub {
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.dsc-body {
+    padding: 0;
+}
+
+.dsc-panel {
+    background: #f4f6fb;
+    min-height: calc(100vh - 68px);
+}
+
+.dsc-filters {
+    background: #fff;
+    border-bottom: 1px solid #e2e6f0;
+    padding: 14px 20px 12px;
+}
+
+.dsc-filters__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.dsc-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 140px;
+}
+
+.dsc-field--sm {
+    min-width: 100px;
+    max-width: 115px;
+}
+
+.dsc-field--btns {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 6px;
+    min-width: auto;
+    margin-top: 16px;
+}
+
+.dsc-field__label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: #7b86a0;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.dsc-input {
+    font-size: 0.82rem;
+}
+
+.dsc-btn {
+    font-size: 0.78rem;
+    font-weight: 600;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 8px !important;
+}
+
+.dsc-alert {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 7px 12px;
+    background: #eef0ff;
+    border-radius: 8px;
+    font-size: 0.78rem;
+    color: #3d5afe;
+    font-weight: 500;
+}
+
+/* Tabla / lista */
+.dsc-table-wrap {
+    padding: 16px 20px;
+}
+
+.dsc-table__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.dsc-table__title {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #0f1623;
+    display: flex;
+    align-items: center;
+}
+
+.dsc-item {
+    padding: 10px 12px !important;
+}
+
+.dsc-item--procesando {
+    background: #eef0ff !important;
+}
+
+.dsc-td {
+    font-size: 0.78rem;
+}
+
+/* Pills */
+.dsc-pill {
+    display: inline-block;
+    border-radius: 4px;
+    padding: 1px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.dsc-pill--blue {
+    background: #e8edff;
+    color: #3d5afe;
+}
+
+.dsc-pill--purple {
+    background: #f3e8ff;
+    color: #7c3aed;
+}
+
+/* Status badges */
+.dsc-status {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.dsc-status--procesando {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.dsc-status--completado {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.dsc-status--error {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Stats inline */
+.dsc-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    border-radius: 4px;
+    padding: 1px 7px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.dsc-stat--ok {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.dsc-stat--err {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Stat cards dialog */
+.dsc-statcard {
+    flex: 1;
+    background: #f4f6fb;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+}
+
+.dsc-statcard--ok {
+    background: #d1fae5;
+}
+
+.dsc-statcard--err {
+    background: #fee2e2;
+}
+
+.dsc-statcard__num {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #0f1623;
+}
+
+.dsc-statcard__lbl {
+    font-size: 0.72rem;
+    color: #5a6480;
+    margin-top: 2px;
+}
+
+.dsc-statcard--ok .dsc-statcard__num {
+    color: #065f46;
+}
+
+.dsc-statcard--err .dsc-statcard__num {
+    color: #991b1b;
+}
+
+/* Log */
+.dsc-log {
+    background: #f4f6fb;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    font-family: monospace;
+    color: #5a6480;
+    padding: 10px 12px;
+    max-height: 130px;
+    overflow-y: auto;
+    line-height: 1.8;
+}
+
+.dsc-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px;
+    gap: 8px;
+}
+
+.dsc-empty__text {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+</style>

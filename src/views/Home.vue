@@ -156,7 +156,7 @@ export default {
       );
     },
 
-    esGasolinero() { return this.$store.state.usuario.rol === 'Gasolinero' },
+    esGasolinero() { return this.$store.state.usuario.tipo === 'Gasolinera' },
     fechaHoy() {
       return new Date().toLocaleDateString('es-MX', {
         weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
@@ -171,11 +171,14 @@ export default {
       if (!fr) return fe
 
       return new Date(fe) < new Date(fr) ? fe : fr
-    }
+    },
+    rutaDescargas() {
+            return this.$store.state.rutaDescargas;
+        },
   },
 
   created() {
-    this.listaEmpresas()
+    // this.listaEmpresas()
     this.cargarSemaforo()
   },
 
@@ -184,7 +187,7 @@ export default {
       try {
         const rfc = this.$store.state.usuario.rfc
         if (!rfc) return
-        const { data } = await axios.get(
+        const { data } = await axios.get(this.rutaDescargas + 
           `Descargas/GetUltimaDescarga/${rfc}`
         )
         this.descarga = { emitidos: data.emitidos, recibidos: data.recibidos }
@@ -210,52 +213,7 @@ export default {
       if (!fecha) return '—'
       return new Date(fecha).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })
     },
-    listaEmpresas() {
-      axios.get(`https://api-framework.contago.com.mx/api/Usuarios/Empresas/${this.$store.state.usuario.idusuariosApp}/DESERIALIZADOR`)
-        .then(r => { this.$store.state.listaEmpresasStore = r.data.sort((a, b) => a.nombre_e.toUpperCase().localeCompare(b.nombre_e.toUpperCase())) })
-        .catch(console.error)
-    },
-
-    // async crearSolicitud(tipo, model) {
-    //   console.log(tipo)
-    //   console.log(this.$store.state.empresaStore)
-
-    //   const datos = tipo === 'Emitido' ? this.descarga.emitidos : this.descarga.recibidos
-
-    //   if (!datos?.fechaInicioNuevaSolicitud) {
-    //     this.$q.notify({
-    //       type: 'warning',
-    //       message: 'No hay fecha disponible para crear la solicitud',
-    //       position: 'top-right'
-    //     })
-    //     return
-    //   }
-
-    //   let objeto = {
-    //     Rfc: this.$store.state.usuario.rfc,
-    //     razon_social: this.$store.state.empresaStore.nombre,
-    //     fecha_de_la_solicitud: model.ultimaFecha,
-    //     tipo : tipo
-    //   }
-
-    //   try {
-    //     let response = await axios.post('Descargas/PostSolicitudDescargarSignalR', objeto);
-    //     console.log(response)
-    //     this.$q.notify({
-    //       type: 'positive',
-    //       message: 'Se ha creado la solicitud de descarga automatica.',
-    //       position: 'top-right'
-    //     })
-    //   }catch{
-    //     this.$q.notify({
-    //       type: 'negative',
-    //       message: 'Error al registra los datos',
-    //       position: 'top-right'
-    //     })
-    //   }
-
-    //   console.log(objeto)
-    // }
+    
 
     async crearSolicitud() {
       if (!this.fechaMasVieja) {
@@ -276,7 +234,7 @@ export default {
       }
 
       try {
-        await axios.post('Descargas/PostSolicitudDescargarSignalR', objeto)
+        await axios.post(this.rutaDescargas + 'Descargas/PostSolicitudDescargarSignalR', objeto)
         this.$q.notify({
           type: 'positive',
           message: 'Solicitud de descarga creada correctamente.',

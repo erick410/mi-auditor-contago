@@ -71,7 +71,7 @@
                             <q-icon name="mdi-file-xml-box" />
                         </q-item-section>
                         <q-item-section>
-                            Descarga XML'S
+                            Descarga XML'S Scraper
                         </q-item-section>
                     </q-item>
                      <q-separator />

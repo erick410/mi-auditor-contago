@@ -60,6 +60,8 @@ export default new Vuex.Store({
       puerto: "",
       host: "",
     },
+    empresasStore: [],    
+    empresaActual: null,
 
     //NOMINA
     detallesIsrStore: {
@@ -136,8 +138,9 @@ export default new Vuex.Store({
     rutaMongoStore: 'https://api-mongo.contago.com.mx/api/',
     // rutaMongoStore: "https://localhost:44322/api/",
 
-    rutaDescargas: 'https://api-descargamasiva.contago.com.mx/api/',
     // rutaDescargas: 'https://localhost:44389/api/',
+    rutaDescargas: 'https://descargaswebservice.contago.com.mx/api/',
+    
     detallesIvaRet: null,
 
     dataViewReporte: [],
@@ -150,6 +153,8 @@ export default new Vuex.Store({
     setUsuario(state, usuario) {
       state.usuario = usuario;
     },
+
+    
   },
   actions: {
     guardarToken({ commit }, token) {
@@ -163,6 +168,10 @@ export default new Vuex.Store({
         commit("setToken", token);
         commit("setUsuario", decode(token));
         router.push({ name: "Home" });
+
+        if (router.currentRoute.name === "Login" || router.currentRoute.path === "/") {
+          router.push({ name: "Home" }).catch(() => {}); 
+      }
       }
     },
     salir({ commit }) {
@@ -171,6 +180,9 @@ export default new Vuex.Store({
       localStorage.removeItem("token");
       router.push({ name: "Login" });
     },
+
+    
   },
+  
   modules: {},
 });

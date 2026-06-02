@@ -1,21 +1,16 @@
 <template>
     <q-layout view="hHh lpR fFf">
-
         <q-header v-if="logueado" style="background:#E74747">
             <q-toolbar style="min-height:60px">
-
                 <q-btn flat dense round @click="irInicio" style="background:rgba(255,255,255,.12)">
                     <q-icon name="mdi-home" color="white" size="23px" />
                 </q-btn>
-
                 <q-toolbar-title>
                     <span style="font-size:16px;font-weight:500;letter-spacing:.01em">
                         CONTAGO MI AUDITOR
                     </span>
                 </q-toolbar-title>
-
-                <div class="rfc-chip "  style="font-size:16px;">{{ $store.state.usuario.rfc }}</div>
-
+                <div class="rfc-chip" style="font-size:16px;">{{ $store.state.usuario.rfc }}</div>
                 <q-btn flat round dense class="header-btn" @click="irSolicitudCancelacion()">
                     <q-icon name="mdi-bell" color="white" size="23px" />
                     <q-badge color="red-8" floating style="font-size:9px">
@@ -23,7 +18,7 @@
                     </q-badge>
                     <q-tooltip content-style="font-size:13px">
                         Solicitudes de cancelación
-                    </q-tooltip>
+                    </q-tooltip> 
                 </q-btn>
 
                 <q-btn flat round dense class="header-btn" @click="drawerEmpresas = !drawerEmpresas">
@@ -35,21 +30,18 @@
                     <q-icon name="mdi-account" color="white" size="23px" />
                     <q-tooltip content-style="font-size:13px">Perfil</q-tooltip>
                 </q-btn>
-
             </q-toolbar>
         </q-header>
 
         <!-- DRAWER PERFIL -->
         <q-drawer :width="320" v-model="drawerPerfil" behavior="mobile" side="right" bordered v-if="logueado"
             style="background:#fff">
-
             <drawerPerfil />
         </q-drawer>
 
         <!-- DRAWER EMPRESAS -->
         <q-drawer :width="320" v-model="drawerEmpresas" behavior="mobile" side="right" bordered v-if="logueado"
             style="background:#fff">
-
             <drawerEmpresas />
         </q-drawer>
 
@@ -60,7 +52,6 @@
         <q-footer v-if="logueado" style="background:#1a1a1a;height:28px;display:flex;align-items:center;padding:0 20px">
             <span style="font-size:11px;color:#555">Contago Mi Auditor © 2026</span>
         </q-footer>
-
     </q-layout>
 </template>
 
@@ -83,7 +74,7 @@ export default {
 
     computed: {
         logueado() { return this.$store.state.usuario },
-        token() { return this.$store.state.usuario },
+        token() { return this.$store.state.empresaStore },
         rutaAxios() { return this.$store.state.rutaMongoStore },
     },
 
@@ -108,7 +99,7 @@ export default {
                     message: 'Consultando...'
                 })
                 const { data } = await axios.get(
-                    `${this.rutaAxios}Comprobante/GetSolicitudesCancelacionAsync/${this.token.rfc}`
+                    `${this.rutaAxios}Comprobante/GetSolicitudesCancelacionAsync/${this.logueado.rfc}`
                 )
                 this.cuentaSolicitudes = data.length
             } catch (e) {
@@ -122,7 +113,6 @@ export default {
 </script>
 
 <style>
-/* Chip RFC en el header */
 .rfc-chip {
     font-size: 12px;
     color: rgba(255, 255, 255, .75);
@@ -132,7 +122,6 @@ export default {
     margin-right: 6px;
 }
 
-/* Botones del header con hover */
 .header-btn {
     width: 36px !important;
     height: 36px !important;
@@ -143,7 +132,6 @@ export default {
     background: rgba(255, 255, 255, .12) !important;
 }
 
-/* Cabecera de los drawers */
 .drawer-head {
     display: flex;
     align-items: center;
