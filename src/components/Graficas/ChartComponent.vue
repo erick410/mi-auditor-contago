@@ -1,64 +1,83 @@
 <template>
     <div>
-        <canvas style="max-height:700px" ref="chartCanvas"></canvas>
+      <canvas style="max-height:700px" ref="chartCanvas"></canvas>
     </div>
-</template>
+  </template>
   
-<script>
-import Chart from "chart.js";
-
-export default {
+  <script>
+  import Chart from 'chart.js'
+  
+  export default {
     props: {
-        chartData: Object, // Los datos para tu gráfica
-        chartTitle: String,
-        chartOptions:  Object,
+      chartData:    Object,
+      chartTitle:   String,
+      chartOptions: Object,
     },
-    mounted() {
-        // Renderiza la gráfica cuando el componente se monta
-        //  this.renderChart();
-    },
-
-    watch: {
-        chartData: {
-            deep: true,
-            handler(newData) {
-                this.updateChart(newData);
-            },
-        },
-    },
-
-    methods: {
-        renderChart() {
-            const ctx = this.$refs.chartCanvas.getContext("2d");
-
-            new Chart(ctx, {
-                type: "bar", // Cambia esto al tipo de gráfica que necesites (bar, line, pie, etc.)
-                data: this.chartData,
-                options: {
-                    // Opciones de configuración de la gráfica (títulos, etiquetas, colores, etc.)
-                },
-            });
-        },
-
-        updateChart(newData) {
-            const ctx = this.$refs.chartCanvas.getContext("2d");
-            if (this.chart) {
-                this.chart.destroy(); // Destruye la gráfica existente antes de crear una nueva
-            }
-            this.chart = new Chart(ctx, {
-                type: "bar",
-                data: newData,
-                options: {
-                    responsive: true,
-                    title: {
-                        display: true,
-                        text: this.chartTitle
-                    }
-                },
-                // options: this.chartOptions
-            });
-        },
-    },
-};
-</script>
   
+    mounted () {
+      // Si los datos ya llegaron antes de que el canvas existiera, renderiza de una vez
+      if (this.chartData) {
+        this.updateChart(this.chartData)
+      }
+    },
+  
+    beforeDestroy () {
+      // Limpia el chart antes de que el panel se destruya
+      if (this.chart) {
+        this.chart.destroy()
+        this.chart = null
+      }
+    },
+  
+    watch: {
+      chartData: {
+        deep: true,
+        handler (newData) {
+          if (!newData) return
+          // Espera al siguiente tick para asegurarse de que el canvas esté en el DOM
+          this.$nextTick(() => {
+            this.updateChart(newData)
+          })
+        }
+      },
+      chartTitle () {
+        if (this.chartData) {
+          this.$nextTick(() => this.updateChart(this.chartData))
+        }
+      }
+    },
+  
+    methods: {
+      updateChart (newData) {
+        if (!this.$refs.chartCanvas) return   // canvas aún no existe
+  
+        const ctx = this.$refs.chartCanvas.getContext('2d')
+  
+        if (this.chart) {
+          this.chart.destroy()
+          this.chart = null
+        }
+  
+        this.chart = new Chart(ctx, {
+          type: 'bar',
+          data: newData,
+          options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            title: {
+              display: !!this.chartTitle,
+              text: this.chartTitle,
+              fontSize: 14,
+            },
+            legend: {
+              position: 'bottom',
+            },
+            scales: {
+              yAxes: [{ ticks: { beginAtZero: true } }]
+            }
+          }
+        })
+      }
+    }
+  }
+  </script>

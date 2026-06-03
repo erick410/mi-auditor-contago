@@ -1,546 +1,974 @@
 <template>
-    <div class="q-pa-md">
-        <!-- DIALOG LOADING -->
-        <q-dialog v-model="dialog" persistent transition-show="scale" transition-hide="scale">
-            <q-card style="width:100px; height: 110px;" :flat="true">
-                <q-card-section>
-                    <div class="text-center">
-                        <q-spinner-cube color="blue" size="5.5em" />
-                    </div>
-                </q-card-section>
-            </q-card>
-        </q-dialog>
+  <div class="ce-root">
+    <!-- DIALOG LOADING -->
+    <q-dialog
+      v-model="dialog"
+      persistent
+      transition-show="scale"
+      transition-hide="scale"
+    >
+      <q-card style="width: 100px; height: 110px" flat>
+        <q-card-section>
+          <div class="text-center">
+            <q-spinner-cube color="blue" size="5.5em" />
+          </div>
+        </q-card-section>
+      </q-card>
+    </q-dialog>
 
-        <!-- DIALOG CONCILIACION -->
-        <q-dialog v-model="dialogConciliaSat" transition-show="scale" transition-hide="scale">
-            <q-card>
-                <q-card-section class="bg-primary text-white">
-                    <div class="text-h6">{{ cabeceraConciliacionSat }}</div>
-                </q-card-section>
-                <q-card-section>
-                    <q-table :pagination.sync="pagination" :data="itemsConciliaSat" :columns="columnsConciliaSat"
-                        row-key="tipo" :rows-per-page-options="[0]" flat>
-                        <template v-slot:body="props">
-                            <q-tr :props="props">
-                                <q-td key="tipo" :props="props">{{ props.row.tipo }}</q-td>
-                                <q-td key="cuentaC" :props="props">{{ FormatoMiles(props.row.cuentaC) }}</q-td>
-                                <q-td key="cuentaS" :props="props">{{ FormatoMiles(props.row.cuentaS) }}</q-td>
-                                <q-td key="diferencia" :props="props">{{ FormatoMiles(props.row.diferencia) }}</q-td>
-                            </q-tr>
-                        </template>
-                    </q-table>
-                </q-card-section>
-                <q-card-actions vertical align="center">
-                    <div>Fecha última conciliación</div>
-                    <div>{{ fechaConciliaSat }}</div>
-                    <q-btn color="primary" @click="ConsultaSat()">Consultar nuevamente</q-btn>
-                </q-card-actions>
-            </q-card>
-        </q-dialog>
-
-        <div class="row no-wrap items-center q-mt-md q-pa-sm">
-            <q-space />
-            <q-select outlined dense v-model="selectedAnio" :options="itemsAnios" label="Año" style="width:80px"
-                class="q-mr-xs" />
-            <q-btn push color="amber-9" @click="GetReporte" icon="mdi-text-box-search-outline" rounded flat size="18px"
-                padding="xs">
-                <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
-                    :offset="[10, 10]">Consultar</q-tooltip>
-            </q-btn>
-            <q-btn push color="green-9" @click="ConciliarPeriodo()" icon="mdi-code-equal" rounded flat size="18px"
-                padding="xs">
-                <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
-                    :offset="[10, 10]">Conciliar Periodo</q-tooltip>
-            </q-btn>
-            <q-space />
-        </div>
-        <div>
-            <chart-component :chartData="chartData" :chartTitle="charTitleE"></chart-component>
-        </div>
-        <div class="row no-wrap items-center q-mt-md q-pa-sm">
-            <q-space />
-            <q-select outlined dense v-model="selectedMes" :options="itemsMes" label="Mes a Conciliar"
-                style="width:170px" class="q-mr-xs" />
-            <q-btn push color="green-9" @click="Conciliar()" icon="mdi-code-equal" rounded flat size="18px"
-                padding="xs">
-                <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
-                    :offset="[10, 10]">Conciliar Mes</q-tooltip>
-            </q-btn>
-            <q-space />
-        </div>
-        <q-table title="Comprobantes descargados y almacenados (Emitidos)" :pagination.sync="pagination"
-            :data="itemsDescargas" :columns="columns" row-key="mes" :rows-per-page-options="[0]">
+    <!-- DIALOG VERIFICAR SAT -->
+    <q-dialog
+      v-model="dialogConciliaSat"
+      transition-show="scale"
+      transition-hide="scale"
+    >
+      <q-card style="min-width: 460px">
+        <q-card-section class="bg-primary text-white q-py-sm">
+          <div class="text-subtitle1" style="font-weight: 600">
+            {{ cabeceraConciliacionSat }}
+          </div>
+        </q-card-section>
+        <q-card-section class="q-pa-sm">
+          <q-table
+            dense
+            flat
+            :data="itemsConciliaSat"
+            :columns="columnsConciliaSat"
+            row-key="tipo"
+            :rows-per-page-options="[0]"
+            :pagination.sync="pagination"
+          >
             <template v-slot:body="props">
-                <q-tr :props="props">
-                    <q-td key="Acciones" auto-width>
-                        <q-btn keysize="sm" color="green" round dense @click="ConciliaSat(props.row)"
-                            icon="mdi-select-compare">
-                            <q-tooltip>
-                                Conciliar con SAT
-                            </q-tooltip>
-                        </q-btn>
-
-                        <!--<q-btn keysize="sm" color="red" round dense @click="ConciliaSatCancelados(props.row)"
-                            icon="mdi-cancel">
-                            <q-tooltip>
-                                Validar Cancelados
-                            </q-tooltip>
-                        </q-btn> -->
-                    </q-td>
-                    <q-td key="mes" :props="props">{{ props.row.mes }}</q-td>
-                    <q-td key="ingreso" :props="props">{{ FormatoMiles(props.row.ingreso) }}</q-td>
-                    <q-td key="notasCredito" :props="props">{{ FormatoMiles(props.row.notasCredito) }}</q-td>
-                    <q-td key="complementoPago" :props="props">{{ FormatoMiles(props.row.complementoPago) }}</q-td>
-                    <q-td key="nomina" :props="props">{{ FormatoMiles(props.row.nomina) }}</q-td>
-                    <q-td key="total" :props="props">{{ FormatoMiles(props.row.total) }}</q-td>
-                </q-tr>
+              <q-tr :props="props">
+                <q-td key="tipo" :props="props">{{ props.row.tipo }}</q-td>
+                <q-td key="cuentaC" :props="props" class="text-right">{{
+                  FormatoMiles(props.row.cuentaC)
+                }}</q-td>
+                <q-td key="cuentaS" :props="props" class="text-right">{{
+                  FormatoMiles(props.row.cuentaS)
+                }}</q-td>
+                <q-td key="diferencia" :props="props" class="text-right">
+                  <span
+                    :class="
+                      props.row.diferencia === 0 ? 'text-green-7' : 'text-red-7'
+                    "
+                    style="font-weight: 600"
+                  >
+                    {{ FormatoMiles(props.row.diferencia) }}
+                  </span>
+                </q-td>
+              </q-tr>
             </template>
-        </q-table>
+          </q-table>
+        </q-card-section>
+        <!-- <q-card-actions align="center" class="q-pb-md column">
+                    <div class="text-caption text-grey-6">Última consulta: {{ fechaConciliaSat }}</div>
+                    <q-btn dense unelevated color="primary" icon="mdi-refresh" label="Consultar nuevamente"
+                        class="q-mt-sm" @click="ConsultaSat" />
+                </q-card-actions> -->
+      </q-card>
+    </q-dialog>
+
+    <!-- ── FILTROS ── -->
+    <div class="ce-filters">
+      <div
+        style="display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap"
+      >
+        <div class="row">
+          <div class="ce-title">Comprobantes Emitidos</div>
+        </div>
+      </div>
+      <div class="row q-gutter-sm">
+        <q-select
+          dense
+          outlined
+          v-model="selectedAnio"
+          :options="itemsAnios"
+          style="width: 180px"
+          hide-bottom-space
+        />
+        <q-btn
+          dense
+          unelevated
+          color="green-1"
+          text-color="green-9"
+          icon="mdi-magnify"
+          style="width: 180px"
+          label="Consultar"
+          @click="GetReporte"
+        />
+
+        <div v-if="totalAnual" class="ce-total-badge">
+          Total {{ selectedAnio }}: {{ FormatoMiles(totalAnual) }}
+        </div>
+      </div>
     </div>
+
+    <!-- ── PASOS ── -->
+    <div class="ce-steps">
+      <!-- PASO 1: SINCRONIZACIÓN -->
+      <div class="ce-step">
+        <div class="ce-step__header">
+          <span class="ce-step__num ce-step__num--1">1</span>
+          <div>
+            <div class="ce-step__title">Sincronización</div>
+            <div class="ce-step__desc">
+              Clasifica los XML descargados en sus carpetas por tipo, año y mes.
+            </div>
+          </div>
+        </div>
+        <div class="ce-step__content">
+          <div class="ce-step__status">
+            <span
+              :class="[
+                'ce-dot',
+                pendientes > 0 ? 'ce-dot--warn' : 'ce-dot--ok',
+              ]"
+            ></span>
+            <span
+              :class="pendientes > 0 ? 'text-orange-9' : 'text-green-8'"
+              style="font-size: 11px; font-weight: 500"
+            >
+              {{ pendientes > 0 ? `${pendientes} XML pendientes por clasificar` : 'Sin archivos
+                            pendientes' }}
+            </span>
+          </div>
+          <q-btn
+            unelevated
+            color="green-1"
+            text-color="green-9"
+            icon="mdi-folder-move-outline"
+            label="Clasificar ahora"
+            :loading="separando"
+            :disable="pendientes === 0"
+            @click="separarXmls"
+          />
+        </div>
+      </div>
+
+      <div class="ce-arrow">
+        <q-icon name="mdi-chevron-right" size="20px" color="grey-4" />
+      </div>
+
+      <!-- PASO 2: CONCILIACIÓN -->
+      <div class="ce-step">
+        <div class="ce-step__header">
+          <span class="ce-step__num ce-step__num--2">2</span>
+          <div>
+            <div class="ce-step__title">Conciliación</div>
+            <div class="ce-step__desc">
+              Lee los XML de las carpetas y guarda los comprobantes en el
+              sistema.
+            </div>
+          </div>
+        </div>
+        <div class="ce-step__content">
+          <div class="ce-step__status">
+            <span class="ce-dot ce-dot--ok"></span>
+            <span class="text-green-8" style="font-size: 11px; font-weight: 500"
+              >Listo para conciliar</span
+            >
+          </div>
+          <div class="row q-col-gutter-sm" style="align-items: center">
+            <div class="col-4">
+              <q-select
+                dense
+                outlined
+                v-model="selectedMes"
+                :options="itemsMes"
+                label="Mes"
+                hide-bottom-space
+                class="full-width"
+              />
+            </div>
+            <div class="col-4">
+              <q-btn
+                unelevated
+                color="green-1"
+                text-color="green-9"
+                icon="mdi-database-import"
+                label="Conciliar mes"
+                :loading="dialog"
+                @click="Conciliar"
+                class="full-width"
+              />
+            </div>
+            <div class="col-4">
+              <q-btn
+                unelevated
+                color="green-1"
+                text-color="green-9"
+                icon="mdi-database-sync"
+                label="Todo el año"
+                :loading="dialog"
+                @click="ConciliarPeriodo"
+                class="full-width"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── TABS TABLA / GRÁFICA ── -->
+    <div class="ce-card">
+      <q-tabs
+        v-model="vistaTab"
+        dense
+        align="left"
+        active-color="primary"
+        indicator-color="primary"
+        narrow-indicator
+        class="q-px-sm"
+      >
+        <q-tab name="tabla" icon="mdi-table" label="Resumen" />
+        <q-tab name="grafica" icon="mdi-chart-bar" label="Gráfica" />
+      </q-tabs>
+      <q-separator />
+
+      <q-tab-panels v-model="vistaTab" animated>
+        <!-- TABLA -->
+        <q-tab-panel name="tabla" class="q-pa-none">
+          <q-table
+            dense
+            flat
+            :data="itemsDescargas"
+            :columns="columns"
+            row-key="mes"
+            :rows-per-page-options="[0]"
+            :pagination.sync="pagination"
+          >
+            <template v-slot:body="props">
+              <q-tr :props="props">
+                <q-td key="acciones" :props="props" auto-width>
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    color="green-9"
+                    icon="mdi-table"
+                    @click="ConciliaSat(props.row)"
+                  >
+                    <q-tooltip>Verificar contra el SAT</q-tooltip>
+                  </q-btn>
+                </q-td>
+                <q-td key="mes" :props="props">{{ props.row.mes }}</q-td>
+                <q-td key="ingreso" :props="props" class="text-right">{{
+                  FormatoMiles(props.row.ingreso)
+                }}</q-td>
+                <q-td key="notasCredito" :props="props" class="text-right">{{
+                  FormatoMiles(props.row.notasCredito)
+                }}</q-td>
+                <q-td key="complementoPago" :props="props" class="text-right">{{
+                  FormatoMiles(props.row.complementoPago)
+                }}</q-td>
+                <q-td key="nomina" :props="props" class="text-right">{{
+                  FormatoMiles(props.row.nomina)
+                }}</q-td>
+                <q-td
+                  key="total"
+                  :props="props"
+                  class="text-right"
+                  style="font-weight: 600"
+                  >{{ FormatoMiles(props.row.total) }}</q-td
+                >
+              </q-tr>
+            </template>
+          </q-table>
+        </q-tab-panel>
+
+        <!-- GRÁFICA -->
+        <q-tab-panel name="grafica" class="q-pa-md">
+          <chart-component :chartData="chartData" :chartTitle="charTitleE" />
+        </q-tab-panel>
+      </q-tab-panels>
+    </div>
+  </div>
 </template>
 
 <script>
-    import axios from 'axios'
-    import { parseISO, parse, isSameMonth } from 'date-fns'
-    import * as XLSX from 'xlsx';
-    import ChartComponent from "../Graficas/ChartComponent.vue";
-    // import Utils from "../Graficas/Utils.js";
-    import { QSpinnerCube } from 'quasar'
+import axios from "axios";
+import ChartComponent from "../Graficas/ChartComponent.vue";
 
-    export default {
-        components: {
-            ChartComponent,
+import { QSpinnerCube } from "quasar";
+
+export default {
+  name: "CuentaEmitidos",
+  components: { ChartComponent },
+
+  data() {
+    return {
+      vistaTab: "tabla",
+
+      itemsAnios: [
+        "2026",
+        "2025",
+        "2024",
+        "2023",
+        "2022",
+        "2021",
+        "2020",
+        "2019",
+        "2018",
+      ],
+      itemsMes: [
+        { label: "Enero", value: 1 },
+        { label: "Febrero", value: 2 },
+        { label: "Marzo", value: 3 },
+        { label: "Abril", value: 4 },
+        { label: "Mayo", value: 5 },
+        { label: "Junio", value: 6 },
+        { label: "Julio", value: 7 },
+        { label: "Agosto", value: 8 },
+        { label: "Septiembre", value: 9 },
+        { label: "Octubre", value: 10 },
+        { label: "Noviembre", value: 11 },
+        { label: "Diciembre", value: 12 },
+      ],
+      selectedAnio: 2026,
+      selectedMes: null,
+
+      dialog: false,
+      separando: false,
+      pendientes: 0,
+
+      dataResult: null,
+      chartData: null,
+      charTitleE: "",
+
+      columns: [
+        {
+          name: "acciones",
+          align: "center",
+          label: "SAT",
+          field: "acciones",
+          sortable: false,
         },
-        data() {
-            return {
-                itemsAnios: ['2026','2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018'],
-                itemsMes: [
-                    { label: 'ENERO', value: 1 },
-                    { label: 'FEBRERO', value: 2 },
-                    { label: 'MARZO', value: 3 },
-                    { label: 'ABRIL', value: 4 },
-                    { label: 'MAYO', value: 5 },
-                    { label: 'JUNIO', value: 6 },
-                    { label: 'JULIO', value: 7 },
-                    { label: 'AGOSTO', value: 8 },
-                    { label: 'SEPTIEMBRE', value: 9 },
-                    { label: 'OCTUBRE', value: 10 },
-                    { label: 'NOVIEMBRE', value: 11 },
-                    { label: 'DICIEMBRE', value: 12 },
-                ],
-                selectedAnio: 2026,
-                selectedMes: null,
-
-                //LOADING
-                dialog: false,
-                dialogtext: '',
-
-                dataResult: null,
-
-                chartData: null,
-                charTitleE: '',
-
-                columns: [
-                    { name: 'Acciones', align: 'center', label: 'Acciones', field: 'Acciones', sortable: true },
-                    { name: 'mes', align: 'center', label: 'Mes', field: 'mes', sortable: true },
-                    { name: 'ingreso', align: 'right', label: 'Ingresos', field: 'ingreso', sortable: true },
-                    { name: 'notasCredito', align: 'right', label: 'Notas de Crédito', field: 'notasCredito', sortable: true },
-                    { name: 'complementoPago', align: 'right', label: 'Complementos de Pago', field: 'complementoPago', sortable: true },
-                    { name: 'nomina', align: 'right', label: 'Nómina', field: 'nomina', sortable: true },
-                    { name: 'total', align: 'right', label: 'Total', field: 'total', sortable: true },
-                ],
-                itemsDescargas: [],
-                pagination: {
-                    rowsPerPage: 0
-                },
-
-                //CONSILIACION SAT
-                dialogConciliaSat: false,
-                columnsConciliaSat: [
-                    { name: 'tipo', align: 'center', label: 'Tipo', field: 'tipo', sortable: true },
-                    { name: 'cuentaC', align: 'right', label: 'ContaGo', field: 'cuentaC', sortable: true },
-                    { name: 'cuentaS', align: 'right', label: 'Sat', field: 'cuentaS', sortable: true },
-                    { name: 'diferencia', align: 'right', label: 'Diferencia', field: 'diferencia', sortable: true },
-                ],
-                itemsConciliaSat: [],
-                fechaConciliaSat: null,
-                cabeceraConciliacionSat: '',
-                mesConciliacion: 0,
-            }
+        {
+          name: "mes",
+          align: "left",
+          label: "Mes",
+          field: "mes",
+          sortable: true,
         },
-        computed: {
-            token() {
-                return this.$store.state.usuario;
-            },
-
-            rutaAxios() {
-                return this.$store.state.rutaMongoStore
-            },
-        rutaDescargas() { return this.$store.state.rutaDescargas },
-
+        {
+          name: "ingreso",
+          align: "right",
+          label: "Ingresos",
+          field: "ingreso",
+          sortable: true,
         },
-        created() {
-            this.GetReporte()
+        {
+          name: "notasCredito",
+          align: "right",
+          label: "Notas de crédito",
+          field: "notasCredito",
+          sortable: true,
         },
-        methods: {
-            async GetReporte() {
-                this.dialogtext = 'Consultando, espere';
-                this.dialog = true;
-                this.itemsDescargas = [];
-                try {
-                    let response = await axios.get(this.rutaAxios + 'Comprobante/GetCuentaComprobantesAsync/erp_' + this.token.rfc + '/' + this.selectedAnio);
-                    let x = response.data;
-                    this.dataResult = x;
-                    this.dialog = false;
-                    this.charTitleE = 'Emitidos'
-                    // console.log(x)
-                    for (let a of x) {
-                        a.total = a.ingreso + a.notasCredito + a.complementoPago + a.nomina;
-                    }
-                    this.itemsDescargas = [...x];
-                    await this.GetGrafica();
-                } catch (error) {
-                    console.log(error)
-                    this.dialog = false;
-                }
-            },
-
-            async GetGrafica() {
-                const ingresos = this.dataResult.map((item) => item.ingreso);
-                const nominas = this.dataResult.map((item) => item.nomina);
-                const pagos = this.dataResult.map((item) => item.complementoPago);
-                const notas = this.dataResult.map((item) => item.notasCredito);
-
-                const sumaIngresos = this.dataResult.reduce((acumulador, actual) => acumulador + actual.ingreso, 0);
-                const sumaNotas = this.dataResult.reduce((acumulador, actual) => acumulador + actual.notasCredito, 0);
-                const sumaNominas = this.dataResult.reduce((acumulador, actual) => acumulador + actual.nomina, 0);
-                const sumaPagos = this.dataResult.reduce((acumulador, actual) => acumulador + actual.complementoPago, 0);
-                const sumaTotal = sumaIngresos + sumaNotas + sumaNominas + sumaPagos;
-
-                let ObjIngresos = {
-                    label: "Ingresos: " + this.FormatoMiles(sumaIngresos),
-                    backgroundColor: "rgba(0, 163, 92, 0.5)",
-                    borderColor: "rgba(0, 163, 92)",
-                    borderWidth: 1,
-                    data: ingresos,
-                }
-
-                let ObjNomina = {
-                    label: "Nómina: " + this.FormatoMiles(sumaNominas),
-                    backgroundColor: "rgba(255, 148, 166, 0.5)",
-                    borderColor: "rgba(255, 148, 166)",
-                    borderWidth: 1,
-                    data: nominas,
-                }
-
-                let ObjPagos = {
-                    label: "Complementos de Pago: " + this.FormatoMiles(sumaPagos),
-                    backgroundColor: "rgba(255, 108, 55, 0.5)",
-                    borderColor: "rgba(255, 108, 55)",
-                    borderWidth: 1,
-                    data: pagos,
-                }
-
-                let ObjNotas = {
-                    label: "Notas de Crédito: " + this.FormatoMiles(sumaNotas),
-                    backgroundColor: "rgba(54, 162, 235, 0.5)",
-                    borderColor: "rgba(54, 162, 235)",
-                    borderWidth: 1,
-                    data: notas,
-                }
-
-                let chartDatas = {
-                    labels: ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'],
-                    datasets: []
-                }
-                chartDatas.datasets.push(ObjIngresos)
-                chartDatas.datasets.push(ObjNomina)
-                chartDatas.datasets.push(ObjPagos)
-                chartDatas.datasets.push(ObjNotas)
-                this.chartData = { ...chartDatas }
-
-                this.charTitleE = 'Emitidos: ' + this.FormatoMiles(sumaTotal)
-            },
-
-            FormatCurrency(value) {
-                return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-            },
-
-            FormatoMiles(value) {
-                return value.toLocaleString('en-US');
-            },
-
-            async Conciliar() {
-                this.dialog = true;
-                let mes = this.selectedMes.label.toLowerCase();
-                try {
-                    let response = await axios.post(this.rutaDescargas + '/Descargas/PostComprobantesMongoAsync/' + this.token.rfc + '/' + this.selectedAnio + '/' + mes + '/Emitido');
-                    console.log(response.data)
-                    this.dialog = false;
-                } catch (error) {
-                    console.log(error)
-                    this.dialog = false;
-                }
-            },
-
-            async ConciliarPeriodo() {
-                let meses = this.itemsMes;
-                for (let element of meses) {
-                    let mes = element.label.toLowerCase();
-                    this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'purple', spinnerSize: 140, message: 'Conciliando ' + mes + '...', messageColor: 'white' })
-                    console.log(mes);
-                    try {
-                        let response = await axios.post(this.rutaDescargas + 'Descargas/PostComprobantesMongoAsync/' + this.token.rfc + '/' + this.selectedAnio + '/' + mes + '/Emitido');
-                        console.log(response.data)
-                    } catch (error) {
-                        console.log(error)
-                        this.$q.loading.hide()
-                    }
-                };
-                this.$q.loading.hide()
-            },
-
-            async ConciliaSat(item) {
-                this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'purple', spinnerSize: 140, message: 'Consultando con la platadorma del SAT...', messageColor: 'white' })
-                const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
-                const año = this.selectedAnio;
-                const mes = meses.indexOf(item.mes) + 1;
-                const dia = await this.UltimoDiaDelMes(año, mes)
-                let fI = año + '-' + mes + '-01';
-                let fF = año + '-' + mes + '-' + dia;
-                this.itemsConciliaSat = [];
-                this.cabeceraConciliacionSat = 'Conciliación ' + item.mes + ' ' + año;
-                this.mesConciliacion = mes;
-                //VALIDAMOS SI YA SE HIZO LA CONCILIACION
-                const conciliacion = await this.GetConciliaSat(año, mes);
-                let lista_ = ['INGRESO', 'EGRESO', 'PAGO', 'NOMINA'];
-                if (conciliacion) {
-                    for (let x of lista_) {
-                        if (x === 'INGRESO') {
-                            let obj = {
-                                tipo: x,
-                                cuentaC: item.ingreso,
-                                cuentaS: conciliacion[0].cantidad,
-                                diferencia: item.ingreso - conciliacion[0].cantidad,
-                            }
-                            this.itemsConciliaSat.push(obj);
-                        } else if (x === 'EGRESO') {
-                            let obj = {
-                                tipo: x,
-                                cuentaC: item.notasCredito,
-                                cuentaS: conciliacion[1].cantidad,
-                                diferencia: item.notasCredito - conciliacion[1].cantidad,
-                            }
-                            this.itemsConciliaSat.push(obj);
-                        } else if (x === 'PAGO') {
-                            let obj = {
-                                tipo: x,
-                                cuentaC: item.complementoPago,
-                                cuentaS: conciliacion[2].cantidad,
-                                diferencia: item.complementoPago - conciliacion[2].cantidad,
-                            }
-                            this.itemsConciliaSat.push(obj);
-                        } else if (x === 'NOMINA') {
-                            let obj = {
-                                tipo: x,
-                                cuentaC: item.nomina,
-                                cuentaS: conciliacion[3].cantidad,
-                                diferencia: item.nomina - conciliacion[3].cantidad,
-                            }
-                            this.itemsConciliaSat.push(obj);
-                        }
-                    }
-                    this.dialogConciliaSat = true;
-                } else {
-                    this.$q.notify({ type: 'negative', position:'top-right', message: 'Sin Datos. Descargue el metadata para comparar la información.' })
-
-                    // const res = await this.GetConciliacionSat(mes, año, fI, fF);
-                    // if (!res) {
-                    //     this.$q.notify({ type: 'negative', message: 'Error al consultar, intente nuevamente y verifique los datos de consulta' })
-                    //     this.$q.loading.hide();
-                    //     return;
-                    // }
-                    // for (let x of lista_) {
-                    //     if (x === 'INGRESO') {
-                    //         let obj = {
-                    //             tipo: x,
-                    //             cuentaC: item.ingreso,
-                    //             cuentaS: res[0].cantidad,
-                    //             diferencia: item.ingreso - res[0].cantidad,
-                    //         }
-                    //         this.itemsConciliaSat.push(obj);
-                    //     } else if (x === 'EGRESO') {
-                    //         let obj = {
-                    //             tipo: x,
-                    //             cuentaC: item.notasCredito,
-                    //             cuentaS: res[1].cantidad,
-                    //             diferencia: item.notasCredito - res[1].cantidad,
-                    //         }
-                    //         this.itemsConciliaSat.push(obj);
-                    //     } else if (x === 'PAGO') {
-                    //         let obj = {
-                    //             tipo: x,
-                    //             cuentaC: item.complementoPago,
-                    //             cuentaS: res[2].cantidad,
-                    //             diferencia: item.complementoPago - res[2].cantidad,
-                    //         }
-                    //         this.itemsConciliaSat.push(obj);
-                    //     } else if (x === 'NOMINA') {
-                    //         let obj = {
-                    //             tipo: x,
-                    //             cuentaC: item.nomina,
-                    //             cuentaS: res[3].cantidad,
-                    //             diferencia: item.nomina - res[3].cantidad,
-                    //         }
-                    //         this.itemsConciliaSat.push(obj);
-                    //     }
-                    // }
-                    // this.$q.loading.hide();
-
-                }
-                this.$q.loading.hide();
-            },
-
-            async ConciliaSatCancelados(item){
-                this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'purple', spinnerSize: 140, message: 'Consultando cancelados con la platadorma del SAT...', messageColor: 'white' })
-                const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
-                const año = this.selectedAnio;
-                const mes = meses.indexOf(item.mes) + 1;
-                const dia = await this.UltimoDiaDelMes(año, mes)
-                const fI = año + '-' + mes + '-01';
-                const fF = año + '-' + mes + '-' + dia;
-                console.log(fI, fF)
-                try{
-                    let response = await axios.get('https://api-scrapper-a.contago.com.mx/Cancelaciones/' + fI + '/' + fF + '/Emitidos/' + this.token.rfc);
-                    this.$q.loading.hide();
-                    this.$q.notify({ type: 'warning', message: response.data })
-                }catch(error){
-                    console.log(error)
-                    this.$q.notify({ type: 'negative', message: error.data })
-                    this.$q.loading.hide();
-                }
-                // let response = await axios.get('http://localhost:8080/Cancelaciones/' + fI + '/' + fF + '/Emitidos/' + this.token.rfc);
-            },
-
-            async GetConciliacionSat(mes, año, fI, fF) {
-                try {
-                    let items = [];
-                    // let response = await axios.get('http://localhost:8080/Metadata/' + fI + '/' + fF + '/Emitidos/' + this.token.rfc);
-                    let response = await axios.get('https://api-scrapper-a.contago.com.mx/Metadata/' + fI + '/' + fF + '/Emitidos/' + this.token.rfc);
-                    let obj = { ...response.data }
-
-                    let ingreso = obj.hasOwnProperty('ingreso') ? obj.ingreso : 0;
-                    let egreso = obj.hasOwnProperty('egreso') ? obj.egreso : 0;
-                    let pago = obj.hasOwnProperty('pago') ? obj.pago : 0;
-                    let nomina = obj.hasOwnProperty('nómina') ? obj.nómina : 0;
-
-                    if (ingreso + egreso + pago + nomina != 0) {
-                        let objIngreso = { tipo: 'Ingreso', cantidad: ingreso };
-                        let objEgreso = { tipo: 'Egreso', cantidad: egreso };
-                        let objPago = { tipo: 'Pago', cantidad: pago };
-                        let objNomina = { tipo: 'Nomina', cantidad: nomina };
-                        items.push(objIngreso);
-                        items.push(objEgreso);
-                        items.push(objPago);
-                        items.push(objNomina);
-                        await this.PostConciliaSat(mes, año, items)
-                    } else {
-                        this.$q.loading.hide();
-                        return null;
-                    }
-                    return items;
-                } catch (error) {
-                    console.log(error);
-                    this.$q.loading.hide();
-                }
-            },
-
-            async PostConciliaSat(mes, año, items) {
-                try {
-                    let objConcilado = {
-                        año: año,
-                        mes: mes,
-                        tipo: 'Emitidos',
-                        fechaConsulta: new Date(),
-                        detalle: items,
-                    };
-                    let response = await axios.post(this.rutaDescargas + '/Descargas/PostConcilacionSatAsync/' + this.token.rfc, objConcilado);
-                } catch (erro) {
-                    console.log(error);
-                }
-            },
-
-            async GetConciliaSat(año, mes) {
-                try {
-                    let response = await axios.get(this.rutaDescargas + '/Descargas/GetConcilacionSatAsync/' + this.token.rfc + '/' + año + '/' + mes + '/Emitidos');
-                    this.fechaConciliaSat = response.data.fechaConsulta;
-                    return response.data.detalle;
-                } catch (error) {
-
-                }
-            },
-
-            async UltimoDiaDelMes(año, mes) {
-                let fecha = new Date(año, mes, 0);
-                return fecha.getDate();
-            },
-
-            async ConsultaSat() {
-                this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'purple', spinnerSize: 140, message: 'Consultando con la platadorma del SAT...', messageColor: 'white' });
-                const año = this.selectedAnio;
-                const mes = this.mesConciliacion;
-                const dia = await this.UltimoDiaDelMes(año, mes)
-                let fI = año + '-' + mes + '-01';
-                let fF = año + '-' + mes + '-' + dia;
-                let item = [...this.itemsConciliaSat]
-                this.itemsConciliaSat = [];
-                const res = await this.GetConciliacionSat(mes, año, fI, fF);
-                if (!res) {
-
-                    this.$q.notify({ type: 'negative', message: 'Error al consultar, intente nuevamente y verifique los datos de consulta' })
-                    this.$q.loading.hide();
-                    return;
-                }
-                let lista_ = ['INGRESO', 'EGRESO', 'PAGO', 'NOMINA'];
-
-                for (let x of lista_) {
-                    if (x === 'INGRESO') {
-                        let obj = {
-                            tipo: x,
-                            cuentaC: item[0].cuentaC,
-                            cuentaS: res[0].cantidad,
-                            diferencia: item[0].cuentaC - res[0].cantidad,
-                        }
-                        this.itemsConciliaSat.push(obj);
-                    } else if (x === 'EGRESO') {
-                        let obj = {
-                            tipo: x,
-                            cuentaC: item[1].cuentaC,
-                            cuentaS: res[1].cantidad,
-                            diferencia: item[1].cuentaC - res[1].cantidad,
-                        }
-                        this.itemsConciliaSat.push(obj);
-                    } else if (x === 'PAGO') {
-                        let obj = {
-                            tipo: x,
-                            cuentaC: item[2].cuentaC,
-                            cuentaS: res[2].cantidad,
-                            diferencia: item[2].cuentaC - res[2].cantidad,
-                        }
-                        this.itemsConciliaSat.push(obj);
-                    } else if (x === 'NOMINA') {
-                        let obj = {
-                            tipo: x,
-                            cuentaC: item[3].cuentaC,
-                            cuentaS: res[3].cantidad,
-                            diferencia: item[3].cuentaC - res[3].cantidad,
-                        }
-                        this.itemsConciliaSat.push(obj);
-                    }
-                }
-                this.$q.loading.hide();
-            },
-
+        {
+          name: "complementoPago",
+          align: "right",
+          label: "Comp. de pago",
+          field: "complementoPago",
+          sortable: true,
         },
-    }
+        {
+          name: "nomina",
+          align: "right",
+          label: "Nómina",
+          field: "nomina",
+          sortable: true,
+        },
+        {
+          name: "total",
+          align: "right",
+          label: "Total",
+          field: "total",
+          sortable: true,
+        },
+      ],
+      itemsDescargas: [],
+      pagination: { rowsPerPage: 0 },
+
+      dialogConciliaSat: false,
+      columnsConciliaSat: [
+        {
+          name: "tipo",
+          align: "left",
+          label: "Tipo",
+          field: "tipo",
+          sortable: true,
+        },
+        {
+          name: "cuentaC",
+          align: "right",
+          label: "ContaGo",
+          field: "cuentaC",
+          sortable: true,
+        },
+        {
+          name: "cuentaS",
+          align: "right",
+          label: "SAT",
+          field: "cuentaS",
+          sortable: true,
+        },
+        {
+          name: "diferencia",
+          align: "right",
+          label: "Diferencia",
+          field: "diferencia",
+          sortable: true,
+        },
+      ],
+      itemsConciliaSat: [],
+      fechaConciliaSat: null,
+      cabeceraConciliacionSat: "",
+      mesConciliacion: 0,
+    };
+  },
+
+  computed: {
+    token() {
+      return this.$store.state.usuario;
+    },
+    rutaAxios() {
+      return this.$store.state.rutaMongoStore;
+    },
+    rutaDescargas() {
+      return this.$store.state.rutaDescargas;
+    },
+
+    totalAnual() {
+      return this.itemsDescargas.reduce((s, r) => s + (r.total || 0), 0);
+    },
+  },
+  created() {
+    this.GetReporte();
+    this.GetPendientes();
+  },
+
+  methods: {
+    // ── Paso 1: Sincronización ───────────────────────────────
+    async GetPendientes() {
+      try {
+        const { data } = await axios.get(
+          this.rutaDescargas + `Descargas/pendientes/${this.token.rfc}`
+        );
+        this.pendientes = data.pendientes;
+      } catch (_) {}
+    },
+
+    async separarXmls() {
+      this.separando = true;
+      try {
+        let respuesta = await axios.post(
+          this.rutaDescargas + `Descargas/PostEncarpetaXML/${this.token.rfc}`
+        );
+        console.log(respuesta);
+        this.$q.notify({
+          type: "positive",
+          message: "Archivos clasificados correctamente.",
+        });
+        await this.GetPendientes();
+      } catch (err) {
+        this.$q.notify({
+          type: "negative",
+          message:
+            err?.response?.data?.error || "Error al clasificar los archivos.",
+        });
+      } finally {
+        this.separando = false;
+      }
+    },
+
+    // ── Paso 2: Conciliación ─────────────────────────────────
+
+    async Conciliar() {
+      if (!this.selectedMes) {
+        this.$q.notify({
+          type: "warning",
+          message: "Selecciona un mes primero.",
+        });
+        return;
+      }
+      console.log(this.selectedMes);
+      this.dialog = true;
+      let mes = this.selectedMes.label.toLowerCase();
+      try {
+        let response = await axios.post(
+          this.rutaDescargas +
+            "/Descargas/PostComprobantesMongoAsync/" +
+            this.token.rfc +
+            "/" +
+            this.selectedAnio +
+            "/" +
+            mes +
+            "/Emitido"
+        );
+        console.log(response.data);
+        this.dialog = false;
+      } catch (error) {
+        console.log(error);
+        this.dialog = false;
+      }
+    },
+
+    //  async ConciliarPeriodo() {
+    //   for (const m of this.itemsMes) {
+    //      const mes = m.label.toLowerCase()
+    //        this.$q.loading.show({
+    //            spinner: QSpinnerCube, spinnerColor: 'purple', spinnerSize: 140,
+    //message: `Conciliando ${m.label}...`, messageColor: 'white'
+    //         })
+    //       try {
+    //            await axios.post(
+    //                `${this.rutaDescargas}Descargas/PostComprobantesMongoAsync/${this.token.rfc}/${this.selectedAnio}/${mes}/Emitido`)
+    //         } catch (err) { console.error(err) }
+    //   }
+    //     this.$q.loading.hide()
+    //    await this.GetReporte()
+    //   this.$q.notify({ type: 'positive', message: 'Año completo conciliado.' })
+    //  },
+
+    async ConciliarPeriodo() {
+      let meses = this.itemsMes;
+      for (let element of meses) {
+        let mes = element.label.toLowerCase();
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: "purple",
+          spinnerSize: 140,
+          message: "Conciliando " + mes + "...",
+          messageColor: "white",
+        });
+        console.log(mes);
+        try {
+          let response = await axios.post(
+            this.rutaDescargas +
+              "Descargas/PostComprobantesMongoAsync/" +
+              this.token.rfc +
+              "/" +
+              this.selectedAnio +
+              "/" +
+              mes +
+              "/Emitido"
+          );
+          console.log(response.data);
+        } catch (error) {
+          console.log(error);
+          this.$q.loading.hide();
+        }
+      }
+      this.$q.loading.hide();
+    },
+
+    // ── Reporte ──────────────────────────────────────────────
+    async GetReporte() {
+      this.dialog = true;
+      this.itemsDescargas = [];
+      try {
+        const { data } = await axios.get(
+          `${this.rutaAxios}Comprobante/GetCuentaComprobantesAsync/erp_${this.token.rfc}/${this.selectedAnio}`
+        );
+        for (const a of data) {
+          a.total = a.ingreso + a.notasCredito + a.complementoPago + a.nomina;
+        }
+        this.dataResult = data;
+        this.itemsDescargas = [...data];
+        this.GetGrafica();
+      } catch (err) {
+        console.error(err);
+      } finally {
+        this.dialog = false;
+      }
+    },
+
+    async GetGrafica() {
+      const ingresos = this.dataResult.map((item) => item.ingreso);
+      const nominas = this.dataResult.map((item) => item.nomina);
+      const pagos = this.dataResult.map((item) => item.complementoPago);
+      const notas = this.dataResult.map((item) => item.notasCredito);
+
+      const sumaIngresos = this.dataResult.reduce(
+        (acumulador, actual) => acumulador + actual.ingreso,
+        0
+      );
+      const sumaNotas = this.dataResult.reduce(
+        (acumulador, actual) => acumulador + actual.notasCredito,
+        0
+      );
+      const sumaNominas = this.dataResult.reduce(
+        (acumulador, actual) => acumulador + actual.nomina,
+        0
+      );
+      const sumaPagos = this.dataResult.reduce(
+        (acumulador, actual) => acumulador + actual.complementoPago,
+        0
+      );
+      const sumaTotal = sumaIngresos + sumaNotas + sumaNominas + sumaPagos;
+
+      let ObjIngresos = {
+        label: "Ingresos: " + this.FormatoMiles(sumaIngresos),
+        backgroundColor: "rgba(0, 163, 92, 0.5)",
+        borderColor: "rgba(0, 163, 92)",
+        borderWidth: 1,
+        data: ingresos,
+      };
+
+      let ObjNomina = {
+        label: "Nómina: " + this.FormatoMiles(sumaNominas),
+        backgroundColor: "rgba(255, 148, 166, 0.5)",
+        borderColor: "rgba(255, 148, 166)",
+        borderWidth: 1,
+        data: nominas,
+      };
+
+      let ObjPagos = {
+        label: "Complementos de Pago: " + this.FormatoMiles(sumaPagos),
+        backgroundColor: "rgba(255, 108, 55, 0.5)",
+        borderColor: "rgba(255, 108, 55)",
+        borderWidth: 1,
+        data: pagos,
+      };
+
+      let ObjNotas = {
+        label: "Notas de Crédito: " + this.FormatoMiles(sumaNotas),
+        backgroundColor: "rgba(54, 162, 235, 0.5)",
+        borderColor: "rgba(54, 162, 235)",
+        borderWidth: 1,
+        data: notas,
+      };
+
+      let chartDatas = {
+        labels: [
+          "ENERO",
+          "FEBRERO",
+          "MARZO",
+          "ABRIL",
+          "MAYO",
+          "JUNIO",
+          "JULIO",
+          "AGOSTO",
+          "SEPTIEMBRE",
+          "OCTUBRE",
+          "NOVIEMBRE",
+          "DICIEMBRE",
+        ],
+        datasets: [],
+      };
+      chartDatas.datasets.push(ObjIngresos);
+      chartDatas.datasets.push(ObjNomina);
+      chartDatas.datasets.push(ObjPagos);
+      chartDatas.datasets.push(ObjNotas);
+      this.chartData = { ...chartDatas };
+
+      console.log(  this.chartData)
+      this.charTitleE = "Emitidos: " + this.FormatoMiles(sumaTotal);
+    },
+    // ── Verificar SAT ────────────────────────────────────────
+    async ConciliaSat(item) {
+      this.$q.loading.show({
+        spinner: QSpinnerCube,
+        spinnerColor: "purple",
+        spinnerSize: 140,
+        message: "Consultando con la plataforma del SAT...",
+        messageColor: "white",
+      });
+      const mesesIdx = [
+        "ENERO",
+        "FEBRERO",
+        "MARZO",
+        "ABRIL",
+        "MAYO",
+        "JUNIO",
+        "JULIO",
+        "AGOSTO",
+        "SEPTIEMBRE",
+        "OCTUBRE",
+        "NOVIEMBRE",
+        "DICIEMBRE",
+      ];
+      const año = this.selectedAnio;
+      const mes = mesesIdx.indexOf(item.mes) + 1;
+
+      this.itemsConciliaSat = [];
+      this.cabeceraConciliacionSat = `Verificación SAT — ${item.mes} ${año}`;
+      this.mesConciliacion = mes;
+
+      const conciliacion = await this.GetConciliaSat(año, mes);
+      const campos = ["ingreso", "notasCredito", "complementoPago", "nomina"];
+      const lista = ["INGRESO", "EGRESO", "PAGO", "NÓMINA"];
+
+      if (conciliacion) {
+        lista.forEach((tipo, i) => {
+          this.itemsConciliaSat.push({
+            tipo,
+            cuentaC: item[campos[i]],
+            cuentaS: conciliacion[i].cantidad,
+            diferencia: item[campos[i]] - conciliacion[i].cantidad,
+          });
+        });
+        this.dialogConciliaSat = true;
+      } else {
+        this.$q.notify({
+          type: "negative",
+          position: "top-right",
+          message:
+            "Sin datos del SAT. Primero descargue el metadata del periodo.",
+        });
+      }
+      this.$q.loading.hide();
+    },
+
+    async ConsultaSat() {
+      this.$q.loading.show({
+        spinner: QSpinnerCube,
+        spinnerColor: "purple",
+        spinnerSize: 140,
+        message: "Consultando con la plataforma del SAT...",
+        messageColor: "white",
+      });
+      const año = this.selectedAnio;
+      const mes = this.mesConciliacion;
+      const dia = new Date(año, mes, 0).getDate();
+      const fI = `${año}-${mes}-01`;
+      const fF = `${año}-${mes}-${dia}`;
+      const item = [...this.itemsConciliaSat];
+      this.itemsConciliaSat = [];
+
+      const res = await this.GetConciliacionSat(mes, año, fI, fF);
+      if (!res) {
+        this.$q.notify({
+          type: "negative",
+          message: "Error al consultar. Intente nuevamente.",
+        });
+        this.$q.loading.hide();
+        return;
+      }
+      const lista = ["INGRESO", "EGRESO", "PAGO", "NÓMINA"];
+      lista.forEach((tipo, i) => {
+        this.itemsConciliaSat.push({
+          tipo,
+          cuentaC: item[i].cuentaC,
+          cuentaS: res[i].cantidad,
+          diferencia: item[i].cuentaC - res[i].cantidad,
+        });
+      });
+      this.$q.loading.hide();
+    },
+
+    async GetConciliaSat(año, mes) {
+      try {
+        const { data } = await axios.get(
+          `${this.rutaDescargas}Descargas/GetConcilacionSatAsync/${this.token.rfc}/${año}/${mes}/Emitidos`
+        );
+        this.fechaConciliaSat = data.fechaConsulta;
+        return data.detalle;
+      } catch (_) {
+        return null;
+      }
+    },
+
+    async GetConciliacionSat(mes, año, fI, fF) {
+      try {
+        const { data } = await axios.get(
+          `https://api-scrapper-a.contago.com.mx/Metadata/${fI}/${fF}/Emitidos/${this.token.rfc}`
+        );
+        const ingreso = data.ingreso || 0;
+        const egreso = data.egreso || 0;
+        const pago = data.pago || 0;
+        const nomina = data["nómina"] || 0;
+        if (ingreso + egreso + pago + nomina === 0) return null;
+        const items = [
+          { tipo: "Ingreso", cantidad: ingreso },
+          { tipo: "Egreso", cantidad: egreso },
+          { tipo: "Pago", cantidad: pago },
+          { tipo: "Nomina", cantidad: nomina },
+        ];
+        await this.PostConciliaSat(mes, año, items);
+        return items;
+      } catch (err) {
+        console.error(err);
+        return null;
+      }
+    },
+
+    async PostConciliaSat(mes, año, items) {
+      try {
+        await axios.post(
+          `${this.rutaDescargas}Descargas/PostConcilacionSatAsync/${this.token.rfc}`,
+          {
+            año,
+            mes,
+            tipo: "Emitidos",
+            fechaConsulta: new Date(),
+            detalle: items,
+          }
+        );
+      } catch (err) {
+        console.error(err);
+      }
+    },
+
+    FormatoMiles(value) {
+      return (value || 0).toLocaleString("en-US");
+    },
+  },
+};
 </script>
+
+<style scoped>
+.ce-root {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  background: #f4f6fb;
+  min-height: 100vh;
+}
+
+.ce-steps {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  background: #fff;
+  border: 0.5px solid #e2e6f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.ce-step {
+  flex: 1;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ce-step:first-child {
+  border-right: 0.5px solid #e2e6f0;
+}
+
+.ce-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 2px;
+}
+
+.ce-step__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.ce-step__num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.ce-step__num--1 {
+  background: #e6f1fb;
+  color: #0c447c;
+}
+
+.ce-step__num--2 {
+  background: #eaf3de;
+  color: #27500a;
+}
+
+.ce-step__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f1623;
+  line-height: 1.2;
+}
+
+.ce-step__desc {
+  font-size: 11px;
+  color: #7b86a0;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.ce-step__content {
+  padding-left: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ce-step__status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ce-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ce-dot--ok {
+  background: #639922;
+}
+
+.ce-dot--warn {
+  background: #ef9f27;
+}
+
+.ce-filters {
+  background: #fff;
+  border: 0.5px solid #e2e6f0;
+  border-radius: 10px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ce-flbl {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #7b86a0;
+  margin-bottom: 3px;
+}
+
+.ce-total-badge {
+  background: #eaf3de;
+  color: #27500a;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.ce-title {
+  color: #27500a;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 4px 10px;
+}
+
+.ce-card {
+  background: #fff;
+  border: 0.5px solid #e2e6f0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+</style>
