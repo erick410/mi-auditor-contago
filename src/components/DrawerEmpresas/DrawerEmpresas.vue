@@ -68,9 +68,11 @@ export default {
             return this.$store.state.empresaStore || {}
         },
         filteredEmpresas() {
-            return this.itemsEmpresas.filter(a =>
-                a.nombre && a.nombre.toLowerCase().includes(this.filter.toLowerCase())
-            )
+          const needle = this.filter.toLowerCase()
+          return this.itemsEmpresas.filter(a =>
+            (a.nombre && a.nombre.toLowerCase().includes(needle)) ||
+            (a.rfc    && a.rfc.toLowerCase().includes(needle))
+          )
         },
         rutaDescargas() {
             return this.$store.state.rutaDescargas;

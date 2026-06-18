@@ -17,8 +17,8 @@
             <q-card>
                 <q-toolbar>
                     <q-btn flat round dense icon="close" v-close-popup color="red-14">
-                        <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
-                            :offset="[10, 10]">Cerrar</q-tooltip>
+                        <q-tooltip transition-show="flip-right" transition-hide="flip-left"
+                            content-style="font-size: 14px" :offset="[10, 10]">Cerrar</q-tooltip>
                     </q-btn>
                     <q-toolbar-title><span class="text-weight-bold">{{ textoNotas }}</span></q-toolbar-title>
                 </q-toolbar>
@@ -77,8 +77,9 @@
             <template v-slot:body="props">
                 <q-tr :props="props" :class="'clase-total-' + props.row.mes">
                     <q-td auto-width>
-                        <q-btn size="md" color="primary" rounded flat dense @click="VerDetalles(props.row, 'IVA Retenido')"
-                            icon="mdi-format-list-bulleted" v-if="props.row.detalles.length != 0">
+                        <q-btn size="md" color="primary" rounded flat dense
+                            @click="VerDetalles(props.row, 'IVA Retenido')" icon="mdi-format-list-bulleted"
+                            v-if="props.row.detalles.length != 0">
                             <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                 content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
                         </q-btn>
@@ -91,15 +92,25 @@
             </template>
         </q-table>
 
-<!-- TABLA DE SUELDOS Y SALARIOS -->
-<q-table title="IVA Retenido Emitido" :data="dataIvaRetenidoNeteado" :columns="columns" row-key="mes" hide-bottom
-            :rows-per-page-options="[0]" class="q-mt-md">
-           
+        <!-- TABLA DE SUELDOS Y SALARIOS -->
+        <q-table title="IVA Retenido Emitido" :data="dataIvaRetenidoNeteado" :columns="columns" row-key="mes"
+            hide-bottom :rows-per-page-options="[0]" class="q-mt-md">
+            <template v-slot:top>
+                <span class="text-body1" content-style="font-size: 20px">IVA Retenido Emitido</span>
+                <q-space />
+                
+                <q-btn push color="green-14" @click="OpenComparativa(2)" icon="mdi-compare" rounded flat size="18px"
+                    padding="xs">
+                    <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                        :offset="[10, 10]">Comparativa</q-tooltip>
+                </q-btn>
+            </template>
             <template v-slot:body="props">
                 <q-tr :props="props" :class="'clase-total-' + props.row.mes">
                     <q-td auto-width>
-                        <q-btn size="md" color="primary" rounded flat dense @click="VerDetalles(props.row, 'IVA Retenido Recibidos')"
-                            icon="mdi-format-list-bulleted" v-if="props.row.detalles.length != 0">
+                        <q-btn size="md" color="primary" rounded flat dense
+                            @click="VerDetalles(props.row, 'IVA Retenido Recibidos')" icon="mdi-format-list-bulleted"
+                            v-if="props.row.detalles.length != 0">
                             <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                 content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
                         </q-btn>
@@ -134,7 +145,7 @@ export default {
     },
     data() {
         return {
-            itemsAnios: ['2026','2025', '2024','2023', '2022', '2021', '2020', '2019', '2018'],
+            itemsAnios: ['2026', '2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018'],
             itemsMes: [
                 { label: 'ENERO', value: 1 },
                 { label: 'FEBRERO', value: 2 },
@@ -181,7 +192,7 @@ export default {
             charTitleE: 'Retenciones de IVA',
             chartData: null,
 
-            dataIvaRetenidoNeteado:[]
+            dataIvaRetenidoNeteado: []
         }
     },
     computed: {
@@ -266,7 +277,7 @@ export default {
                 //CONSULTANOS LAS COMPARATIVAS
                 this.dataIvaRetenidoNeteado = [];
                 let ivaRetenido = [];
-                let comparativaIva = await this.GetComparativa(this.selectedAnio, 'IVARetenido');
+                let comparativaIva = await this.GetComparativa(this.selectedAnio, 'IVARetenidoEmitido');
                 this.dialogtext = 'Calculando IVA Retenido'
                 let añoSel = this.selectedAnio - 1
                 let fechaI = añoSel + '-' + '12' + '-01';
@@ -274,14 +285,17 @@ export default {
                 let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
                 ivaRetenido = response.data;
                 let mesFin = this.selectedMes.value;
-console.log(response)
+                console.log(response)
                 //ASIGNAMOS LAS COMPARATIVAS
                 for (let a = 1; a <= mesFin; a++) {
-                    let diferencia = ivaRetenido[a].importeIva - 0
+                    let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe
+
+                    // let diferencia = ivaRetenido[a].importeIva - 0
                     let objIva = {
                         mes: ivaRetenido[a].mes,
                         importeIva: ivaRetenido[a].importeIva,
-                        comparativa: 0,
+                        comparativa: comparativaIva[a - 1].importe,
+                        // comparativa: 0,
                         diferencia: diferencia,
                         detalles: ivaRetenido[a].detalles,
                     }
@@ -305,39 +319,39 @@ console.log(response)
         },
 
 
-        async GenerarGrafica(data){
+        async GenerarGrafica(data) {
             const meses = data.map((item) => item.mes);
-                const importe = data.map((item) => item.importeIva);
+            const importe = data.map((item) => item.importeIva);
 
-                let obj1 = {
-                    type: 'line',
-                    label: 'Importe (Linea)',
-                    borderColor: '#66BB6A',
-                    borderWidth: 2,
-                    fill: false,
-                    data: importe
-                }
+            let obj1 = {
+                type: 'line',
+                label: 'Importe (Linea)',
+                borderColor: '#66BB6A',
+                borderWidth: 2,
+                fill: false,
+                data: importe
+            }
 
-                let obj2 = {
-                    type: 'bar',
-                    label: 'Importe (Barra)',
-                    backgroundColor: '#66BB6A',
-                    data: importe,
-                    borderColor: 'white',
-                    borderWidth: 2
-                }
+            let obj2 = {
+                type: 'bar',
+                label: 'Importe (Barra)',
+                backgroundColor: '#66BB6A',
+                data: importe,
+                borderColor: 'white',
+                borderWidth: 2
+            }
 
-            
-                let chartDatas = {
-                    labels: meses,
-                    datasets: []
-                }
 
-                chartDatas.datasets.push(obj1)
-                chartDatas.datasets.push(obj2)
-                this.chartData = { ...chartDatas }
-            },
-        
+            let chartDatas = {
+                labels: meses,
+                datasets: []
+            }
+
+            chartDatas.datasets.push(obj1)
+            chartDatas.datasets.push(obj2)
+            this.chartData = { ...chartDatas }
+        },
+
         VerDetalles(item, tipo) {
             console.log(item);
             const objDetalle = {
@@ -346,7 +360,7 @@ console.log(response)
                 detalles: item.detalles,
                 cabecera: "IVA RETENIDO"
             }
-            this.$store.state.detallesIvaRet = {...objDetalle}
+            this.$store.state.detallesIvaRet = { ...objDetalle }
             this.dialogDetalles = true;
         },
 
@@ -384,7 +398,7 @@ console.log(response)
             let reporte = 'REPORTE DE IVA RETENIDO'
             let empresa = this.$store.state.empresaStore.nombre
             let rfc = this.$store.state.empresaStore.rfc
-           
+
             let periodo = 'ENERO A ' + this.selectedMes.label + ' ' + this.selectedAnio
 
             const workbook = xlsx.utils.book_new();
@@ -393,7 +407,7 @@ console.log(response)
                 [reporte],
                 ["EMPRESA:", empresa.toUpperCase()],
                 ["RFC:", rfc.toUpperCase()],
-                ["PERIODO:",periodo.toUpperCase()],
+                ["PERIODO:", periodo.toUpperCase()],
                 // ["FECHA REPORTE:", new Date()],
                 [],
             ];
@@ -402,10 +416,10 @@ console.log(response)
                 col => col.name !== "actions" & col.name !== "detalles"
             );
 
-            const dataExcel =sueldosFiltrados.map(row => {
+            const dataExcel = sueldosFiltrados.map(row => {
                 const obj = {};
                 columnasExcel.forEach(col => {
-                obj[col.label] = row[col.field];
+                    obj[col.label] = row[col.field];
                 });
                 return obj;
             });
@@ -413,7 +427,7 @@ console.log(response)
             const sheet = xlsx.utils.aoa_to_sheet(cabecera);
 
             xlsx.utils.sheet_add_json(sheet, dataExcel, {
-                origin: "A6", 
+                origin: "A6",
                 skipHeader: false,
             });
 
@@ -433,9 +447,9 @@ console.log(response)
 
             xlsx.writeFile(
                 workbook,
-                rfc + ' - ' + empresa +  ' - REPORTE DE IVA RETENIDO DE ' + periodo.toUpperCase() + '.xlsx'
+                rfc + ' - ' + empresa + ' - REPORTE DE IVA RETENIDO DE ' + periodo.toUpperCase() + '.xlsx'
             );
-            },
+        },
 
         formatCurrency(value) {
             return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
@@ -483,6 +497,15 @@ console.log(response)
 
                 respuesta = await this.GetComparativa(this.selectedAnio, 'IVARetenido');
             }
+
+            if (item == 2) {
+                this.comparativa.textoComparativa = 'Comparativa IVA Retenido Emitido';
+                this.comparativa.año = this.selectedAnio;
+                this.comparativa.tipo = 'IVARetenidoEmitido';
+
+                respuesta = await this.GetComparativa(this.selectedAnio, 'IVARetenidoEmitido');
+            }
+
 
             this.comparativa.comparativa.enero = respuesta[0].importe;
             this.comparativa.comparativa.febrero = respuesta[1].importe;

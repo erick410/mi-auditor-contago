@@ -1,7 +1,5 @@
 <template>
   <div class="page">
-
-
     <div class="content-logo">
       <img class="wb-logo" src="../assets/logo_contago_sin_fondo.png" alt="Contago" />
     </div>

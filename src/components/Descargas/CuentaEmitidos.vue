@@ -1,12 +1,7 @@
 <template>
   <div class="ce-root">
     <!-- DIALOG LOADING -->
-    <q-dialog
-      v-model="dialog"
-      persistent
-      transition-show="scale"
-      transition-hide="scale"
-    >
+    <q-dialog v-model="dialog" persistent transition-show="scale" transition-hide="scale">
       <q-card style="width: 100px; height: 110px" flat>
         <q-card-section>
           <div class="text-center">
@@ -17,11 +12,7 @@
     </q-dialog>
 
     <!-- DIALOG VERIFICAR SAT -->
-    <q-dialog
-      v-model="dialogConciliaSat"
-      transition-show="scale"
-      transition-hide="scale"
-    >
+    <q-dialog v-model="dialogConciliaSat" transition-show="scale" transition-hide="scale">
       <q-card style="min-width: 460px">
         <q-card-section class="bg-primary text-white q-py-sm">
           <div class="text-subtitle1" style="font-weight: 600">
@@ -29,15 +20,8 @@
           </div>
         </q-card-section>
         <q-card-section class="q-pa-sm">
-          <q-table
-            dense
-            flat
-            :data="itemsConciliaSat"
-            :columns="columnsConciliaSat"
-            row-key="tipo"
-            :rows-per-page-options="[0]"
-            :pagination.sync="pagination"
-          >
+          <q-table dense flat :data="itemsConciliaSat" :columns="columnsConciliaSat" row-key="tipo"
+            :rows-per-page-options="[0]" :pagination.sync="pagination">
             <template v-slot:body="props">
               <q-tr :props="props">
                 <q-td key="tipo" :props="props">{{ props.row.tipo }}</q-td>
@@ -48,12 +32,8 @@
                   FormatoMiles(props.row.cuentaS)
                 }}</q-td>
                 <q-td key="diferencia" :props="props" class="text-right">
-                  <span
-                    :class="
-                      props.row.diferencia === 0 ? 'text-green-7' : 'text-red-7'
-                    "
-                    style="font-weight: 600"
-                  >
+                  <span :class="props.row.diferencia === 0 ? 'text-green-7' : 'text-red-7'
+                    " style="font-weight: 600">
                     {{ FormatoMiles(props.row.diferencia) }}
                   </span>
                 </q-td>
@@ -71,36 +51,19 @@
 
     <!-- ── FILTROS ── -->
     <div class="ce-filters">
-      <div
-        style="display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap"
-      >
+      <div style="display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap">
         <div class="row">
           <div class="ce-title">Comprobantes Emitidos</div>
         </div>
       </div>
       <div class="row q-gutter-sm">
-        <q-select
-          dense
-          outlined
-          v-model="selectedAnio"
-          :options="itemsAnios"
-          style="width: 180px"
-          hide-bottom-space
-        />
-        <q-btn
-          dense
-          unelevated
-          color="green-1"
-          text-color="green-9"
-          icon="mdi-magnify"
-          style="width: 180px"
-          label="Consultar"
-          @click="GetReporte"
-        />
+        <q-select dense outlined v-model="selectedAnio" :options="itemsAnios" style="width: 180px" hide-bottom-space />
+        <q-btn dense unelevated color="green-1" text-color="green-9" icon="mdi-magnify" style="width: 180px"
+          label="Consultar" @click="GetReporte" />
 
-        <div v-if="totalAnual" class="ce-total-badge">
+        <!-- <div v-if="totalAnual" class="ce-total-badge">
           Total {{ selectedAnio }}: {{ FormatoMiles(totalAnual) }}
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -119,30 +82,17 @@
         </div>
         <div class="ce-step__content">
           <div class="ce-step__status">
-            <span
-              :class="[
-                'ce-dot',
-                pendientes > 0 ? 'ce-dot--warn' : 'ce-dot--ok',
-              ]"
-            ></span>
-            <span
-              :class="pendientes > 0 ? 'text-orange-9' : 'text-green-8'"
-              style="font-size: 11px; font-weight: 500"
-            >
+            <span :class="[
+              'ce-dot',
+              pendientes > 0 ? 'ce-dot--warn' : 'ce-dot--ok',
+            ]"></span>
+            <span :class="pendientes > 0 ? 'text-orange-9' : 'text-green-8'" style="font-size: 11px; font-weight: 500">
               {{ pendientes > 0 ? `${pendientes} XML pendientes por clasificar` : 'Sin archivos
-                            pendientes' }}
+              pendientes' }}
             </span>
           </div>
-          <q-btn
-            unelevated
-            color="green-1"
-            text-color="green-9"
-            icon="mdi-folder-move-outline"
-            label="Clasificar ahora"
-            :loading="separando"
-            :disable="pendientes === 0"
-            @click="separarXmls"
-          />
+          <q-btn unelevated color="green-1" text-color="green-9" icon="mdi-folder-move-outline" label="Sincronizar"
+            :loading="separando" :disable="pendientes === 0" @click="separarXmls" />
         </div>
       </div>
 
@@ -165,45 +115,20 @@
         <div class="ce-step__content">
           <div class="ce-step__status">
             <span class="ce-dot ce-dot--ok"></span>
-            <span class="text-green-8" style="font-size: 11px; font-weight: 500"
-              >Listo para conciliar</span
-            >
+            <span class="text-green-8" style="font-size: 11px; font-weight: 500">Listo para conciliar</span>
           </div>
           <div class="row q-col-gutter-sm" style="align-items: center">
             <div class="col-4">
-              <q-select
-                dense
-                outlined
-                v-model="selectedMes"
-                :options="itemsMes"
-                label="Mes"
-                hide-bottom-space
-                class="full-width"
-              />
+              <q-select dense outlined v-model="selectedMes" :options="itemsMes" label="Mes" hide-bottom-space
+                class="full-width" />
             </div>
             <div class="col-4">
-              <q-btn
-                unelevated
-                color="green-1"
-                text-color="green-9"
-                icon="mdi-database-import"
-                label="Conciliar mes"
-                :loading="dialog"
-                @click="Conciliar"
-                class="full-width"
-              />
+              <q-btn unelevated color="green-1" text-color="green-9" icon="mdi-database-import" label="Conciliar mes"
+                :loading="dialog" @click="Conciliar" class="full-width" />
             </div>
             <div class="col-4">
-              <q-btn
-                unelevated
-                color="green-1"
-                text-color="green-9"
-                icon="mdi-database-sync"
-                label="Todo el año"
-                :loading="dialog"
-                @click="ConciliarPeriodo"
-                class="full-width"
-              />
+              <q-btn unelevated color="green-1" text-color="green-9" icon="mdi-database-sync" label="Todo el año"
+                :loading="dialog" @click="ConciliarPeriodo" class="full-width" />
             </div>
           </div>
         </div>
@@ -212,15 +137,8 @@
 
     <!-- ── TABS TABLA / GRÁFICA ── -->
     <div class="ce-card">
-      <q-tabs
-        v-model="vistaTab"
-        dense
-        align="left"
-        active-color="primary"
-        indicator-color="primary"
-        narrow-indicator
-        class="q-px-sm"
-      >
+      <q-tabs v-model="vistaTab" dense align="left" active-color="primary" indicator-color="primary" narrow-indicator
+        class="q-px-sm">
         <q-tab name="tabla" icon="mdi-table" label="Resumen" />
         <q-tab name="grafica" icon="mdi-chart-bar" label="Gráfica" />
       </q-tabs>
@@ -229,26 +147,12 @@
       <q-tab-panels v-model="vistaTab" animated>
         <!-- TABLA -->
         <q-tab-panel name="tabla" class="q-pa-none">
-          <q-table
-            dense
-            flat
-            :data="itemsDescargas"
-            :columns="columns"
-            row-key="mes"
-            :rows-per-page-options="[0]"
-            :pagination.sync="pagination"
-          >
+          <q-table dense flat :data="itemsDescargas" :columns="columns" row-key="mes" :rows-per-page-options="[0]"
+            :pagination.sync="pagination">
             <template v-slot:body="props">
               <q-tr :props="props">
                 <q-td key="acciones" :props="props" auto-width>
-                  <q-btn
-                    flat
-                    dense
-                    round
-                    color="green-9"
-                    icon="mdi-table"
-                    @click="ConciliaSat(props.row)"
-                  >
+                  <q-btn flat dense round color="green-9" icon="mdi-table" @click="ConciliaSat(props.row)">
                     <q-tooltip>Verificar contra el SAT</q-tooltip>
                   </q-btn>
                 </q-td>
@@ -265,13 +169,19 @@
                 <q-td key="nomina" :props="props" class="text-right">{{
                   FormatoMiles(props.row.nomina)
                 }}</q-td>
-                <q-td
-                  key="total"
-                  :props="props"
-                  class="text-right"
-                  style="font-weight: 600"
-                  >{{ FormatoMiles(props.row.total) }}</q-td
-                >
+                <q-td key="total" :props="props" class="text-right" style="font-weight: 600">{{
+                  FormatoMiles(props.row.total) }}</q-td>
+              </q-tr>
+              <q-tr v-if="props.rowIndex === itemsDescargas.length - 1"
+                style="background:#eaf3de;border-top:2px solid #e2e6f0;">
+                <q-td style="font-weight:700"></q-td>
+                <q-td style="font-weight:700">TOTAL</q-td>
+                <q-td class="text-right" style="font-weight:600">{{ FormatoMiles(totales.ingreso) }}</q-td>
+                <q-td class="text-right" style="font-weight:600">{{ FormatoMiles(totales.notasCredito) }}</q-td>
+                <q-td class="text-right" style="font-weight:600">{{ FormatoMiles(totales.complementoPago) }}</q-td>
+                <q-td class="text-right" style="font-weight:600">{{ FormatoMiles(totales.nomina) }}</q-td>
+                <q-td class="text-right" style="font-weight:700">{{ FormatoMiles(totales.total) }}</q-td>
+                <q-td />
               </q-tr>
             </template>
           </q-table>
@@ -442,6 +352,15 @@ export default {
     totalAnual() {
       return this.itemsDescargas.reduce((s, r) => s + (r.total || 0), 0);
     },
+    totales() {
+      return {
+        ingreso: this.itemsDescargas.reduce((s, r) => s + r.ingreso, 0),
+        notasCredito: this.itemsDescargas.reduce((s, r) => s + r.notasCredito, 0),
+        complementoPago: this.itemsDescargas.reduce((s, r) => s + r.complementoPago, 0),
+        nomina: this.itemsDescargas.reduce((s, r) => s + r.nomina, 0),
+        total: this.itemsDescargas.reduce((s, r) => s + r.total, 0),
+      }
+    },
   },
   created() {
     this.GetReporte();
@@ -456,7 +375,7 @@ export default {
           this.rutaDescargas + `Descargas/pendientes/${this.token.rfc}`
         );
         this.pendientes = data.pendientes;
-      } catch (_) {}
+      } catch (_) { }
     },
 
     async separarXmls() {
@@ -498,13 +417,13 @@ export default {
       try {
         let response = await axios.post(
           this.rutaDescargas +
-            "/Descargas/PostComprobantesMongoAsync/" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/" +
-            mes +
-            "/Emitido"
+          "/Descargas/PostComprobantesMongoAsync/" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/" +
+          mes +
+          "/Emitido"
         );
         console.log(response.data);
         this.dialog = false;
@@ -546,13 +465,13 @@ export default {
         try {
           let response = await axios.post(
             this.rutaDescargas +
-              "Descargas/PostComprobantesMongoAsync/" +
-              this.token.rfc +
-              "/" +
-              this.selectedAnio +
-              "/" +
-              mes +
-              "/Emitido"
+            "Descargas/PostComprobantesMongoAsync/" +
+            this.token.rfc +
+            "/" +
+            this.selectedAnio +
+            "/" +
+            mes +
+            "/Emitido"
           );
           console.log(response.data);
         } catch (error) {
@@ -663,7 +582,7 @@ export default {
       chartDatas.datasets.push(ObjNotas);
       this.chartData = { ...chartDatas };
 
-      console.log(  this.chartData)
+      console.log(this.chartData)
       this.charTitleE = "Emitidos: " + this.FormatoMiles(sumaTotal);
     },
     // ── Verificar SAT ────────────────────────────────────────
