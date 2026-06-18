@@ -5,42 +5,42 @@
     </q-dialog>
 
     <q-header v-if="logueado" style="background:#E74747">
-            <q-toolbar style="min-height:60px">
+      <q-toolbar style="min-height:60px">
 
-                <q-btn flat dense round @click="irInicio" style="background:rgba(255,255,255,.12)">
-                    <q-icon name="mdi-home" color="white" size="23px" />
-                </q-btn>
+        <q-btn flat dense round @click="irInicio" style="background:rgba(255,255,255,.12)">
+          <q-icon name="mdi-home" color="white" size="23px" />
+        </q-btn>
 
-                <q-toolbar-title>
-                    <span style="font-size:16px;font-weight:500;letter-spacing:.01em">
-                        REPORTES
-                    </span>
-                </q-toolbar-title>
+        <q-toolbar-title>
+          <span style="font-size:16px;font-weight:500;letter-spacing:.01em">
+            REPORTES
+          </span>
+        </q-toolbar-title>
 
-                <div class="rfc-chip "  style="font-size:16px;">{{ $store.state.usuario.rfc }}</div>
+        <div class="rfc-chip " style="font-size:16px;">{{ $store.state.usuario.rfc }}</div>
 
-                <q-btn flat round dense class="header-btn" @click="irSolicitudCancelacion()">
-                    <q-icon name="mdi-bell" color="white" size="23px" />
-                    <q-badge color="red-8" floating style="font-size:9px">
-                        {{ cuentaSolicitudes }}
-                    </q-badge>
-                    <q-tooltip content-style="font-size:13px">
-                        Solicitudes de cancelación
-                    </q-tooltip>
-                </q-btn>
+        <q-btn flat round dense class="header-btn" @click="irSolicitudCancelacion()">
+          <q-icon name="mdi-bell" color="white" size="23px" />
+          <q-badge color="red-8" floating style="font-size:9px">
+            {{ cuentaSolicitudes }}
+          </q-badge>
+          <q-tooltip content-style="font-size:13px">
+            Solicitudes de cancelación
+          </q-tooltip>
+        </q-btn>
 
-                <q-btn flat round dense class="header-btn" @click="drawerEmpresas = !drawerEmpresas">
-                    <q-icon name="mdi-domain" color="white" size="23px" />
-                    <q-tooltip content-style="font-size:13px">Empresas</q-tooltip>
-                </q-btn>
+        <q-btn flat round dense class="header-btn" @click="drawerEmpresas = !drawerEmpresas">
+          <q-icon name="mdi-domain" color="white" size="23px" />
+          <q-tooltip content-style="font-size:13px">Empresas</q-tooltip>
+        </q-btn>
 
-                <q-btn flat round dense class="header-btn" @click="drawerPerfil = !drawerPerfil">
-                    <q-icon name="mdi-account" color="white" size="23px" />
-                    <q-tooltip content-style="font-size:13px">Perfil</q-tooltip>
-                </q-btn>
+        <q-btn flat round dense class="header-btn" @click="drawerPerfil = !drawerPerfil">
+          <q-icon name="mdi-account" color="white" size="23px" />
+          <q-tooltip content-style="font-size:13px">Perfil</q-tooltip>
+        </q-btn>
 
-            </q-toolbar>
-        </q-header>
+      </q-toolbar>
+    </q-header>
 
     <!-- DRAWER DERECHO -->
     <q-drawer :width="350" v-model="drawerPerfil" behavior="mobile" side="right" bordered>
@@ -576,24 +576,18 @@
                 </q-table>
               </div>
               <div class="row no-wrap justify-between q-mb-md">
-  <q-file
-    v-model="imagenFile"
-    label="Seleccionar imagen"
-    accept="image/*"
-    filled
-    class="full-width"
-     @input="onFileChange"
-  >
-    <template v-slot:prepend>
-      <q-icon name="image" />
-    </template>
-  </q-file>
-</div>
+                <q-file v-model="imagenFile" label="Seleccionar imagen" accept="image/*" filled class="full-width"
+                  @input="onFileChange">
+                  <template v-slot:prepend>
+                    <q-icon name="image" />
+                  </template>
+                </q-file>
+              </div>
 
-<!-- <span> span {{ imagenBase64 }}</span> -->
-<div v-if="imagenBase64" class="q-mb-md">
-  <img :src="imagenBase64" style="max-width:100%; border-radius: 10px;" />
-</div>
+              <!-- <span> span {{ imagenBase64 }}</span> -->
+              <div v-if="imagenBase64" class="q-mb-md">
+                <img :src="imagenBase64" style="max-width:100%; border-radius: 10px;" />
+              </div>
               <div class="row no-wrap justify-between q-mb-md">
                 <q-input v-model="comentarios" filled autogrow label="Comentarios" class="full-width" />
               </div>
@@ -1219,7 +1213,7 @@ export default {
       dataPremiumU: [],
       dataDieselU: [],
       dataAnual: [
-        
+
       ],
       columnsAnual: [
         {
@@ -1280,7 +1274,7 @@ export default {
       ivaExento: false,
 
       imagenFile: null,
-    imagenBase64: null,
+      imagenBase64: null,
     };
   },
 
@@ -1319,30 +1313,30 @@ export default {
   },
   methods: {
     irInicio() {
-            this.$router.push({ name: 'Home' })
-        },
-        irSolicitudCancelacion() {
-            this.$router.push({ name: 'SolicitudCancelacion' })
-        },
-        async getSolicitudes() {
-            try {
-                this.$q.loading.show({
-                    spinner: QSpinnerCube,
-                    spinnerColor: 'red-8',
-                    spinnerSize: 140,
-                    message: 'Consultando...'
-                })
-                const { data } = await axios.get(
-                    `${this.rutaAxios}Comprobante/GetSolicitudesCancelacionAsync/${this.token.rfc}`
-                )
-                this.cuentaSolicitudes = data.length
-            } catch (e) {
-                console.error(e)
-            } finally {
-                this.$q.loading.hide()
-            }
-        },
-         checkConcentradosSelected(sectionName) {
+      this.$router.push({ name: 'Home' })
+    },
+    irSolicitudCancelacion() {
+      this.$router.push({ name: 'SolicitudCancelacion' })
+    },
+    async getSolicitudes() {
+      try {
+        this.$q.loading.show({
+          spinner: QSpinnerCube,
+          spinnerColor: 'red-8',
+          spinnerSize: 140,
+          message: 'Consultando...'
+        })
+        const { data } = await axios.get(
+          `${this.rutaAxios}Comprobante/GetSolicitudesCancelacionAsync/${this.token.rfc}`
+        )
+        this.cuentaSolicitudes = data.length
+      } catch (e) {
+        console.error(e)
+      } finally {
+        this.$q.loading.hide()
+      }
+    },
+    checkConcentradosSelected(sectionName) {
       const section = this.sections[sectionName];
       if (!section || !section.items) return false;
 
@@ -3860,7 +3854,7 @@ export default {
         this.dataAnticiposIngresos,
         this.dataAnticiposGastos,
         this.dataCuentasPagar,
-        this.dataCuentasCobrar, 
+        this.dataCuentasCobrar,
         this.imagenBase64
 
       );
@@ -3914,54 +3908,54 @@ export default {
 
 
       //CONSULTAMOS LO DE LOS EXENTOS
-      if(this.ivaExento){
-                    const porcentajeE = await this.getPorcentajeExento();
-                    
-                    this.columns.push(
-                        { name: 'porcentajeE', align: 'right', label: 'porcentajeE', field: 'porcentajeE' }
-                    );
-                    // this.columns.push(
-                    //     { name: 'calculoE', align: 'right', label: 'calculoE', field: 'calculoE' }
-                    // );
+      if (this.ivaExento) {
+        const porcentajeE = await this.getPorcentajeExento();
 
-                    let contE = 0;
-                    for(let i of this.dataComprobantes ){
-                        // if(i.ivaFavor > 0){
-                            const calculo = i.importeIvaAcreditado * porcentajeE[contE]
-                            console.log(calculo)
-                            this.dataComprobantes[contE].porcentajeE = porcentajeE[contE];
-                            this.dataComprobantes[contE].calculoE = parseFloat(calculo.toFixed(2));
-                            this.dataComprobantes[contE].importeIvaAcreditado = parseFloat(calculo.toFixed(2));
+        this.columns.push(
+          { name: 'porcentajeE', align: 'right', label: 'porcentajeE', field: 'porcentajeE' }
+        );
+        // this.columns.push(
+        //     { name: 'calculoE', align: 'right', label: 'calculoE', field: 'calculoE' }
+        // );
 
-                            //RECALCULAMOS
-                            const ivaCargo_ = this.dataComprobantes[contE].importeIvaTrasladado;
-                            const ivaAcreditado_ = this.dataComprobantes[contE].importeIvaAcreditado;
-                            const ivaRetenido_ = this.dataComprobantes[contE].ivaRetenido;
-                            const ivaRetenidoAnterior_ = this.dataComprobantes[contE].ivaRetenidoAnterior;
-                            
-                            const calculo_ = parseFloat((ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_).toFixed(2));
-                            if (calculo_ > 0) {
-                                this.dataComprobantes[contE].ivaCargo = calculo_
-                                this.dataComprobantes[contE].ivaFavor = 0
-                            } else {
-                                this.dataComprobantes[contE].ivaCargo = 0
-                                if(calculo_ != 0){
-                                    this.dataComprobantes[contE].ivaFavor = calculo_ * -1
-                                }else{
-                                    this.dataComprobantes[contE].ivaFavor = calculo_ 
-                                }
-                            }
+        let contE = 0;
+        for (let i of this.dataComprobantes) {
+          // if(i.ivaFavor > 0){
+          const calculo = i.importeIvaAcreditado * porcentajeE[contE]
+          console.log(calculo)
+          this.dataComprobantes[contE].porcentajeE = porcentajeE[contE];
+          this.dataComprobantes[contE].calculoE = parseFloat(calculo.toFixed(2));
+          this.dataComprobantes[contE].importeIvaAcreditado = parseFloat(calculo.toFixed(2));
 
-                            let comparativa_ = (this.dataComprobantes[contE].ivaCargo - this.dataComprobantes[contE].ivaFavor - this.dataComprobantes[contE].cargoRegistrado + this.dataComprobantes[contE].favorRegistrado) * -1
-                            if (comparativa_ != 0) {
-                                comparativa_ = comparativa_ * -1;
-                            }
-                            this.dataComprobantes[contE].comparativa = comparativa_;
-                            contE++;
-                        // }
-                    }
-                }
-      
+          //RECALCULAMOS
+          const ivaCargo_ = this.dataComprobantes[contE].importeIvaTrasladado;
+          const ivaAcreditado_ = this.dataComprobantes[contE].importeIvaAcreditado;
+          const ivaRetenido_ = this.dataComprobantes[contE].ivaRetenido;
+          const ivaRetenidoAnterior_ = this.dataComprobantes[contE].ivaRetenidoAnterior;
+
+          const calculo_ = parseFloat((ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_).toFixed(2));
+          if (calculo_ > 0) {
+            this.dataComprobantes[contE].ivaCargo = calculo_
+            this.dataComprobantes[contE].ivaFavor = 0
+          } else {
+            this.dataComprobantes[contE].ivaCargo = 0
+            if (calculo_ != 0) {
+              this.dataComprobantes[contE].ivaFavor = calculo_ * -1
+            } else {
+              this.dataComprobantes[contE].ivaFavor = calculo_
+            }
+          }
+
+          let comparativa_ = (this.dataComprobantes[contE].ivaCargo - this.dataComprobantes[contE].ivaFavor - this.dataComprobantes[contE].cargoRegistrado + this.dataComprobantes[contE].favorRegistrado) * -1
+          if (comparativa_ != 0) {
+            comparativa_ = comparativa_ * -1;
+          }
+          this.dataComprobantes[contE].comparativa = comparativa_;
+          contE++;
+          // }
+        }
+      }
+
 
 
       this.$q.loading.hide();
@@ -4847,9 +4841,13 @@ export default {
     async GetReporteISRTodo() {
       await this.GetReporteNomina();
       await this.GetReporteIsr();
-      await this.GetReporteIsrEmitidoAsync();
+      await this.ReporteIsrEmitidoAsync();
     },
-    async GetReporteIsrEmitidoAsync() {
+
+    async ReporteIsrEmitidoAsync() {
+      console.log('GetReporteIsrEmitidoAsync')
+      let comparativa = await this.GetComparativa(this.selectedAnio, 'ISRRetenidoFavor');
+      console.log('comparativa comparativa', comparativa)
       try {
         let fechaI = this.selectedAnio + "-01-01";
         let fechaF = this.selectedAnio + "-" + this.selectedMesF.value + "-01";
@@ -4863,17 +4861,38 @@ export default {
           "/" +
           fechaF
         );
-        console.log("isr emitido", response);
+        console.log("ISRRetenidoFavor", response);
         this.dataISRRetenidoFavor = response.data;
 
+        let mesFin = this.selectedMesF.value;
+
+        for (let a = 0; a < mesFin; a++) {
+
+          // Si no viene información del API, crear el registro
+          if (!this.dataISRRetenidoFavor[a]) {
+            this.dataISRRetenidoFavor[a] = {
+              mes: a + 1,
+              importe: 0,
+              detalles: []
+            };
+          }
+
+          // Si no existe la comparativa, usar 0
+          let importeComparativa = comparativa[a]?.importe || 0;
+
+          this.dataISRRetenidoFavor[a].comparativa = importeComparativa;
+
+          this.dataISRRetenidoFavor[a].diferencia =
+            this.dataISRRetenidoFavor[a].importe - importeComparativa;
+        }
         let totales = {
           detalles: [],
-          mes: "Total",
-          importe: this.dataISRRetenidoFavor.reduce(
-            (acumulador, objeto) => acumulador + objeto.importe,
-            0
-          ),
-        };
+          mes: 'Total',
+          importe: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.importe, 0),
+          comparativa: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
+          diferencia: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.diferencia, 0),
+        }
+
         this.dataISRRetenidoFavor.push(totales);
       } catch (error) {
         console.log(error);
@@ -7807,7 +7826,7 @@ export default {
         //CONSULTANOS LAS COMPARATIVAS
         this.dataIvaRetenidoNeteado = [];
         let ivaRetenido = [];
-        let comparativaIva = await this.GetComparativa(this.selectedAnio, "IVARetenido");
+        let comparativaIva = await this.GetComparativa(this.selectedAnio, "IVARetenidoEmitido");
         this.dialogtext = "Calculando IVA Retenido";
 
         let añoSel = this.selectedAnio - 1;
@@ -7828,11 +7847,15 @@ export default {
         console.log("GetReporteIvaRetenidoNeteadoAsync", response);
         //ASIGNAMOS LAS COMPARATIVAS
         for (let a = 1; a <= mesFin; a++) {
-          let diferencia = ivaRetenido[a].importeIva - 0;
+          // let diferencia = ivaRetenido[a].importeIva - 0;
+          let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe
+
           let objIva = {
             mes: ivaRetenido[a].mes,
             importeIva: ivaRetenido[a].importeIva,
-            comparativa: 0,
+            // comparativa: 0,
+            comparativa: comparativaIva[a - 1].importe,
+
             diferencia: diferencia,
             detalles: ivaRetenido[a].detalles,
           };
@@ -7904,7 +7927,7 @@ export default {
     async runAll() {
       for (let i = 0; i < this.tasks.length; i++) {
         await this.runTask(i);
-        if (this.tasks[i].status === "error") break;  
+        if (this.tasks[i].status === "error") break;
       }
       await this.GetDeclaraciones();
     },
@@ -8047,27 +8070,27 @@ export default {
       console.log('cuentaspagar', this.dataCuentasPagar)
     },
 
-    onFileChange (file) {
-    if (!file) return
+    onFileChange(file) {
+      if (!file) return
 
-    const reader = new FileReader()
+      const reader = new FileReader()
 
-    reader.onload = (e) => {
-      this.imagenBase64 = e.target.result
-      console.log('Base64:', this.imagenBase64)
-    }
+      reader.onload = (e) => {
+        this.imagenBase64 = e.target.result
+        console.log('Base64:', this.imagenBase64)
+      }
 
-    reader.readAsDataURL(file)
-  },
+      reader.readAsDataURL(file)
+    },
 
-  async guardarDeclaraciones(){
-    this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
-      console.log(this.dataAnual)  
+    async guardarDeclaraciones() {
+      this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
+      console.log(this.dataAnual)
       let objeto = {
-        _id : '',
+        _id: '',
         año: this.selectedAnio,
         mesI: this.selectedMesI.label,
-        mesF:this.selectedMesF.label,
+        mesF: this.selectedMesF.label,
         data: this.dataAnual
       }
 
@@ -8086,16 +8109,16 @@ export default {
         console.log(error)
         this.$q.loading.hide()
       }
-  },
+    },
 
-  async GetDeclaraciones() {
+    async GetDeclaraciones() {
       this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Consultando...' })
       this.dataAnual = []
       try {
         let response = await axios.get(this.rutaAxios + 'ReporteGeneral/GetDeclaracionesAnuelaes/' + this.token.rfc + '/' + this.selectedAnio + '/' + this.selectedMesI.label + '/' + this.selectedMesF.label);
         let x = response.data;
         console.log('declaraciones', x)
-        if (x==''){
+        if (x == '') {
           this.dataAnual = [
             {
               columna1: "COEFICIENTE DE UTILIDAD DEL EJERCICIO",
@@ -8118,7 +8141,7 @@ export default {
             { columna1: "PÉRDIDA FISCAL ", columna2: 0, columna3: 0, columna4: 0 },
             { columna1: "UTILIDAD FISCAL", columna2: 0, columna3: 0, columna4: 0 }
           ]
-        }else{
+        } else {
           this.dataAnual = x.data
         }
         this.$q.loading.hide()

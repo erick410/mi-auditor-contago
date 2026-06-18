@@ -1391,7 +1391,7 @@ export async function generarReporte(
 
   console.log('dataISRRetenidoFavor', dataISRRetenidoFavor)
   let suma6 = dataISRRetenidoFavor.reduce(
-    (acumulador, objeto) => acumulador + objeto.importe,
+    (acumulador, objeto) => acumulador + objeto.comparativa,
     0
   );
 
@@ -1406,10 +1406,12 @@ export async function generarReporte(
 
     autoTable(doc, {
       startY: y,
-      head: [["Mes", "Importe"]],
+      head: [["Mes", "Importe","Comparativa","Diferencia"]],
       body: dataISRRetenidoFavor.map((x) => [
         mesNumeroALetra(x.mes),
         formatoPesos(x.importe),
+        formatoPesos(x.comparativa),
+        formatoPesos(x.diferencia),
       ]),
       headStyles: {
         fillColor: "#E74747",
@@ -1426,6 +1428,8 @@ export async function generarReporte(
         1: { halign: "right" },
         2: { halign: "right" },
         3: { halign: "right" },
+        4: { halign: "right" },
+        5: { halign: "right" },
       },
       didParseCell: function (data) {
         if (data.section === "body") {

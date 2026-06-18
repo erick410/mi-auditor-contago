@@ -17,8 +17,8 @@
             <q-card>
                 <q-toolbar>
                     <q-btn flat round dense icon="close" v-close-popup color="red-14">
-                        <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
-                            :offset="[10, 10]">Cerrar</q-tooltip>
+                        <q-tooltip transition-show="flip-right" transition-hide="flip-left"
+                            content-style="font-size: 14px" :offset="[10, 10]">Cerrar</q-tooltip>
                     </q-btn>
                     <q-toolbar-title><span class="text-weight-bold">{{ textoNotas }}</span></q-toolbar-title>
                 </q-toolbar>
@@ -38,7 +38,8 @@
         </q-dialog>
 
         <!-- DIALOG DE LOS DETALLES DE ISR POR HONORARIOS Y ARRENDAMIENTOS -->
-        <q-dialog v-model="dialogDetallesIsrAfavor" persistent transition-show="scale" transition-hide="scale" maximized>
+        <q-dialog v-model="dialogDetallesIsrAfavor" persistent transition-show="scale" transition-hide="scale"
+            maximized>
             <DetallesIsrAfavor @CloseDialogDetalles="CloseDialogDetalles"></DetallesIsrAfavor>
         </q-dialog>
 
@@ -123,8 +124,9 @@
             <template v-slot:body="props">
                 <q-tr :props="props" :class="'clase-total-' + props.row.mes">
                     <q-td auto-width>
-                        <q-btn size="md" color="primary" rounded flat dense @click="VerDetalles(props.row, 'ASIMILADOS')"
-                            icon="mdi-format-list-bulleted" v-if="props.row.detalles.length != 0">
+                        <q-btn size="md" color="primary" rounded flat dense
+                            @click="VerDetalles(props.row, 'ASIMILADOS')" icon="mdi-format-list-bulleted"
+                            v-if="props.row.detalles.length != 0">
                             <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                 content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
                         </q-btn>
@@ -157,8 +159,9 @@
             <template v-slot:body="props">
                 <q-tr :props="props" :class="'clase-total-' + props.row.mes">
                     <q-td auto-width>
-                        <q-btn size="md" color="primary" rounded flat dense @click="VerDetalles(props.row, 'SUELDOS OTROS')"
-                            icon="mdi-format-list-bulleted" v-if="props.row.detalles.length != 0">
+                        <q-btn size="md" color="primary" rounded flat dense
+                            @click="VerDetalles(props.row, 'SUELDOS OTROS')" icon="mdi-format-list-bulleted"
+                            v-if="props.row.detalles.length != 0">
                             <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                 content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
                         </q-btn>
@@ -226,8 +229,9 @@
             <template v-slot:body="props">
                 <q-tr :props="props" :class="'clase-total-' + props.row.mes">
                     <q-td auto-width>
-                        <q-btn size="md" color="primary" rounded flat dense @click="VerDetallesIsr(props.row, 'HONORARIOS')"
-                            icon="mdi-format-list-bulleted" v-if="props.row.detalles.length != 0">
+                        <q-btn size="md" color="primary" rounded flat dense
+                            @click="VerDetallesIsr(props.row, 'HONORARIOS')" icon="mdi-format-list-bulleted"
+                            v-if="props.row.detalles.length != 0">
                             <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                 content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
                         </q-btn>
@@ -260,8 +264,9 @@
             <template v-slot:body="props">
                 <q-tr :props="props" :class="'clase-total-' + props.row.mes">
                     <q-td auto-width>
-                        <q-btn size="md" color="primary" rounded flat dense @click="VerDetallesIsr(props.row, 'DEMAS INGRESOS')"
-                            icon="mdi-format-list-bulleted" v-if="props.row.detalles.length != 0">
+                        <q-btn size="md" color="primary" rounded flat dense
+                            @click="VerDetallesIsr(props.row, 'DEMAS INGRESOS')" icon="mdi-format-list-bulleted"
+                            v-if="props.row.detalles.length != 0">
                             <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                 content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
                         </q-btn>
@@ -284,17 +289,18 @@
                     padding="xs">
                     <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
                         :offset="[10, 10]">Información</q-tooltip>
-                </q-btn>
-                <q-btn push color="green-14" @click="OpenComparativa(6)" icon="mdi-compare" rounded flat size="18px"
+                </q-btn>-->
+                <q-btn push color="green-14" @click="OpenComparativa(7)" icon="mdi-compare" rounded flat size="18px"
                     padding="xs">
                     <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
                         :offset="[10, 10]">Comparativa</q-tooltip>
-                </q-btn> -->
+                </q-btn>
             </template>
             <template v-slot:body="props">
                 <q-tr :props="props" :class="'clase-total-' + props.row.mes">
                     <q-td auto-width>
-                        <q-btn size="md" color="primary" rounded flat dense @click="VerDetallesIsrafavor(props.row, 'ISR Retenido a Favor')"
+                        <q-btn size="md" color="primary" rounded flat dense
+                            @click="VerDetallesIsrafavor(props.row, 'ISR Retenido a Favor')"
                             icon="mdi-format-list-bulleted" v-if="props.row.detalles.length != 0">
                             <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                 content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
@@ -302,20 +308,20 @@
                     </q-td>
                     <q-td key="mes" :props="props">{{ mesNumeroALetra(props.row.mes) }}</q-td>
                     <q-td key="importe" :props="props">{{ formatCurrency(props.row.importe) }}</q-td>
-                    <!-- <q-td key="comparativa" :props="props">{{ formatCurrency(props.row.comparativa) }}</q-td> -->
-                    <!-- <q-td key="diferencia" :props="props">{{ formatCurrency(props.row.diferencia) }}</q-td> -->
+                    <q-td key="comparativa" :props="props">{{ formatCurrency(props.row.comparativa) }}</q-td>
+                    <q-td key="diferencia" :props="props">{{ formatCurrency(props.row.diferencia) }}</q-td>
                 </q-tr>
             </template>
         </q-table>
 
         <!-- GRAFICA-->
         <q-card style="width: 100%; " class="full-width q-mt-lg">
-            <chart-component :chartData="chartData1" :chartTitle="charTitleE1"  ></chart-component>
+            <chart-component :chartData="chartData1" :chartTitle="charTitleE1"></chart-component>
         </q-card>
 
         <!-- GRAFICA-->
         <q-card style="width: 100%; " class="full-width q-mt-lg">
-            <chart-component :chartData="chartData2" :chartTitle="charTitleE2"  ></chart-component>
+            <chart-component :chartData="chartData2" :chartTitle="charTitleE2"></chart-component>
         </q-card>
     </div>
 </template>
@@ -333,13 +339,13 @@ export default {
     components: {
         DetallesNomina,
         Comparativa,
-            ChartComponent,
+        ChartComponent,
         DetallesIsr,
         DetallesIsrAfavor
     },
     data() {
         return {
-            itemsAnios: ['2026','2025','2024','2023', '2022', '2021', '2020', '2019', '2018'],
+            itemsAnios: ['2026', '2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018'],
             itemsMes: [
                 { label: 'ENERO', value: 1 },
                 { label: 'FEBRERO', value: 2 },
@@ -370,6 +376,8 @@ export default {
                 { name: 'actions', align: 'left', label: 'Acciones', field: 'actions' },
                 { name: 'mes', align: 'left', label: 'Mes', field: 'mes' },
                 { name: 'importe', align: 'right', label: 'Importe', field: 'importe' },
+                { name: 'comparativa', align: 'right', label: 'Comparativa', field: 'comparativa' },
+                { name: 'diferencia', align: 'right', label: 'Diferencia', field: 'diferencia' },
             ],
             dataSueldos: [],
             dataAsimilados: [],
@@ -378,7 +386,7 @@ export default {
             dataArrendamientos: [],
             dataHonorarios: [],
             dataDemasIngresos: [],
-            dataISRRetenidoFavor:[],
+            dataISRRetenidoFavor: [],
             //DATOS DE CARGANDO
             dialog: false,
             dialogtext: '',
@@ -497,7 +505,7 @@ export default {
                 this.dataAsimilados = res[1];
                 this.dataOtros = res[2];
                 console.log(this.dataSueldos);
-                await this.GenerarGrafica(this.dataSueldos,this.dataAsimilados,this.dataOtros);
+                await this.GenerarGrafica(this.dataSueldos, this.dataAsimilados, this.dataOtros);
 
                 let mesFin = this.selectedMes.value;
                 //ASIGNAMOS LAS COMPARATIVAS
@@ -549,78 +557,78 @@ export default {
             }
         },
 
-        async GenerarGrafica(dataSueldos,dataAsimilados,dataOtros){
-                   const meses = dataSueldos.map((item) => item.mes);
-                    const sueldos = dataSueldos.map((item) => item.importe);
-                    const asimilados = dataAsimilados.map((item) => item.importe);
-                    const otros = dataAsimilados.map((item) => item.importe);
+        async GenerarGrafica(dataSueldos, dataAsimilados, dataOtros) {
+            const meses = dataSueldos.map((item) => item.mes);
+            const sueldos = dataSueldos.map((item) => item.importe);
+            const asimilados = dataAsimilados.map((item) => item.importe);
+            const otros = dataAsimilados.map((item) => item.importe);
 
-                    let obj1 = {
-                        type: 'line',
-                        label: 'Sueldos y salarios (Linea)',
-                        borderColor: '#FFA726',
-                        borderWidth: 2,
-                        fill: false,
-                        data: sueldos
-                    }
+            let obj1 = {
+                type: 'line',
+                label: 'Sueldos y salarios (Linea)',
+                borderColor: '#FFA726',
+                borderWidth: 2,
+                fill: false,
+                data: sueldos
+            }
 
-                    let obj2 = {
-                        type: 'bar',
-                        label: 'Sueldos y salarios (Barra)',
-                        backgroundColor: '#FFA726',
-                        data: sueldos,
-                        borderColor: 'white',
-                        borderWidth: 2
-                    }
+            let obj2 = {
+                type: 'bar',
+                label: 'Sueldos y salarios (Barra)',
+                backgroundColor: '#FFA726',
+                data: sueldos,
+                borderColor: 'white',
+                borderWidth: 2
+            }
 
-                    let obj3 = {
-                        type: 'line',
-                        label: 'Asimilados (Linea)',
-                        borderColor: '#66BB6A',
-                        borderWidth: 2,
-                        fill: false,
-                        data: asimilados
-                    }
+            let obj3 = {
+                type: 'line',
+                label: 'Asimilados (Linea)',
+                borderColor: '#66BB6A',
+                borderWidth: 2,
+                fill: false,
+                data: asimilados
+            }
 
-                    let obj4 = {
-                        type: 'bar',
-                        label: 'Asimilados (Barra)',
-                        backgroundColor: '#66BB6A',
-                        data: asimilados,
-                        borderColor: 'white',
-                        borderWidth: 2
-                    }
-                    let obj5 = {
-                        type: 'line',
-                        label: 'Otros (Linea)',
-                        borderColor: '#E74747',
-                        borderWidth: 2,
-                        fill: false,
-                        data: otros
-                    }
+            let obj4 = {
+                type: 'bar',
+                label: 'Asimilados (Barra)',
+                backgroundColor: '#66BB6A',
+                data: asimilados,
+                borderColor: 'white',
+                borderWidth: 2
+            }
+            let obj5 = {
+                type: 'line',
+                label: 'Otros (Linea)',
+                borderColor: '#E74747',
+                borderWidth: 2,
+                fill: false,
+                data: otros
+            }
 
-                    let obj6 = {
-                        type: 'bar',
-                        label: 'Otros (Barra)',
-                        backgroundColor: '#E74747',
-                        data: otros,
-                        borderColor: 'white',
-                        borderWidth: 2
-                    }
-                    let chartDatas = {
-                        labels: meses,
-                        datasets: []
-                    }
+            let obj6 = {
+                type: 'bar',
+                label: 'Otros (Barra)',
+                backgroundColor: '#E74747',
+                data: otros,
+                borderColor: 'white',
+                borderWidth: 2
+            }
+            let chartDatas = {
+                labels: meses,
+                datasets: []
+            }
 
-                    chartDatas.datasets.push(obj1)
-                    chartDatas.datasets.push(obj2)
-                    chartDatas.datasets.push(obj3)
-                    chartDatas.datasets.push(obj4)
-                    chartDatas.datasets.push(obj5)
-                    chartDatas.datasets.push(obj6)
-                    this.chartData2 = { ...chartDatas }
-                    console.log(this.chartData2)
-            },
+            chartDatas.datasets.push(obj1)
+            chartDatas.datasets.push(obj2)
+            chartDatas.datasets.push(obj3)
+            chartDatas.datasets.push(obj4)
+            chartDatas.datasets.push(obj5)
+            chartDatas.datasets.push(obj6)
+            this.chartData2 = { ...chartDatas }
+            console.log(this.chartData2)
+        },
 
         async GetReporteIsr() {
             try {
@@ -637,8 +645,8 @@ export default {
                 this.dataArrendamientos = response.data[0];
                 this.dataHonorarios = response.data[1];
                 this.dataDemasIngresos = response.data[2];
-                
-                await this.GenerarGrafica1(this.dataArrendamientos,this.dataHonorarios);
+
+                await this.GenerarGrafica1(this.dataArrendamientos, this.dataHonorarios);
 
                 let mesFin = this.selectedMes.value;
 
@@ -688,8 +696,8 @@ export default {
                 console.log(error);
             }
         },
-        
-        async GenerarGrafica1(dataArrendamientos,dataHonorarios){
+
+        async GenerarGrafica1(dataArrendamientos, dataHonorarios) {
             const meses = dataArrendamientos.map((item) => item.mes);
             const arrendamientos = dataArrendamientos.map((item) => item.importe);
             const honorarios = dataHonorarios.map((item) => item.importe);
@@ -729,7 +737,7 @@ export default {
                 borderColor: 'white',
                 borderWidth: 2
             }
-            
+
             let chartDatas = {
                 labels: meses,
                 datasets: []
@@ -742,7 +750,7 @@ export default {
             this.chartData1 = { ...chartDatas }
             console.log(this.chartData1)
         },
-        
+
         VerDetalles(item, tipo) {
             this.$store.state.detallesIsrStore.detalles = [...item.detalles]
             this.$store.state.detallesIsrStore.tipo = tipo
@@ -905,6 +913,13 @@ export default {
 
                 respuesta = await this.GetComparativa(this.selectedAnio, 'DemasIngresos');
             }
+            if (item == 7) {
+                this.comparativa.textoComparativa = 'ISR Retenido a Favor';
+                this.comparativa.año = this.selectedAnio;
+                this.comparativa.tipo = 'ISRRetenidoFavor';
+
+                respuesta = await this.GetComparativa(this.selectedAnio, 'ISRRetenidoFavor');
+            }
 
             this.comparativa.comparativa.enero = respuesta[0].importe;
             this.comparativa.comparativa.febrero = respuesta[1].importe;
@@ -949,6 +964,8 @@ export default {
         },
 
         async GetReporteIsrEmitidoAsync() {
+            let comparativa = await this.GetComparativa(this.selectedAnio, 'ISRRetenidoFavor');
+            console.log('comparativa', comparativa)
             try {
                 let fechaI = this.selectedAnio + "-01-01";
                 let fechaF = this.selectedAnio + "-" + this.selectedMes.value + "-01";
@@ -963,13 +980,36 @@ export default {
                     fechaF
                 );
                 console.log("isr emitido", response);
-                this.dataISRRetenidoFavor= response.data;
+                this.dataISRRetenidoFavor = response.data;
+                let mesFin = this.selectedMes.value;
 
+                for (let a = 0; a < mesFin; a++) {
+
+                    // Si no viene información del API, crear el registro
+                    if (!this.dataISRRetenidoFavor[a]) {
+                        this.dataISRRetenidoFavor[a] = {
+                            mes: a + 1,
+                            importe: 0,
+                            detalles: []
+                        };
+                    }
+
+                    // Si no existe la comparativa, usar 0
+                    let importeComparativa = comparativa[a]?.importe || 0;
+
+                    this.dataISRRetenidoFavor[a].comparativa = importeComparativa;
+
+                    this.dataISRRetenidoFavor[a].diferencia =
+                        this.dataISRRetenidoFavor[a].importe - importeComparativa;
+                }
                 let totales = {
                     detalles: [],
                     mes: 'Total',
                     importe: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.importe, 0),
+                    comparativa: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
+                    diferencia: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.diferencia, 0),
                 }
+
                 this.dataISRRetenidoFavor.push(totales)
 
             } catch (error) {
