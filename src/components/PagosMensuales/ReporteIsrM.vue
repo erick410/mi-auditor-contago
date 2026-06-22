@@ -771,7 +771,7 @@ export default {
         VerDetallesIsrafavor(item, tipo) {
             console.log(item.detalles)
             this.$store.state.detallesIsrMStore.cabecera = tipo;
-            this.$store.state.detallesIsrMStore.origen = "ISR"
+            this.$store.state.detallesIsrMStore.origen = "ISR RETENIDO A FAVOR - " + item.mes
             this.$store.state.detallesIsrMStore.tipo = tipo
             this.$store.state.detallesIsrMStore.detalles = [...item.detalles]
             this.dialogDetallesIsrAfavor = true;

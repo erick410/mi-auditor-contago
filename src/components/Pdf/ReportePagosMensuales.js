@@ -1456,8 +1456,11 @@ export async function generarReporte(
   y += 10; // espacio entre secciones
 
   let ultimo = provisionalesISR[provisionalesISR.length - 1]
-console.log('provisionalesISR',provisionalesISR)
-  // if (ultimo.comparativa != 0) {
+
+  console.log('provisionalesISR',provisionalesISR)
+
+ if (provisionalesISR.length != 0) {
+
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     y = agregarTextoConSaltos(doc, "PAGOS PROVISIONALES DE ISR", 40, y, 520, 14);
@@ -1477,12 +1480,15 @@ console.log('provisionalesISR',provisionalesISR)
 
     y += 10; // espacio entre secciones
 
+
     const columnasOcultables = ["ptuPagada", "perdidasFiscalesPorAplicar", "accionesD", "accionesG"];
 
-    const filaTotales = provisionalesISR[provisionalesISR.length - 1];
+    const filaTotales = provisionalesISR && provisionalesISR.length > 0
+        ? provisionalesISR[provisionalesISR.length - 1]
+        : {};
 
     const ocultarColumnas = columnasOcultables.every(
-      (field) => Number(filaTotales[field] || 0) === 0
+        (field) => Number(filaTotales[field] || 0) === 0
     );
 
     let columnasFinales = columnas;
@@ -1582,7 +1588,7 @@ console.log('provisionalesISR',provisionalesISR)
       14 // lineHeight
     );
 
-  //}
+  }
   y += 10; // espacio entre secciones
 
   doc.setFontSize(11);

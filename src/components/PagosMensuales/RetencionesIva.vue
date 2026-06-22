@@ -32,6 +32,11 @@
             <detalles @CloseDialogDetalles="CloseDialogDetalles"></detalles>
         </q-dialog>
 
+        <!-- DIALOG DE LOS DETALLES -->
+        <q-dialog v-model="dialogDetallesEmitido" persistent transition-show="scale" transition-hide="scale" maximized>
+            <DetallesRetEmitidos @CloseDialogDetalles="CloseDialogDetalles"></DetallesRetEmitidos>
+        </q-dialog>
+
         <!-- DIALOG DE LA COMPARATIVA -->
         <q-dialog v-model="dialogComparativa" persistent transition-show="scale" transition-hide="scale">
             <comparativa @CloseDialogDetalles="CloseDialogDetalles"></comparativa>
@@ -98,7 +103,7 @@
             <template v-slot:top>
                 <span class="text-body1" content-style="font-size: 20px">IVA Retenido Emitido</span>
                 <q-space />
-                
+
                 <q-btn push color="green-14" @click="OpenComparativa(2)" icon="mdi-compare" rounded flat size="18px"
                     padding="xs">
                     <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
@@ -109,7 +114,7 @@
                 <q-tr :props="props" :class="'clase-total-' + props.row.mes">
                     <q-td auto-width>
                         <q-btn size="md" color="primary" rounded flat dense
-                            @click="VerDetalles(props.row, 'IVA Retenido Recibidos')" icon="mdi-format-list-bulleted"
+                            @click="VerDetallesEmitido(props.row, 'IVA Retenido Emitido')" icon="mdi-format-list-bulleted"
                             v-if="props.row.detalles.length != 0">
                             <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                 content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
@@ -136,12 +141,13 @@ import Detalles from './RetencionesIvaDet.vue';
 import Comparativa from '../Nomina/ComparativaNomina.vue';
 import * as xlsx from 'xlsx';
 import ChartComponent from "../Graficas/ChartComponent.vue";
-
+import DetallesRetEmitidos from "./RetencionesIvaEmitidoDet.vue"
 export default {
     components: {
         Comparativa,
         ChartComponent,
         Detalles,
+        DetallesRetEmitidos
     },
     data() {
         return {
@@ -192,7 +198,8 @@ export default {
             charTitleE: 'Retenciones de IVA',
             chartData: null,
 
-            dataIvaRetenidoNeteado: []
+            dataIvaRetenidoNeteado: [],
+            dialogDetallesEmitido:false
         }
     },
     computed: {
@@ -242,6 +249,7 @@ export default {
                 ivaRetenido = response.data;
                 let mesFin = this.selectedMes.value;
 
+                console.log('ivaRetenido', ivaRetenido)
                 //ASIGNAMOS LAS COMPARATIVAS
                 for (let a = 1; a <= mesFin; a++) {
                     let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe
@@ -285,32 +293,34 @@ export default {
                 let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
                 ivaRetenido = response.data;
                 let mesFin = this.selectedMes.value;
-                console.log(response)
+
+                const MESES = ['', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+                   'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
+
                 //ASIGNAMOS LAS COMPARATIVAS
                 for (let a = 1; a <= mesFin; a++) {
-                    let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe
+                    let itemMes = ivaRetenido.find(x => x.mes === a)
+                    if (!itemMes) continue
 
-                    // let diferencia = ivaRetenido[a].importeIva - 0
+                    let diferencia = itemMes.importeIva - comparativaIva[a - 1].importe
+
                     let objIva = {
-                        mes: ivaRetenido[a].mes,
-                        importeIva: ivaRetenido[a].importeIva,
+                        mes: MESES[a], 
+                        importeIva: itemMes.importeIva,
                         comparativa: comparativaIva[a - 1].importe,
-                        // comparativa: 0,
                         diferencia: diferencia,
-                        detalles: ivaRetenido[a].detalles,
+                        detalles: itemMes.detalles,
                     }
-                    this.dataIvaRetenidoNeteado.push(objIva);
-                    objIva = {};
+                    this.dataIvaRetenidoNeteado.push(objIva)
                 }
 
                 let totales = {
                     mes: 'Total',
-                    importeIva: this.dataIvaRetenidoNeteado.reduce((acumulador, objeto) => acumulador + objeto.importeIva, 0),
-                    comparativa: this.dataIvaRetenidoNeteado.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
-                    diferencia: this.dataIvaRetenidoNeteado.reduce((acumulador, objeto) => acumulador + objeto.diferencia, 0),
+                    importeIva: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.importeIva, 0),
+                    comparativa: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.comparativa, 0),
+                    diferencia: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.diferencia, 0),
                     detalles: [],
                 }
-
                 this.dataIvaRetenidoNeteado.push(totales)
 
             } catch (error) {
@@ -362,6 +372,18 @@ export default {
             }
             this.$store.state.detallesIvaRet = { ...objDetalle }
             this.dialogDetalles = true;
+        },
+
+        VerDetallesEmitido(item, tipo) {
+            console.log(item);
+            const objDetalle = {
+                año: this.selectedAnio,
+                mes: item.mes,
+                detalles: item.detalles,
+                cabecera: "IVA RETENIDO EMITIDO"
+            }
+            this.$store.state.detallesIvaRet = { ...objDetalle }
+            this.dialogDetallesEmitido = true;
         },
 
         // ExportExcel() {
@@ -459,6 +481,7 @@ export default {
             this.dialogComparativa = false;
             this.dialogDetalles = false;
             this.dialogDetallesIsr = false;
+            this.dialogDetallesEmitido = false;
         },
 
         ShowNotifsWarning(mensaje) {

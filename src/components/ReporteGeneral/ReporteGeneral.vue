@@ -4246,7 +4246,7 @@ export default {
         (await this.GetReporteIvaCompletoEmitidos(rfc, fechaI, fechaF)) || [];
       const recibidos =
         (await this.GetReporteIvaCompletoRecibidos(rfc, fechaI, fechaF)) || [];
-      const ivaRet = (await this.GetIvaRetenido()) || [];
+      const ivaRet = (await this.GetReporteIvaRetenidoNeteadoAsync()) || [];
       const comp = (await this.GetComparativaIva(this.selectedAnio, "IVA")) || [];
       const meses = [
         "ENERO",
@@ -4285,12 +4285,11 @@ export default {
           .filter((item) => item.mes?.toUpperCase() === mes)
           .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-        console.log("Retenido", ivaRet);
-        const ivaRetenido = ivaRet
-          .filter((item) => item.mes?.toUpperCase() === mes)
-          .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+          const ivaRetenido = ivaRet
+    .filter(item => item.mes?.toUpperCase() === mes)
+    .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-        const ivaRetenidoAnterior = ivaRet[x]?.importeIva || 0;
+const ivaRetenidoAnterior = ivaRet.find(item => item.mes?.toUpperCase() === mes)?.importeIva || 0;
 
         let ivaCargo = 0;
         let ivaFavor = 0;
@@ -4456,13 +4455,21 @@ export default {
           .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
         // console.log("Retenido", ivaRet);
-        const ivaRetenido = ivaRet
-          .filter(
-            (item) => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio
-          )
-          .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+        // const ivaRetenido = ivaRet
+        //   .filter(
+        //     (item) => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio
+        //   )
+        //   .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-        const ivaRetenidoAnterior = ivaRet[x]?.importeIva || 0;
+        // const ivaRetenidoAnterior = ivaRet[x]?.importeIva || 0;
+
+
+        const ivaRetenido = ivaRet
+    .filter(item => item.mes?.toUpperCase() === mes)
+    .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+
+const ivaRetenidoAnterior = ivaRet.find(item => item.mes?.toUpperCase() === mes)?.importeIva || 0;
+
 
         let ivaCargo = 0;
         let ivaFavor = 0;
@@ -4633,19 +4640,38 @@ export default {
         console.log(error);
       }
     },
-    async GetReporteIvaRetenidoNeteadoAsync() {
-      try {
-        let añoSel = this.selectedAnio - 1
-        let fechaI = añoSel + '-' + '12' + '-01';
-        let fechaF = this.selectedAnio + '-' + this.selectedMesF.value + '-01';
+    // async GetReporteIvaRetenidoNeteadoAsync() {
+    //   try {
+    //     let añoSel = this.selectedAnio - 1
+    //     let fechaI = añoSel + '-' + '12' + '-01';
+    //     let fechaF = this.selectedAnio + '-' + this.selectedMesF.value + '-01';
 
-        let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
-        console.log('nueva', response)
-        return response.data;
-      } catch (error) {
+    //     let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
+        
+        
+    //     return response.data;
+    //   } catch (error) {
+    //     console.log(error)
+    //   }
+    // },
+
+    async GetReporteIvaRetenidoNeteadoAsync() {
+    try {
+        const MESES = ['', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+                           'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
+
+        let añoSel = this.selectedAnio - 1
+        let fechaI = añoSel + '-' + '12' + '-01'
+        let fechaF = this.selectedAnio + '-' + this.selectedMesF.value + '-01'
+
+        let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF)
+
+        return response.data.map(x => ({ ...x, mes: MESES[x.mes] }))
+
+    } catch (error) {
         console.log(error)
-      }
-    },
+    }
+},
 
     async GetReporteIvaCompletoEmitidos(rfc, fechaI, fechaF) {
       try {
@@ -7821,6 +7847,7 @@ export default {
 
       return resultado;
     },
+    
     async GetReporteIVARetenidoNeteado() {
       try {
         //CONSULTANOS LAS COMPARATIVAS
@@ -7844,41 +7871,34 @@ export default {
         );
         ivaRetenido = response.data;
         let mesFin = this.selectedMesF.value;
-        console.log("GetReporteIvaRetenidoNeteadoAsync", response);
-        //ASIGNAMOS LAS COMPARATIVAS
-        for (let a = 1; a <= mesFin; a++) {
-          // let diferencia = ivaRetenido[a].importeIva - 0;
-          let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe
+        
+        const MESES = ['', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+                   'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
 
-          let objIva = {
-            mes: ivaRetenido[a].mes,
-            importeIva: ivaRetenido[a].importeIva,
-            // comparativa: 0,
-            comparativa: comparativaIva[a - 1].importe,
+                //ASIGNAMOS LAS COMPARATIVAS
+                for (let a = 1; a <= mesFin; a++) {
+                    let itemMes = ivaRetenido.find(x => x.mes === a)
+                    if (!itemMes) continue
 
-            diferencia: diferencia,
-            detalles: ivaRetenido[a].detalles,
-          };
-          this.dataIvaRetenidoNeteado.push(objIva);
-          objIva = {};
-        }
+                    let diferencia = itemMes.importeIva - comparativaIva[a - 1].importe
 
-        let totales = {
-          mes: "Total",
-          importeIva: this.dataIvaRetenidoNeteado.reduce(
-            (acumulador, objeto) => acumulador + objeto.importeIva,
-            0
-          ),
-          comparativa: this.dataIvaRetenidoNeteado.reduce(
-            (acumulador, objeto) => acumulador + objeto.comparativa,
-            0
-          ),
-          diferencia: this.dataIvaRetenidoNeteado.reduce(
-            (acumulador, objeto) => acumulador + objeto.diferencia,
-            0
-          ),
-          detalles: [],
-        };
+                    let objIva = {
+                        mes: MESES[a], 
+                        importeIva: itemMes.importeIva,
+                        comparativa: comparativaIva[a - 1].importe,
+                        diferencia: diferencia,
+                        detalles: itemMes.detalles,
+                    }
+                    this.dataIvaRetenidoNeteado.push(objIva)
+                }
+
+                let totales = {
+                    mes: 'Total',
+                    importeIva: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.importeIva, 0),
+                    comparativa: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.comparativa, 0),
+                    diferencia: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.diferencia, 0),
+                    detalles: [],
+                }
 
         this.dataIvaRetenidoNeteado.push(totales);
       } catch (error) {

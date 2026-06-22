@@ -84,6 +84,15 @@
                         </q-item-section>
                     </q-item>
                     <q-separator />
+                    <q-item active clickable v-ripple @click="irRetenciones">
+                        <q-item-section avatar>
+                            <q-icon name="mdi-file-xml-box" />
+                        </q-item-section>
+                        <q-item-section>
+                            Descarga Retenciones
+                        </q-item-section>
+                    </q-item>
+                    <q-separator />
                     <!-- <q-item active clickable v-ripple @click="irDescargasMetadata">
                         <q-item-section avatar>
                             <q-icon name="mdi-package-down" />
@@ -191,6 +200,9 @@ export default {
         },
         irDescargasWebService(){
             this.$router.push({ name: 'DescargasWebService' })
+        },
+        irRetenciones(){
+            this.$router.push({ name: 'Retenciones' })
         },
         async getSolicitudes() {
             try {

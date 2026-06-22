@@ -28,6 +28,8 @@
             <DescargasCFDI v-if="seccion === 'cfdi'" />
             <!-- <DescargasUUID v-if="seccion === 'uuid'" /> -->
             <DescargasMetadata v-if="seccion === 'metadata'" />
+
+            <DescargasRetenciones v-if="seccion === 'retenciones'" />
         </div>
 
     </div>
@@ -37,10 +39,10 @@
 import DescargasCFDI from './DescargasXMLS.vue'
 // import DescargasUUID from './DescargasUUID.vue'
 import DescargasMetadata from './DescargasMetadata.vue'
-
+import DescargasRetenciones from './DescargasRetenciones.vue'
 export default {
     name: 'Descargas',
-    components: { DescargasCFDI, DescargasMetadata },
+    components: { DescargasCFDI, DescargasMetadata, DescargasRetenciones  },
 
     data() {
         return {
@@ -48,7 +50,7 @@ export default {
             secciones: [
                 { value: 'cfdi', label: 'CFDI', icon: 'mdi-file-document-multiple-outline' },
                 { value: 'metadata', label: 'Metadata', icon: 'mdi-table-search' },
-            ],
+                { value: 'retenciones', label: 'Retenciones', icon: 'mdi-file-percent-outline' },  ],
         }
     },
 

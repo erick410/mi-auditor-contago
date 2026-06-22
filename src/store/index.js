@@ -90,7 +90,7 @@ export default new Vuex.Store({
     listaHistorialDescargasMetadataStore: [],
     listaHistorialDescargasCFDIStore: [],
     listaHistorialDescargasUUIDStore: [],
-
+    listaHistorialRetencionesStore: [],
     //REPORTES MENSUALES
     detallesIvaMensualExentoStore: {},
     detallesIvaMensualTasa16Store: {},

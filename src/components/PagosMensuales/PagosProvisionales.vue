@@ -772,6 +772,8 @@ export default {
                         this.$q.loading.hide()
                         break;
                 }
+                this.$q.loading.hide()
+
             }
         },
 

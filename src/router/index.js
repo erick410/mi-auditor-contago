@@ -56,6 +56,7 @@ import Descargas from "../components/Descargas/Descargas.vue";
 import DescargasWebService from "../components/Descargas/DescargasWebService.vue";
 import DescargasXMLS from "../components/Descargas/DescargasXMLS.vue";
 import DescargasMetadata from "../components/Descargas/DescargasMetadata.vue";
+import Retenciones from "../components/Descargas/Retenciones.vue"
 
 import MainPagosMensuales from "../components/PagosMensuales/MainPagosMensuales.vue";
 import PagosMensuales from "../components/PagosMensuales/PagosMensuales.vue";
@@ -704,6 +705,12 @@ const routes = [
         path: "DescargasWebService",
         component: DescargasWebService,
         name: "DescargasWebService",
+        meta: { Administrador: true, Gasolinero: true },
+      },
+      {
+        path: "Retenciones",
+        component: Retenciones,
+        name: "Retenciones",
         meta: { Administrador: true, Gasolinero: true },
       },
     ],
