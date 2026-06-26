@@ -202,7 +202,7 @@ export default {
       fechaInicial: '',
       fechaFinal:   '',
 
-      catAnios: ['2026','2025','2024','2023','2022','2021','2020','2019','2018'],
+      catAnios: ['2026','2025','2024','2023','2022','2021','2020','2019','2018', '2017', '2016'],
       catMeses: [
         { label: 'ENERO',      value: 1  }, { label: 'FEBRERO',    value: 2  },
         { label: 'MARZO',      value: 3  }, { label: 'ABRIL',      value: 4  },

@@ -78,13 +78,15 @@ const agregarPaginaFlujoComparativa = async (
 
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
-  y = agregarTextoConSaltos(doc, "COMPARATIVA FLUJO EMITIDO - RECIBIDO", 40, y, 520, 14);
-  y += 5; // espacio entre secciones
+  // y = agregarTextoConSaltos(doc, "COMPARATIVA FLUJO EMITIDO - RECIBIDO", 40, y, 520, 14);
+  // y += 5; // espacio entre secciones
 
   const agrupado = agruparPorMoneda(resumen)
 
   Object.keys(agrupado).forEach(moneda => {
-
+console.log(moneda)
+    y = agregarTextoConSaltos(doc, "COMPARATIVA FLUJO EMITIDO - RECIBIDO (" + moneda.toUpperCase() + ")", 40, y, 520, 14);
+    y += 5; // espacio entre secciones
 
     const contenido = generarContenidoTabla(agrupado[moneda])
 
@@ -1532,7 +1534,7 @@ export async function generarReporte(
       headStyles: {
         fillColor: "#E74747",
         textColor: "#FFF",
-        fontSize: 4,
+        fontSize:4,
         halign: "center",
         valign: "middle",
       },
@@ -3262,6 +3264,16 @@ if (user === 'admin') {
 } else if (user === 'lude') {
   y += 12;
   doc.text("CP FRANCISCO SADA", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
+  y += 10;
+  doc.text("ALIANZAS ESTRATÉGICAS LAUDEM AVE", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
+
+}else if (user === 'jorge torres') {
+  y += 12;
+  doc.text("CP JORGE ALBERTO TORRES FERNÁNDEZ", doc.internal.pageSize.width / 2, y, {
     align: "center",
   });
   y += 10;

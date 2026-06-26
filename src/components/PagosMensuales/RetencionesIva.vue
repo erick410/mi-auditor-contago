@@ -151,7 +151,7 @@ export default {
     },
     data() {
         return {
-            itemsAnios: ['2026', '2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018'],
+            itemsAnios: ['2026', '2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016'],
             itemsMes: [
                 { label: 'ENERO', value: 1 },
                 { label: 'FEBRERO', value: 2 },
@@ -280,6 +280,54 @@ export default {
             }
         },
 
+        // async GetReporteIVARetenidoNeteado() {
+        //     try {
+        //         //CONSULTANOS LAS COMPARATIVAS
+        //         this.dataIvaRetenidoNeteado = [];
+        //         let ivaRetenido = [];
+        //         let comparativaIva = await this.GetComparativa(this.selectedAnio, 'IVARetenidoEmitido');
+        //         this.dialogtext = 'Calculando IVA Retenido'
+        //         let añoSel = this.selectedAnio - 1
+        //         let fechaI = añoSel + '-' + '12' + '-01';
+        //         let fechaF = this.selectedAnio + '-' + this.selectedMes.value + '-01';
+        //         let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
+        //         ivaRetenido = response.data;
+        //         let mesFin = this.selectedMes.value;
+
+        //         const MESES = ['', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+        //            'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
+
+        //         //ASIGNAMOS LAS COMPARATIVAS
+        //         for (let a = 1; a <= mesFin; a++) {
+        //             let itemMes = ivaRetenido.find(x => x.mes === a)
+        //             if (!itemMes) continue
+
+        //             let diferencia = itemMes.importeIva - comparativaIva[a - 1].importe
+
+        //             let objIva = {
+        //                 mes: MESES[a], 
+        //                 importeIva: itemMes.importeIva,
+        //                 comparativa: comparativaIva[a - 1].importe,
+        //                 diferencia: diferencia,
+        //                 detalles: itemMes.detalles,
+        //             }
+        //             this.dataIvaRetenidoNeteado.push(objIva)
+        //         }
+
+        //         let totales = {
+        //             mes: 'Total',
+        //             importeIva: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.importeIva, 0),
+        //             comparativa: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.comparativa, 0),
+        //             diferencia: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.diferencia, 0),
+        //             detalles: [],
+        //         }
+        //         this.dataIvaRetenidoNeteado.push(totales)
+
+        //     } catch (error) {
+        //         console.log(error);
+        //     }
+        //}   ,
+
         async GetReporteIVARetenidoNeteado() {
             try {
                 //CONSULTANOS LAS COMPARATIVAS
@@ -293,41 +341,54 @@ export default {
                 let response = await axios.get(this.rutaAxios + 'Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_' + this.token.rfc + '/' + fechaI + '/' + fechaF);
                 ivaRetenido = response.data;
                 let mesFin = this.selectedMes.value;
-
-                const MESES = ['', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
-                   'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
-
+                console.log(response)
                 //ASIGNAMOS LAS COMPARATIVAS
+
                 for (let a = 1; a <= mesFin; a++) {
-                    let itemMes = ivaRetenido.find(x => x.mes === a)
-                    if (!itemMes) continue
+                    let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe
 
-                    let diferencia = itemMes.importeIva - comparativaIva[a - 1].importe
-
+                    // let diferencia = ivaRetenido[a].importeIva - 0
                     let objIva = {
-                        mes: MESES[a], 
-                        importeIva: itemMes.importeIva,
+                        mes: ivaRetenido[a].mes,
+                        importeIva: ivaRetenido[a].importeIva,
                         comparativa: comparativaIva[a - 1].importe,
+                        // comparativa: 0,
                         diferencia: diferencia,
-                        detalles: itemMes.detalles,
+                        detalles: ivaRetenido[a].detalles,
+                        detallesConstancia: ivaRetenido[a].detallesConstancia,
                     }
-                    this.dataIvaRetenidoNeteado.push(objIva)
+                    this.dataIvaRetenidoNeteado.push(objIva);
+                    objIva = {};
                 }
+
+                // for (let a = 1; a <= mesFin; a++) {
+                //     let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe
+                //     let objIva = {
+                //         mes: ivaRetenido[a].mes,
+                //         importeIva: ivaRetenido[a].importeIva,
+                //         comparativa: comparativaIva[a - 1].importe,
+                //         diferencia: diferencia,
+                //         detalles: ivaRetenido[a].detalles,
+                //     }
+                //     this.dataIvaRetenidoNeteado.push(objIva);
+                //     objIva = {};
+                // }
+                // console.log(dataIvaRetenidoNeteado)
 
                 let totales = {
                     mes: 'Total',
-                    importeIva: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.importeIva, 0),
-                    comparativa: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.comparativa, 0),
-                    diferencia: this.dataIvaRetenidoNeteado.reduce((acc, o) => acc + o.diferencia, 0),
+                    importeIva: this.dataIvaRetenidoNeteado.reduce((acumulador, objeto) => acumulador + objeto.importeIva, 0),
+                    comparativa: this.dataIvaRetenidoNeteado.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
+                    diferencia: this.dataIvaRetenidoNeteado.reduce((acumulador, objeto) => acumulador + objeto.diferencia, 0),
                     detalles: [],
                 }
+
                 this.dataIvaRetenidoNeteado.push(totales)
 
             } catch (error) {
                 console.log(error);
             }
         },
-
 
         async GenerarGrafica(data) {
             const meses = data.map((item) => item.mes);

@@ -136,7 +136,7 @@ export default new Vuex.Store({
 
     //RUTA DEL AXIOS MONGO
     rutaMongoStore: 'https://api-mongo.contago.com.mx/api/',
-    // rutaMongoStore: "https://localhost:44322/api/",
+    //  rutaMongoStore: "https://localhost:44322/api/",
 
     // rutaDescargas: 'https://localhost:44389/api/',
     rutaDescargas: 'https://descargaswebservice.contago.com.mx/api/',

@@ -22,8 +22,8 @@
                     </div>
                 </q-card-section>
             </q-card>
-            <q-table title="IVA Retenido Emitido" :filter="filter" class="my-sticky-column-table" :data="item.detalles"
-                :columns="columns" row-key="folioFiscal" :rows-per-page-options="[10]">
+            <q-table title="IVA Retenido Emitido Constancias" :filter="filter" class="my-sticky-column-table" :data="item.detallesConstancia"
+                :columns="columnsConstancias" row-key="folioFiscal" :rows-per-page-options="[10]">
                 <template v-slot:top-right>
                     <q-input filled dense debounce="300" v-model="filter" placeholder="Filtrar">
                         <template v-slot:append>
@@ -59,6 +59,41 @@
                 </template>
             </q-table>
 
+            <q-table title="IVA Retenido Emitido Comprobates" :filter="filter" class="my-sticky-column-table" :data="item.detalles"
+                :columns="columns" row-key="folioFiscal" :rows-per-page-options="[10]">
+                <template v-slot:top-right>
+                    <q-input filled dense debounce="300" v-model="filter" placeholder="Filtrar">
+                        <template v-slot:append>
+                            <q-icon name="search" />
+                        </template>
+                    </q-input>
+                </template>
+                <template v-slot:body="props">
+                    <q-tr :props="props"  >
+                        
+                        <q-td key="serie" :props="props">{{ props.row.serie }}</q-td>
+                        <q-td key="folio" :props="props">{{ props.row.folio }}</q-td>
+                        <q-td key="fecha" :props="props">{{ formatDate(props.row.fecha) }}</q-td>
+                        <q-td key="fechaPago" :props="props">{{ formatDate(props.row.fechaPago) }}</q-td>
+                        <q-td key="rfc" :props="props">{{ props.row.rfc }}</q-td>
+                        <q-td key="nombre" :props="props">{{ props.row.nombre }}</q-td>
+                        <q-td key="metodoPago" :props="props">{{ props.row.metodoPago }}</q-td>
+                        <q-td key="base_" :props="props">{{ formatCurrency(props.row.base_) }}</q-td>
+                        <q-td key="impuesto" :props="props">{{ props.row.impuesto }}</q-td>
+                        <q-td key="tipoFactor" :props="props">{{ props.row.tipoFactor }}</q-td>
+                        <q-td key="tasaOCuota" :props="props">{{ props.row.tasaOCuota }}</q-td>
+                        <q-td key="importe" :props="props">{{  formatCurrency(props.row.importe) }}</q-td>
+                        <q-td key="impPagado" :props="props">{{  formatCurrency(props.row.impPagado) }}</q-td>
+                        <q-td key="moneda" :props="props">{{ props.row.moneda }}</q-td>
+                        <q-td key="tipoCambio" :props="props">{{ props.row.tipoCambio }}</q-td>
+                        <q-td key="formaPago" :props="props">{{ props.row.formaPago }}</q-td>
+                        <q-td key="tipoComprobante" :props="props">{{ props.row.tipoComprobante }}</q-td>
+                        <q-td key="folioFiscal" :props="props">{{ props.row.folioFiscal }}</q-td>
+                        <q-td key="folioFiscalPago" :props="props">{{ props.row.folioFiscalPago }}</q-td>
+                        <q-td key="porcentaje" :props="props">{{ props.row.porcentaje }}</q-td>
+                    </q-tr>
+                </template>
+            </q-table>
         </q-page>
     </div>
 </template>
@@ -74,7 +109,31 @@ export default {
     data() {
         return {
             columns: [
+    { name: 'serie', label: 'Serie', field: 'serie', align: 'left', sortable: true },
+    { name: 'folio', label: 'Folio', field: 'folio', align: 'left', sortable: true },
+    { name: 'fecha', label: 'Fecha', field: 'fecha', align: 'left', sortable: true, format: val => val ? val.substring(0, 10) : '' },
+    { name: 'fechaPago', label: 'Fecha Pago', field: 'fechaPago', align: 'left', sortable: true, format: val => val ? val.substring(0, 10) : '' },
+    { name: 'rfc', label: 'RFC', field: 'rfc', align: 'left', sortable: true },
+    { name: 'nombre', label: 'Nombre', field: 'nombre', align: 'left', sortable: true },
+    { name: 'metodoPago', label: 'Método Pago', field: 'metodoPago', align: 'left', sortable: true },
+    { name: 'base_', label: 'Base', field: 'base_', align: 'right', sortable: true, format: val => `$${val?.toFixed(2)}` },
+    { name: 'impuesto', label: 'Impuesto', field: 'impuesto', align: 'left', sortable: true },
+    { name: 'tipoFactor', label: 'Tipo Factor', field: 'tipoFactor', align: 'left', sortable: true },
+    { name: 'tasaOCuota', label: 'Tasa/Cuota', field: 'tasaOCuota', align: 'right', sortable: true, format: val => `${(val * 100).toFixed(0)}%` },
+    { name: 'importe', label: 'Importe', field: 'importe', align: 'right', sortable: true, format: val => `$${val?.toFixed(2)}` },
+    { name: 'impPagado', label: 'Imp. Pagado', field: 'impPagado', align: 'right', sortable: true, format: val => `$${val?.toFixed(2)}` },
+    { name: 'moneda', label: 'Moneda', field: 'moneda', align: 'left', sortable: true },
+    { name: 'tipoCambio', label: 'Tipo Cambio', field: 'tipoCambio', align: 'right', sortable: true },
+    { name: 'formaPago', label: 'Forma Pago', field: 'formaPago', align: 'left', sortable: true },
+    { name: 'tipoComprobante', label: 'Tipo', field: 'tipoComprobante', align: 'center', sortable: true },
+    { name: 'folioFiscal', label: 'Folio Fiscal', field: 'folioFiscal', align: 'left', sortable: true },
+    { name: 'folioFiscalPago', label: 'Folio Fiscal Pago', field: 'folioFiscalPago', align: 'left', sortable: true },
+    { name: 'porcentaje', label: 'Porcentaje', field: 'porcentaje', align: 'right', sortable: true, format: val => `${val?.toFixed(2)}%` },
+],
+
+            columnsConstancias: [
                 { name: "acciones", align: "left", label: "Acciones", field: "acciones", sortable: true, },
+
                 { name: "uuid", align: "left", label: "Folio Fiscal", field: "uuid", sortable: true, },
                 { name: "folioInt", align: "left", label: "Folio", field: "folioInt", sortable: true, },
                 { name: "fechaTimbrado", align: "left", label: "Fecha", field: "fechaTimbrado", sortable: true, },

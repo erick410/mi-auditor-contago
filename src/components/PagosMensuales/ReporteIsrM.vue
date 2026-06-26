@@ -301,7 +301,7 @@
                     <q-td auto-width>
                         <q-btn size="md" color="primary" rounded flat dense
                             @click="VerDetallesIsrafavor(props.row, 'ISR Retenido a Favor')"
-                            icon="mdi-format-list-bulleted" v-if="props.row.detalles.length != 0">
+                            icon="mdi-format-list-bulleted"  >
                             <q-tooltip transition-show="flip-right" transition-hide="flip-left"
                                 content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
                         </q-btn>
@@ -345,7 +345,7 @@ export default {
     },
     data() {
         return {
-            itemsAnios: ['2026', '2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018'],
+            itemsAnios: ['2026', '2025', '2024', '2023', '2022', '2021', '2020', '2019', '2018', '2017', '2016'],
             itemsMes: [
                 { label: 'ENERO', value: 1 },
                 { label: 'FEBRERO', value: 2 },
@@ -769,11 +769,12 @@ export default {
         },
 
         VerDetallesIsrafavor(item, tipo) {
-            console.log(item.detalles)
+            console.log(item)
             this.$store.state.detallesIsrMStore.cabecera = tipo;
             this.$store.state.detallesIsrMStore.origen = "ISR RETENIDO A FAVOR - " + item.mes
             this.$store.state.detallesIsrMStore.tipo = tipo
             this.$store.state.detallesIsrMStore.detalles = [...item.detalles]
+            this.$store.state.detallesIsrMStore.detallesConstancia = [...item.detallesConstancia]
             this.dialogDetallesIsrAfavor = true;
         },
 
@@ -963,61 +964,161 @@ export default {
             }
         },
 
+        // async GetReporteIsrEmitidoAsync() {
+        //     let comparativa = await this.GetComparativa(this.selectedAnio, 'ISRRetenidoFavor');
+        //     console.log('comparativa', comparativa)
+        //     try {
+        //         let fechaI = this.selectedAnio + "-01-01";
+        //         let fechaF = this.selectedAnio + "-" + this.selectedMes.value + "-01";
+
+        //         let response = await axios.get(
+        //             this.rutaAxios +
+        //             "Ingresos/ReporteIsrEmitidoAsync/erp_" +
+        //             this.token.rfc +
+        //             "/" +
+        //             fechaI +
+        //             "/" +
+        //             fechaF
+        //         );
+        //         console.log("isr emitido", response);
+        //         this.dataISRRetenidoFavor = response.data;
+        //         let mesFin = this.selectedMes.value;
+
+        //         for (let a = 0; a < mesFin; a++) {
+
+        //             // Si no viene información del API, crear el registro
+        //             if (!this.dataISRRetenidoFavor[a]) {
+        //                 this.dataISRRetenidoFavor[a] = {
+        //                     mes: a + 1,
+        //                     importe: 0,
+        //                     detalles: []
+        //                 };
+        //             }
+
+        //             // Si no existe la comparativa, usar 0
+        //             let importeComparativa = comparativa[a]?.importe || 0;
+
+        //             this.dataISRRetenidoFavor[a].comparativa = importeComparativa;
+
+        //             this.dataISRRetenidoFavor[a].diferencia =
+        //                 this.dataISRRetenidoFavor[a].importe - importeComparativa;
+        //         }
+        //         let totales = {
+        //             detalles: [],
+        //             mes: 'Total',
+        //             importe: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.importe, 0),
+        //             comparativa: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
+        //             diferencia: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.diferencia, 0),
+        //         }
+
+        //         this.dataISRRetenidoFavor.push(totales)
+
+        //     } catch (error) {
+        //         console.log(error);
+        //         this.$q.loading.hide();
+        //     }
+        // },
+
+        // async GetReporteIsrEmitidoAsync() {
+        //     let comparativa = await this.GetComparativa(this.selectedAnio, 'ISRRetenidoFavor');
+        //     console.log('comparativa', comparativa)
+        //     try {
+        //         let fechaI = this.selectedAnio + "-01-01";
+        //         let fechaF = this.selectedAnio + "-" + this.selectedMes.value + "-01";
+
+        //         let response = await axios.get(
+        //             this.rutaAxios +
+        //             "Ingresos/ReporteIsrEmitidoAsync/erp_" +
+        //             this.token.rfc +
+        //             "/" +
+        //             fechaI +
+        //             "/" +
+        //             fechaF
+        //         );
+        //         console.log("isr emitido", response);
+        //         this.dataISRRetenidoFavor = response.data;
+        //         let mesFin = this.selectedMes.value;
+
+        //         for (let a = 0; a < mesFin; a++) {
+
+        //             if (!this.dataISRRetenidoFavor[a]) {
+        //                 this.dataISRRetenidoFavor[a] = {
+        //                     mes: a + 1,
+        //                     importe: 0,
+        //                     detalles: []
+        //                 };
+        //             }
+
+        //             // Si no existe la comparativa, usar 0
+        //             let importeComparativa = comparativa[a]?.importe || 0;
+
+        //             this.dataISRRetenidoFavor[a].comparativa = importeComparativa;
+
+        //             this.dataISRRetenidoFavor[a].diferencia =
+        //                 this.dataISRRetenidoFavor[a].importe - importeComparativa;
+        //         }
+        //         let totales = {
+        //             detalles: [],
+        //             mes: 'Total',
+        //             importe: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.importe, 0),
+        //             comparativa: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
+        //             diferencia: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.diferencia, 0),
+        //         }
+
+        //         this.dataISRRetenidoFavor.push(totales)
+
+        //     } catch (error) {
+        //         console.log(error);
+        //         this.$q.loading.hide();
+        //     }
+        // },
+
         async GetReporteIsrEmitidoAsync() {
             let comparativa = await this.GetComparativa(this.selectedAnio, 'ISRRetenidoFavor');
-            console.log('comparativa', comparativa)
             try {
                 let fechaI = this.selectedAnio + "-01-01";
                 let fechaF = this.selectedAnio + "-" + this.selectedMes.value + "-01";
 
                 let response = await axios.get(
-                    this.rutaAxios +
-                    "Ingresos/ReporteIsrEmitidoAsync/erp_" +
-                    this.token.rfc +
-                    "/" +
-                    fechaI +
-                    "/" +
-                    fechaF
+                    this.rutaAxios + "Ingresos/ReporteIsrEmitidoAsync/erp_" +
+                    this.token.rfc + "/" + fechaI + "/" + fechaF
                 );
+
                 console.log("isr emitido", response);
-                this.dataISRRetenidoFavor = response.data;
-                let mesFin = this.selectedMes.value;
 
-                for (let a = 0; a < mesFin; a++) {
 
-                    // Si no viene información del API, crear el registro
-                    if (!this.dataISRRetenidoFavor[a]) {
-                        this.dataISRRetenidoFavor[a] = {
-                            mes: a + 1,
-                            importe: 0,
-                            detalles: []
-                        };
-                    }
+                let mesFin = parseInt(this.selectedMes.value);
+                let datos = response.data;
 
-                    // Si no existe la comparativa, usar 0
-                    let importeComparativa = comparativa[a]?.importe || 0;
+                this.dataISRRetenidoFavor = [];
 
-                    this.dataISRRetenidoFavor[a].comparativa = importeComparativa;
+                for (let m = 1; m <= mesFin; m++) {
+                    let item = datos.find(x => x.mes === m && x.año === parseInt(this.selectedAnio)) || {
+                        mes: m, año: this.selectedAnio, importe: 0, detalles: [], detallesConstancia: []
+                    };
 
-                    this.dataISRRetenidoFavor[a].diferencia =
-                        this.dataISRRetenidoFavor[a].importe - importeComparativa;
+                    let importeComparativa = comparativa[m - 1]?.importe || 0;
+                    item.comparativa = importeComparativa;
+                    item.diferencia = item.importe - importeComparativa;
+
+                    this.dataISRRetenidoFavor.push(item);
                 }
+
                 let totales = {
                     detalles: [],
                     mes: 'Total',
-                    importe: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.importe, 0),
-                    comparativa: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.comparativa, 0),
-                    diferencia: this.dataISRRetenidoFavor.reduce((acumulador, objeto) => acumulador + objeto.diferencia, 0),
-                }
+                    importe: this.dataISRRetenidoFavor.reduce((a, o) => a + o.importe, 0),
+                    comparativa: this.dataISRRetenidoFavor.reduce((a, o) => a + (o.comparativa || 0), 0),
+                    diferencia: this.dataISRRetenidoFavor.reduce((a, o) => a + (o.diferencia || 0), 0),
+                };
 
-                this.dataISRRetenidoFavor.push(totales)
+                this.dataISRRetenidoFavor.push(totales);
 
             } catch (error) {
                 console.log(error);
                 this.$q.loading.hide();
             }
         },
-
         mesNumeroALetra(mes) {
             const meses = [
                 "ENERO",
