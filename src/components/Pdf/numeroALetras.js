@@ -46,14 +46,16 @@ var numeroALetras = (function () {
                     case 5:
                         return 'QUINCE';
                     default:
-                        return 'DIECI' + Unidades(unidad);
+                        return 'DIECI' + (unidad === 6 ? 'SÉIS' : Unidades(unidad));
                 }
             case 2:
                 switch (unidad) {
                     case 0:
                         return 'VEINTE';
                     default:
-                        return 'VEINTI' + Unidades(unidad);
+                        // veintiuno->veintiún, veintidós, veintitrés y veintiséis llevan tilde
+                        // al combinarse (aunque "uno","dos","tres","seis" solos no la llevan)
+                        return 'VEINTI' + ({ 1: 'ÚN', 2: 'DÓS', 3: 'TRÉS', 6: 'SÉIS' }[unidad] || Unidades(unidad));
                 }
             case 3:
                 return DecenasY('TREINTA', unidad);
@@ -84,77 +86,76 @@ var numeroALetras = (function () {
     function Centenas(num) {
         let centenas = Math.floor(num / 100);
         let decenas = num - (centenas * 100);
+        let strDecenas = decenas > 0 ? ' ' + Decenas(decenas) : '';
 
         switch (centenas) {
             case 1:
                 if (decenas > 0)
-                    return 'CIENTO ' + Decenas(decenas);
+                    return 'CIENTO' + strDecenas;
                 return 'CIEN';
             case 2:
-                return 'DOSCIENTOS ' + Decenas(decenas);
+                return 'DOSCIENTOS' + strDecenas;
             case 3:
-                return 'TRESCIENTOS ' + Decenas(decenas);
+                return 'TRESCIENTOS' + strDecenas;
             case 4:
-                return 'CUATROCIENTOS ' + Decenas(decenas);
+                return 'CUATROCIENTOS' + strDecenas;
             case 5:
-                return 'QUINIENTOS ' + Decenas(decenas);
+                return 'QUINIENTOS' + strDecenas;
             case 6:
-                return 'SEISCIENTOS ' + Decenas(decenas);
+                return 'SEISCIENTOS' + strDecenas;
             case 7:
-                return 'SETECIENTOS ' + Decenas(decenas);
+                return 'SETECIENTOS' + strDecenas;
             case 8:
-                return 'OCHOCIENTOS ' + Decenas(decenas);
+                return 'OCHOCIENTOS' + strDecenas;
             case 9:
-                return 'NOVECIENTOS ' + Decenas(decenas);
+                return 'NOVECIENTOS' + strDecenas;
         }
 
         return Decenas(decenas);
     } //Centenas()
 
-    function Seccion(num, divisor, strSingular, strPlural) {
+    // NOTA: "num" aquí es el grupo de MILES (0 a 999,999), no el número completo.
+    // Antes se usaba Centenas(cientos) para nombrar el grupo, pero Centenas()
+    // solo entiende 0-999 — por eso se rompía con cifras de "mil millones" en adelante.
+    // Ahora se usa Miles(cientos) recursivamente, que sí sabe manejar hasta 999,999.
+    function Seccion(num, divisor, strSingular, strPlural, nombrarGrupo) {
         let cientos = Math.floor(num / divisor)
         let resto = num - (cientos * divisor)
 
         let letras = '';
 
-        if (cientos > 0)
+        if (cientos > 0) {
             if (cientos > 1)
-                letras = Centenas(cientos) + ' ' + strPlural;
+                letras = nombrarGrupo(cientos) + ' ' + strPlural;
             else
                 letras = strSingular;
+        }
 
-        if (resto > 0)
-            letras += '';
-
-        return letras;
+        return { letras, resto };
     } //Seccion()
 
     function Miles(num) {
         let divisor = 1000;
-        let cientos = Math.floor(num / divisor)
-        let resto = num - (cientos * divisor)
-
-        let strMiles = Seccion(num, divisor, 'MIL', 'MIL');
+        let { letras: strMiles, resto } = Seccion(num, divisor, 'MIL', 'MIL', Centenas);
         let strCentenas = Centenas(resto);
 
-        if (strMiles == '')
-            return strCentenas;
-
-        return strMiles + ' ' + strCentenas;
+        return [strMiles, strCentenas].filter(Boolean).join(' ');
     } //Miles()
 
     function Millones(num) {
         let divisor = 1000000;
-        let cientos = Math.floor(num / divisor)
-        let resto = num - (cientos * divisor)
-
-        let strMillones = Seccion(num, divisor, 'UN MILLON DE', 'MILLONES DE');
+        // "DE" solo aplica cuando el millón es EXACTO (sin resto): "UN MILLÓN DE PESOS".
+        // Si hay resto ("UN MILLÓN DOSCIENTOS MIL PESOS"), no lleva "DE".
+        let esExacto = (num % divisor) === 0;
+        let { letras: strMillones, resto } = Seccion(
+            num, divisor,
+            esExacto ? 'UN MILLÓN DE' : 'UN MILLÓN',
+            esExacto ? 'MILLONES DE' : 'MILLONES',
+            Miles // <- antes era Centenas; así ya soporta grupos de millones > 999 (miles de millones)
+        );
         let strMiles = Miles(resto);
 
-        if (strMillones == '')
-            return strMiles;
-
-        return strMillones + ' ' + strMiles;
+        return [strMillones, strMiles].filter(Boolean).join(' ');
     } //Millones()
 
     return function NumeroALetras(num, currency) {
@@ -168,8 +169,8 @@ var numeroALetras = (function () {
                     enteros: Math.floor(num),
                     centavos: (((Math.round(num * 100)) - (Math.floor(num) * 100))),
                     letrasCentavos: '',
-                    letrasMonedaPlural: currency.plural || 'PESOS', //'PESOS', 'Dólares', 'Bolívares', 'etcs'
-                    letrasMonedaSingular: currency.singular || 'PESO', //'PESO', 'Dólar', 'Bolivar', 'etc'
+                    letrasMonedaPlural: currency.plural || 'PESOS',
+                    letrasMonedaSingular: currency.singular || 'PESO',
                     letrasMonedaCentavoPlural: currency.centPlural || 'Centavos',
                     letrasMonedaCentavoSingular: currency.centSingular || 'Centavos',
                     monedaS: currency.moneda || 'M.N.'
@@ -182,8 +183,8 @@ var numeroALetras = (function () {
                     enteros: Math.floor(num),
                     centavos: (((Math.round(num * 100)) - (Math.floor(num) * 100))),
                     letrasCentavos: '',
-                    letrasMonedaPlural: currency.plural || 'DÓLARES', //'PESOS', 'Dólares', 'Bolívares', 'etcs'
-                    letrasMonedaSingular: currency.singular || 'DÓLAR', //'PESO', 'Dólar', 'Bolivar', 'etc'
+                    letrasMonedaPlural: currency.plural || 'DÓLARES',
+                    letrasMonedaSingular: currency.singular || 'DÓLAR',
                     letrasMonedaCentavoPlural: currency.centPlural || 'Centavos',
                     letrasMonedaCentavoSingular: currency.centSingular || 'Centavos',
                     monedaS: currency.moneda || 'USD'
@@ -196,8 +197,8 @@ var numeroALetras = (function () {
                     enteros: Math.floor(num),
                     centavos: (((Math.round(num * 100)) - (Math.floor(num) * 100))),
                     letrasCentavos: '',
-                    letrasMonedaPlural: currency.plural || 'EUROS', //'PESOS', 'Dólares', 'Bolívares', 'etcs'
-                    letrasMonedaSingular: currency.singular || 'EURO', //'PESO', 'Dólar', 'Bolivar', 'etc'
+                    letrasMonedaPlural: currency.plural || 'EUROS',
+                    letrasMonedaSingular: currency.singular || 'EURO',
                     letrasMonedaCentavoPlural: currency.centPlural || 'Centavos',
                     letrasMonedaCentavoSingular: currency.centSingular || 'Centavos',
                     monedaS: currency.moneda || 'EUR'
@@ -208,10 +209,9 @@ var numeroALetras = (function () {
 
         if (data.centavos >= 0) {
             data.letrasCentavos = 'CON ' + (function () {
-                if (data.centavos == 0)
-                    return '00/100 ' + data.monedaS;
-                else
-                    return data.centavos + '/100 ' + data.monedaS;
+                // padStart asegura "01/100" en vez de "1/100"
+                let centavosTexto = String(data.centavos).padStart(2, '0');
+                return centavosTexto + '/100 ' + data.monedaS;
             })();
         };
 

@@ -46,7 +46,8 @@
     import { QSpinnerCube } from 'quasar';
     import pdf from 'vue-pdf';
     import { generarCodigoQR } from './qrcodeGenerator.js';
-    import { ComprobanteBase64 } from './ComprobanteBase64.js';
+    // import { ComprobanteBase64 } from './ComprobanteBase64.js';
+    import pdfComprobante from '../../pdf/pdfComprobante.js';
     import { CartaPorte30Base64 } from './CartaPorte30Base64.js';
     import { Pago20Base64 } from './ComprobantePagoBase64.js';
     import { ComercioExterior20 } from './ComercioExterior20.js';
@@ -144,7 +145,7 @@
                 this.splitterModel = 40
                 let rfc = this.vistaPrevia.rfc;
                 let folioFiscal = this.vistaPrevia.folioFiscal;
-                let color = "#" + this.vistaPrevia.color;
+                let color = `#${this.vistaPrevia.color}`;
                 let tipoComprobanteInterno = this.vistaPrevia.tipoComprobanteInterno;
                 let logo = this.ObjLogo;
 
@@ -182,7 +183,8 @@
                     let base64 = ''
                     switch (tipoComprobanteInterno) {
                         case "FACTURA":
-                            base64 = await ComprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
+                            base64 = await pdfComprobante.comprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
+                            // base64 = await ComprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
                             break;
                         case "NOTA CREDITO":
                             base64 = await ComprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
@@ -211,7 +213,7 @@
                 this.splitterModel = 40
                 let rfc = this.vistaPrevia.rfc;
                 let folioFiscal = this.vistaPrevia.folioFiscal;
-                let color = "#" + this.vistaPrevia.color;
+                let color = `#${this.vistaPrevia.color}`;
                 let tipoComprobanteInterno = this.vistaPrevia.tipoComprobanteInterno;
                 let logo = this.ObjLogo;
 
@@ -246,7 +248,8 @@
                     let base64 = ''
                     switch (tipoComprobanteInterno) {
                         case "FACTURA":
-                            base64 = await ComprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
+                            base64 = await pdfComprobante.comprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
+                            // base64 = await ComprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
                             break;
                         case "PAGO":
                             base64 = await Pago20Base64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);

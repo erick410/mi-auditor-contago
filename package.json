@@ -20,6 +20,7 @@
     "jwt-decode": "^3.1.2",
     "luxon": "^3.4.3",
     "moment": "^2.29.4",
+    "pdfmake": "0.2.10",
     "qrcode": "^1.5.3",
     "quasar": "^1.0.0",
     "v-money": "^0.8.1",
