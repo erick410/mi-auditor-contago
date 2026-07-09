@@ -587,6 +587,7 @@ export default {
     },
     // ── Verificar SAT ────────────────────────────────────────
     async ConciliaSat(item) {
+      console.log(item)
       this.$q.loading.show({
         spinner: QSpinnerCube,
         spinnerColor: "purple",
@@ -618,7 +619,7 @@ export default {
       const conciliacion = await this.GetConciliaSat(año, mes);
       const campos = ["ingreso", "notasCredito", "complementoPago", "nomina"];
       const lista = ["INGRESO", "EGRESO", "PAGO", "NÓMINA"];
-
+      console.log(conciliacion)
       if (conciliacion) {
         lista.forEach((tipo, i) => {
           this.itemsConciliaSat.push({

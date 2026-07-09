@@ -29,7 +29,7 @@
             <!-- <DescargasUUID v-if="seccion === 'uuid'" /> -->
             <DescargasMetadata v-if="seccion === 'metadata'" />
 
-            <DescargasRetenciones v-if="seccion === 'retenciones'" />
+            <!-- <DescargasRetenciones v-if="seccion === 'retenciones'" /> -->
         </div>
 
     </div>
@@ -50,7 +50,8 @@ export default {
             secciones: [
                 { value: 'cfdi', label: 'CFDI', icon: 'mdi-file-document-multiple-outline' },
                 { value: 'metadata', label: 'Metadata', icon: 'mdi-table-search' },
-                { value: 'retenciones', label: 'Retenciones', icon: 'mdi-file-percent-outline' },  ],
+                // { value: 'retenciones', label: 'Retenciones', icon: 'mdi-file-percent-outline' },  
+            ],
         }
     },
 
