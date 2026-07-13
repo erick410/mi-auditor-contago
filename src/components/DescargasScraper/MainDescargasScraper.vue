@@ -107,7 +107,34 @@
                             <q-icon name="mdi-package-down" />
                         </q-item-section>
                         <q-item-section>
-                            Descargas Sat Pagos
+                            Descarga Declaraciones
+                        </q-item-section>
+                    </q-item>
+                    <q-separator />
+                    <q-item active clickable v-ripple @click="irDescargasOpinion">
+                        <q-item-section avatar>
+                            <q-icon name="mdi-package-down" />
+                        </q-item-section>
+                        <q-item-section>
+                            Descarga Opinión
+                        </q-item-section>
+                    </q-item>
+                    <q-separator />
+                    <q-item active clickable v-ripple @click="irDescargasConstancia">
+                        <q-item-section avatar>
+                            <q-icon name="mdi-package-down" />
+                        </q-item-section>
+                        <q-item-section>
+                            Descarga Constancia
+                        </q-item-section>
+                    </q-item>
+                    <q-separator />
+                    <q-item active clickable v-ripple @click="irDescargasAnual">
+                        <q-item-section avatar>
+                            <q-icon name="mdi-package-down" />
+                        </q-item-section>
+                        <q-item-section>
+                            Descarga Declaración Anual
                         </q-item-section>
                     </q-item>
                     <q-separator />
@@ -203,6 +230,15 @@ export default {
         },
         irRetenciones(){
             this.$router.push({ name: 'Retenciones' })
+        },
+        irDescargasOpinion(){
+            this.$router.push({ name: 'DescargasOpinion' })
+        },
+        irDescargasConstancia(){
+            this.$router.push({ name: 'DescargasConstancia' })
+        },
+        irDescargasAnual(){
+            this.$router.push({ name: 'DescargasAnuales' })
         },
         async getSolicitudes() {
             try {

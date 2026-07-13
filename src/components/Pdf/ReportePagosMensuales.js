@@ -718,8 +718,10 @@ export async function generarReporte(
   }
   y += 10;
 
+  console.log('dataIvaRetenidoNeteado', dataIvaRetenidoNeteado)
+  if(dataIvaRetenidoNeteado.length != 0){
   let ultimoivare = dataIvaRetenidoNeteado[dataIvaRetenidoNeteado.length - 1]
-  if (ultimoivare.diferencia != 0) {
+  if (ultimoivare?.diferencia != 0) {
     doc.setFontSize(11);
     doc.setFont("helvetica", "bold");
     doc.text("IVA RETENIDO EMITIDO", 40, y);
@@ -775,6 +777,7 @@ export async function generarReporte(
 
 
   }
+}
   y += 10; // espacio entre secciones
 
   doc.setFontSize(11);

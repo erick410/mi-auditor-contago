@@ -57,6 +57,9 @@ import DescargasWebService from "../components/Descargas/DescargasWebService.vue
 import DescargasXMLS from "../components/Descargas/DescargasXMLS.vue";
 import DescargasMetadata from "../components/Descargas/DescargasMetadata.vue";
 import Retenciones from "../components/Descargas/Retenciones.vue"
+import DescargasConstancia from "../components/Descargas/DescargasConstancia.vue"
+import DescargasOpinion from "../components/Descargas/DescargasOpinion.vue"
+import DescargasAnuales from "../components/Descargas/DescargasAnuales.vue"
 
 import MainPagosMensuales from "../components/PagosMensuales/MainPagosMensuales.vue";
 import PagosMensuales from "../components/PagosMensuales/PagosMensuales.vue";
@@ -711,6 +714,24 @@ const routes = [
         path: "Retenciones",
         component: Retenciones,
         name: "Retenciones",
+        meta: { Administrador: true, Gasolinero: true },
+      },
+      {
+        path: "DescargasOpinion",
+        component: DescargasOpinion,
+        name: "DescargasOpinion",
+        meta: { Administrador: true, Gasolinero: true },
+      },
+      {
+        path: "DescargasConstancia",
+        component: DescargasConstancia,
+        name: "DescargasConstancia",
+        meta: { Administrador: true, Gasolinero: true },
+      },
+      {
+        path: "DescargasAnuales",
+        component: DescargasAnuales,
+        name: "DescargasAnuales",
         meta: { Administrador: true, Gasolinero: true },
       },
     ],
