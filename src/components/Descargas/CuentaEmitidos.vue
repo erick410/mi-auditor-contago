@@ -41,11 +41,18 @@
             </template>
           </q-table>
         </q-card-section>
-        <!-- <q-card-actions align="center" class="q-pb-md column">
-                    <div class="text-caption text-grey-6">Última consulta: {{ fechaConciliaSat }}</div>
-                    <q-btn dense unelevated color="primary" icon="mdi-refresh" label="Consultar nuevamente"
-                        class="q-mt-sm" @click="ConsultaSat" />
-                </q-card-actions> -->
+        <q-card-actions align="center" class="q-pb-md column">
+          <div class="text-caption text-grey-6">Última consulta: {{ fechaConciliaSat }}</div>
+          <consulta-comprobantes
+            :rfc="token.rfc"
+            :tipo-descarga="'emitidos'"
+            :fecha-inicio="fechaInicio"
+            :fecha-fin="fechaFin"
+            @completado="onConsultaCompletada"
+            @error="onConsultaError"
+          />
+          <!-- <q-btn dense unelevated color="primary" icon="mdi-refresh" label="Consultar" class="q-mt-sm" @click="ConsultaSat" /> -->
+        </q-card-actions>
       </q-card>
     </q-dialog>
 
@@ -199,12 +206,12 @@
 <script>
 import axios from "axios";
 import ChartComponent from "../Graficas/ChartComponent.vue";
-
 import { QSpinnerCube } from "quasar";
+import ConsultaComprobantes from "../DescargasScraper/Consultacomprobantes.vue";
 
 export default {
   name: "CuentaEmitidos",
-  components: { ChartComponent },
+  components: { ChartComponent, ConsultaComprobantes },
 
   data() {
     return {
@@ -335,6 +342,10 @@ export default {
       fechaConciliaSat: null,
       cabeceraConciliacionSat: "",
       mesConciliacion: 0,
+      
+      //PARA LA CONCILIACION
+      fechaInicio: null,
+      fechaFin: null,
     };
   },
 
@@ -384,7 +395,6 @@ export default {
         let respuesta = await axios.post(
           this.rutaDescargas + `Descargas/PostEncarpetaXML/${this.token.rfc}`
         );
-        console.log(respuesta);
         this.$q.notify({
           type: "positive",
           message: "Archivos clasificados correctamente.",
@@ -411,7 +421,6 @@ export default {
         });
         return;
       }
-      console.log(this.selectedMes);
       this.dialog = true;
       let mes = this.selectedMes.label.toLowerCase();
       try {
@@ -425,30 +434,12 @@ export default {
           mes +
           "/Emitido"
         );
-        console.log(response.data);
         this.dialog = false;
       } catch (error) {
         console.log(error);
         this.dialog = false;
       }
     },
-
-    //  async ConciliarPeriodo() {
-    //   for (const m of this.itemsMes) {
-    //      const mes = m.label.toLowerCase()
-    //        this.$q.loading.show({
-    //            spinner: QSpinnerCube, spinnerColor: 'purple', spinnerSize: 140,
-    //message: `Conciliando ${m.label}...`, messageColor: 'white'
-    //         })
-    //       try {
-    //            await axios.post(
-    //                `${this.rutaDescargas}Descargas/PostComprobantesMongoAsync/${this.token.rfc}/${this.selectedAnio}/${mes}/Emitido`)
-    //         } catch (err) { console.error(err) }
-    //   }
-    //     this.$q.loading.hide()
-    //    await this.GetReporte()
-    //   this.$q.notify({ type: 'positive', message: 'Año completo conciliado.' })
-    //  },
 
     async ConciliarPeriodo() {
       let meses = this.itemsMes;
@@ -461,7 +452,6 @@ export default {
           message: "Conciliando " + mes + "...",
           messageColor: "white",
         });
-        console.log(mes);
         try {
           let response = await axios.post(
             this.rutaDescargas +
@@ -473,7 +463,6 @@ export default {
             mes +
             "/Emitido"
           );
-          console.log(response.data);
         } catch (error) {
           console.log(error);
           this.$q.loading.hide();
@@ -581,13 +570,10 @@ export default {
       chartDatas.datasets.push(ObjPagos);
       chartDatas.datasets.push(ObjNotas);
       this.chartData = { ...chartDatas };
-
-      console.log(this.chartData)
       this.charTitleE = "Emitidos: " + this.FormatoMiles(sumaTotal);
     },
     // ── Verificar SAT ────────────────────────────────────────
     async ConciliaSat(item) {
-      console.log(item)
       this.$q.loading.show({
         spinner: QSpinnerCube,
         spinnerColor: "purple",
@@ -611,15 +597,16 @@ export default {
       ];
       const año = this.selectedAnio;
       const mes = mesesIdx.indexOf(item.mes) + 1;
-
+      const dia = new Date(this.selectedAnio, this.mesConciliacion, 0).getDate();
+      this.mesConciliacion = mes;
+      this.fechaInicio = `${this.selectedAnio}-${this.mesConciliacion}-01`;
+      this.fechaFin = `${this.selectedAnio}-${this.mesConciliacion}-${dia}`;
       this.itemsConciliaSat = [];
       this.cabeceraConciliacionSat = `Verificación SAT — ${item.mes} ${año}`;
-      this.mesConciliacion = mes;
 
       const conciliacion = await this.GetConciliaSat(año, mes);
       const campos = ["ingreso", "notasCredito", "complementoPago", "nomina"];
       const lista = ["INGRESO", "EGRESO", "PAGO", "NÓMINA"];
-      console.log(conciliacion)
       if (conciliacion) {
         lista.forEach((tipo, i) => {
           this.itemsConciliaSat.push({
@@ -630,14 +617,26 @@ export default {
           });
         });
         this.dialogConciliaSat = true;
-      } else {
+      } 
+      else {
+        lista.forEach((tipo, i) => {
+          this.itemsConciliaSat.push({
+            tipo,
+            cuentaC: item[campos[i]],
+            cuentaS: 0,
+            diferencia: item[campos[i]] - 0,
+          });
+        });
+        this.dialogConciliaSat = true;
         this.$q.notify({
           type: "negative",
           position: "top-right",
           message:
-            "Sin datos del SAT. Primero descargue el metadata del periodo.",
+            "Sin datos del SAT. ",
         });
       }
+
+      console.log(this.itemsConciliaSat);
       this.$q.loading.hide();
     },
 
@@ -649,32 +648,9 @@ export default {
         message: "Consultando con la plataforma del SAT...",
         messageColor: "white",
       });
-      const año = this.selectedAnio;
-      const mes = this.mesConciliacion;
-      const dia = new Date(año, mes, 0).getDate();
-      const fI = `${año}-${mes}-01`;
-      const fF = `${año}-${mes}-${dia}`;
-      const item = [...this.itemsConciliaSat];
-      this.itemsConciliaSat = [];
-
-      const res = await this.GetConciliacionSat(mes, año, fI, fF);
-      if (!res) {
-        this.$q.notify({
-          type: "negative",
-          message: "Error al consultar. Intente nuevamente.",
-        });
-        this.$q.loading.hide();
-        return;
-      }
-      const lista = ["INGRESO", "EGRESO", "PAGO", "NÓMINA"];
-      lista.forEach((tipo, i) => {
-        this.itemsConciliaSat.push({
-          tipo,
-          cuentaC: item[i].cuentaC,
-          cuentaS: res[i].cantidad,
-          diferencia: item[i].cuentaC - res[i].cantidad,
-        });
-      });
+      const dia = new Date(this.selectedAnio, this.mesConciliacion, 0).getDate();
+      const fI = `${this.selectedAnio}-${this.mesConciliacion}-01`;
+      const fF = `${this.selectedAnio}-${this.mesConciliacion}-${dia}`;
       this.$q.loading.hide();
     },
 
@@ -733,6 +709,51 @@ export default {
 
     FormatoMiles(value) {
       return (value || 0).toLocaleString("en-US");
+    },
+
+    async onConsultaCompletada (respuesta) {
+      const datos = respuesta.por_tipo
+      const año = this.selectedAnio;
+      const mes = this.mesConciliacion;
+
+      //VAMOS A GUARDAR EN MONGO
+      const ingreso = datos["Ingreso"]["vigentes"] || 0;
+      const egreso = datos["Egreso"]["vigentes"] || 0;
+      const pago = datos["Pago"]["vigentes"] || 0;
+      const nomina = datos["Nomina"]["vigentes"] || 0;
+      const traslado = datos["Traslado"]["vigentes"] || 0;
+      const items = [
+        { tipo: "Ingreso", cantidad: ingreso },
+        { tipo: "Egreso", cantidad: egreso },
+        { tipo: "Pago", cantidad: pago },
+        { tipo: "Nomina", cantidad: nomina },
+        { tipo: "Nomina", cantidad: nomina },
+        { tipo: "Traslado", cantidad: traslado },
+        { tipo: "Cancelados", cantidad: respuesta.uuids_cancelados.length },
+      ];
+      await this.PostConciliaSat(mes, año, items);
+      const mapaTipos = {
+        Ingreso: 'INGRESO',
+        Egreso: 'EGRESO',
+        Pago: 'PAGO',
+        Nomina: 'NÓMINA',
+      }
+
+      this.itemsConciliaSat = this.itemsConciliaSat.map((item) => {
+        const llaveApi = Object.keys(mapaTipos).find((key) => mapaTipos[key] === item.tipo)
+        const cuentaS = llaveApi && datos[llaveApi] ? datos[llaveApi].vigentes : 0
+
+        return {
+          ...item,
+          cuentaS,
+          diferencia: item.cuentaC - cuentaS,
+        }
+      })
+      
+    },
+
+    onConsultaError (mensaje) {
+      this.$q.notify({ type: 'negative', message: mensaje })
     },
   },
 };

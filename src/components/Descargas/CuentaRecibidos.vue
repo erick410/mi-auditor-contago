@@ -41,11 +41,17 @@
             </template>
           </q-table>
         </q-card-section>
-        <!-- <q-card-actions align="center" class="q-pb-md column">
-                      <div class="text-caption text-grey-6">Última consulta: {{ fechaConciliaSat }}</div>
-                      <q-btn dense unelevated color="primary" icon="mdi-refresh" label="Consultar nuevamente"
-                          class="q-mt-sm" @click="ConsultaSat" />
-                  </q-card-actions> -->
+        <q-card-actions align="center" class="q-pb-md column">
+          <div class="text-caption text-grey-6">Última consulta: {{ fechaConciliaSat }}</div>
+          <consulta-comprobantes
+            :rfc="token.rfc"
+            :tipo-descarga="'recibidos'"
+            :fecha-inicio="fechaInicio"
+            :fecha-fin="fechaFin"
+            @completado="onConsultaCompletada"
+            @error="onConsultaError"
+          />
+        </q-card-actions>
       </q-card>
     </q-dialog>
 
@@ -199,12 +205,12 @@
 <script>
 import axios from "axios";
 import ChartComponent from "../Graficas/ChartComponent.vue";
-
 import { QSpinnerCube } from "quasar";
+import ConsultaComprobantes from "../DescargasScraper/Consultacomprobantes.vue";
 
 export default {
   name: "CuentaRecibidos",
-  components: { ChartComponent },
+  components: { ChartComponent, ConsultaComprobantes },
 
   data() {
     return {
@@ -335,6 +341,10 @@ export default {
       fechaConciliaSat: null,
       cabeceraConciliacionSat: "",
       mesConciliacion: 0,
+
+      //PARA LA CONCILIACION
+      fechaInicio: null,
+      fechaFin: null,
     };
   },
 
@@ -579,9 +589,13 @@ export default {
         "NOVIEMBRE",
         "DICIEMBRE",
       ];
+
       const año = this.selectedAnio;
       const mes = mesesIdx.indexOf(item.mes) + 1;
-
+      const dia = new Date(this.selectedAnio, this.mesConciliacion, 0).getDate();
+      this.mesConciliacion = mes;
+      this.fechaInicio = `${this.selectedAnio}-${this.mesConciliacion}-01`;
+      this.fechaFin = `${this.selectedAnio}-${this.mesConciliacion}-${dia}`;
       this.itemsConciliaSat = [];
       this.cabeceraConciliacionSat = `Verificación SAT — ${item.mes} ${año}`;
       this.mesConciliacion = mes;
@@ -703,6 +717,51 @@ export default {
 
     FormatoMiles(value) {
       return (value || 0).toLocaleString("en-US");
+    },
+
+    async onConsultaCompletada (respuesta) {
+      const datos = respuesta.por_tipo
+      const año = this.selectedAnio;
+      const mes = this.mesConciliacion;
+
+      //VAMOS A GUARDAR EN MONGO
+      const ingreso = datos["Ingreso"]["vigentes"] || 0;
+      const egreso = datos["Egreso"]["vigentes"] || 0;
+      const pago = datos["Pago"]["vigentes"] || 0;
+      const nomina = datos["Nomina"]["vigentes"] || 0;
+      const traslado = datos["Traslado"]["vigentes"] || 0;
+      const items = [
+        { tipo: "Ingreso", cantidad: ingreso },
+        { tipo: "Egreso", cantidad: egreso },
+        { tipo: "Pago", cantidad: pago },
+        { tipo: "Nomina", cantidad: nomina },
+        { tipo: "Nomina", cantidad: nomina },
+        { tipo: "Traslado", cantidad: traslado },
+        { tipo: "Cancelados", cantidad: respuesta.uuids_cancelados.length },
+      ];
+      await this.PostConciliaSat(mes, año, items);
+      const mapaTipos = {
+        Ingreso: 'INGRESO',
+        Egreso: 'EGRESO',
+        Pago: 'PAGO',
+        Nomina: 'NÓMINA',
+      }
+
+      this.itemsConciliaSat = this.itemsConciliaSat.map((item) => {
+        const llaveApi = Object.keys(mapaTipos).find((key) => mapaTipos[key] === item.tipo)
+        const cuentaS = llaveApi && datos[llaveApi] ? datos[llaveApi].vigentes : 0
+
+        return {
+          ...item,
+          cuentaS,
+          diferencia: item.cuentaC - cuentaS,
+        }
+      })
+      
+    },
+
+    onConsultaError (mensaje) {
+      this.$q.notify({ type: 'negative', message: mensaje })
     },
   },
 };
