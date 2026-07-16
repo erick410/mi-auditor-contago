@@ -5,8 +5,8 @@
         :disable="consultando"
         color="primary"
         label="Consultar"
-        class="full-width"
         @click="iniciarConsulta"
+        class="full-width"
     >
         <template #loading>
             <q-spinner-hourglass class="on-left" />

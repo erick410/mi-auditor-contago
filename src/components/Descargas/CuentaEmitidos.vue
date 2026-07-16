@@ -41,8 +41,8 @@
             </template>
           </q-table>
         </q-card-section>
-        <q-card-actions align="center" class="q-pb-md column">
-          <div class="text-caption text-grey-6">Última consulta: {{ fechaConciliaSat }}</div>
+        <q-card-actions vertical class="items-stretch q-gutter-y-sm">
+          <div class="text-caption text-grey-6 text-center">Última consulta: {{ fechaConciliaSat }}</div>
           <consulta-comprobantes
             :rfc="token.rfc"
             :tipo-descarga="'emitidos'"
@@ -50,8 +50,18 @@
             :fecha-fin="fechaFin"
             @completado="onConsultaCompletada"
             @error="onConsultaError"
+            class="full-width"
           />
-          <!-- <q-btn dense unelevated color="primary" icon="mdi-refresh" label="Consultar" class="q-mt-sm" @click="ConsultaSat" /> -->
+
+          <descarga-comprobantes
+            :rfc="token.rfc"
+            :tipo-descarga="'emitidos'"
+            :fecha-inicio="fechaInicio"
+            :fecha-fin="fechaFin"
+            @completado="onDescargaCompletada"
+            @error="onDescargaError"
+            class="full-width"
+          />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -94,8 +104,7 @@
               pendientes > 0 ? 'ce-dot--warn' : 'ce-dot--ok',
             ]"></span>
             <span :class="pendientes > 0 ? 'text-orange-9' : 'text-green-8'" style="font-size: 11px; font-weight: 500">
-              {{ pendientes > 0 ? `${pendientes} XML pendientes por clasificar` : 'Sin archivos
-              pendientes' }}
+              {{ pendientes > 0 ? `${pendientes} XML pendientes por clasificar` : 'Sin archivos pendientes' }}
             </span>
           </div>
           <q-btn unelevated color="green-1" text-color="green-9" icon="mdi-folder-move-outline" label="Sincronizar"
@@ -208,10 +217,11 @@ import axios from "axios";
 import ChartComponent from "../Graficas/ChartComponent.vue";
 import { QSpinnerCube } from "quasar";
 import ConsultaComprobantes from "../DescargasScraper/Consultacomprobantes.vue";
+import DescargaComprobantes from "../DescargasScraper/Descargacomprobantes .vue";
 
 export default {
   name: "CuentaEmitidos",
-  components: { ChartComponent, ConsultaComprobantes },
+  components: { ChartComponent, ConsultaComprobantes, DescargaComprobantes },
 
   data() {
     return {
@@ -753,6 +763,21 @@ export default {
     },
 
     onConsultaError (mensaje) {
+      this.$q.notify({ type: 'negative', message: mensaje })
+    },
+
+    onDescargaCompletada (respuesta) {
+      console.log(respuesta)
+      const totalXml = respuesta.result?.total_xml
+      const carpeta = respuesta.result?.carpeta
+
+      this.$q.notify({
+        type: 'positive',
+        message: `Se descargaron ${totalXml} XML en ${carpeta}`,
+      })
+    },
+
+    onDescargaError (mensaje) {
       this.$q.notify({ type: 'negative', message: mensaje })
     },
   },
