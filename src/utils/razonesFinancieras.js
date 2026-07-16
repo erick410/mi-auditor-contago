@@ -127,7 +127,7 @@ export function calcularRazones(datos) {
         categoria: 'Rentabilidad',
         nombre: 'Margen de Utilidad Neta',
         formula: 'Utilidad Neta / Ventas Netas',
-        valor: utilidadNeta / ventasNetas,
+        valor: utilidadNeta || 0 / ventasNetas,
         formato: 'porcentaje',
         descripcion: 'Porcentaje de cada peso vendido que se convierte en utilidad neta, después de todos los gastos e impuestos.',
         rangos: { bueno: '>= 10%', regular: '5% - 10%', malo: '< 5%' },
