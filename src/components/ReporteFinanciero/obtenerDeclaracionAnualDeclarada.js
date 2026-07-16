@@ -4,8 +4,9 @@
 // Busca en el historial de Declaración Anual (mismo backend que usa
 // DeclaracionAnualPage.vue) la solicitud COMPLETADA más reciente para un
 // ejercicio dado, descarga el archivo, lo descomprime (viene como .zip con
-// PDF + XLSX cuando formato = 'ambos') y extrae los valores "Declarado"
-// usando parseDeclaracionAnualXlsx.js.
+// PDF + XLSX cuando formato = 'ambos') y deja el ArrayBuffer del .xlsx listo
+// para que CUALQUIER parser lo use (Comparativa Anual, Razones Financieras,
+// futuros reportes anuales...) sin descargar/descomprimir dos veces.
 //
 // Requiere:
 //   npm install jszip
@@ -17,6 +18,11 @@ import JSZip from "jszip";
 import { extraerDeterminacionAnualDesdeXlsx } from "./parseDeclaracionAnualXlsx";
 
 const BASE_URL = "https://descargasat.contago.com.mx/api/Descarga";
+
+// Cache en memoria por sesión: evita volver a descargar/descomprimir el mismo
+// xlsx si dentro del mismo Reporte General se usa tanto en Comparativa Anual
+// como en Razones Financieras. Se limpia sola al recargar la página.
+const cacheXlsxPorRfcYEjercicio = new Map();
 
 // Busca, dentro de un historial ya descargado, el registro COMPLETADO más
 // reciente para el ejercicio pedido. tipoDocumento por defecto 'anual_todas'
@@ -61,27 +67,22 @@ async function obtenerArrayBufferXlsx(arrayBuffer, nombreArchivo) {
 }
 
 /**
- * Obtiene la "Determinación Declarada" (Coeficiente de Utilidad, Ingresos
- * Acumulables, Deducciones Autorizadas, Utilidad/Pérdida Fiscal) de la última
- * Declaración Anual completada para un ejercicio, directo desde el historial
- * de descargas del SAT.
+ * Descarga (y descomprime si hace falta) el .xlsx de la última Declaración
+ * Anual COMPLETADA para un ejercicio. Es la pieza COMPARTIDA que reutilizan
+ * tanto Comparativa Anual como Razones Financieras — así el usuario nunca
+ * tiene que "subir" ni descargar el archivo dos veces.
  *
  * @param {string} rfc
- * @param {string|number} ejercicio - año de la declaración anual, ej. 2024
- * @param {object} XLSX - el módulo 'xlsx' (SheetJS): import * as XLSX from 'xlsx'
- * @returns {Promise<null | {
- *   anio: number|null,
- *   coeficienteUtilidad: number,
- *   ingresosAcumulables: number,
- *   deduccionesAutorizadas: number,
- *   utilidadFiscal: number,
- *   perdidaFiscal: number,
- *   nombreArchivoOrigen: string,
- *   fechaSolicitud: string,
- * }>}
+ * @param {string|number} ejercicio
+ * @returns {Promise<null | { arrayBufferXlsx: ArrayBuffer, nombreArchivoOrigen: string, fechaSolicitud: string }>}
  *   Regresa null si no hay ninguna declaración anual COMPLETADA para ese ejercicio.
  */
-export async function obtenerDeterminacionAnualDeclarada(rfc, ejercicio, XLSX) {
+export async function obtenerXlsxDeclaracionAnual(rfc, ejercicio) {
+    const claveCache = `${rfc}__${ejercicio}`;
+    if (cacheXlsxPorRfcYEjercicio.has(claveCache)) {
+        return cacheXlsxPorRfcYEjercicio.get(claveCache);
+    }
+
     // 1) Historial
     const { data: historial } = await axios.get(`${BASE_URL}/Historial/${rfc}`);
     if (!historial || !historial.exito) {
@@ -101,12 +102,46 @@ export async function obtenerDeterminacionAnualDeclarada(rfc, ejercicio, XLSX) {
     // 3) Descomprimir si hace falta, y quedarnos con el ArrayBuffer del xlsx
     const arrayBufferXlsx = await obtenerArrayBufferXlsx(respuestaArchivo.data, registro.nombreArchivo);
 
-    // 4) Parsear el Estado de Resultados Generales
-    const determinacion = extraerDeterminacionAnualDesdeXlsx(arrayBufferXlsx, XLSX);
+    const resultado = {
+        arrayBufferXlsx,
+        nombreArchivoOrigen: registro.nombreArchivo || "",
+        fechaSolicitud: registro.fechaSolicitud || "",
+    };
+
+    cacheXlsxPorRfcYEjercicio.set(claveCache, resultado);
+    return resultado;
+}
+
+/**
+ * Obtiene la "Determinación Declarada" (Coeficiente de Utilidad, Ingresos
+ * Acumulables, Deducciones Autorizadas, Utilidad/Pérdida Fiscal) de la última
+ * Declaración Anual completada para un ejercicio — para la sección
+ * Comparativa Anual.
+ *
+ * @param {string} rfc
+ * @param {string|number} ejercicio - año de la declaración anual, ej. 2024
+ * @param {object} XLSX - el módulo 'xlsx' (SheetJS): import * as XLSX from 'xlsx'
+ * @returns {Promise<null | {
+ *   anio: number|null,
+ *   coeficienteUtilidad: number,
+ *   ingresosAcumulables: number,
+ *   deduccionesAutorizadas: number,
+ *   utilidadFiscal: number,
+ *   perdidaFiscal: number,
+ *   nombreArchivoOrigen: string,
+ *   fechaSolicitud: string,
+ * }>}
+ *   Regresa null si no hay ninguna declaración anual COMPLETADA para ese ejercicio.
+ */
+export async function obtenerDeterminacionAnualDeclarada(rfc, ejercicio, XLSX) {
+    const archivo = await obtenerXlsxDeclaracionAnual(rfc, ejercicio);
+    if (!archivo) return null;
+
+    const determinacion = extraerDeterminacionAnualDesdeXlsx(archivo.arrayBufferXlsx, XLSX);
 
     return {
         ...determinacion,
-        nombreArchivoOrigen: registro.nombreArchivo || "",
-        fechaSolicitud: registro.fechaSolicitud || "",
+        nombreArchivoOrigen: archivo.nombreArchivoOrigen,
+        fechaSolicitud: archivo.fechaSolicitud,
     };
 }

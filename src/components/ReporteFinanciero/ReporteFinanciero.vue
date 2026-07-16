@@ -418,6 +418,74 @@
                 </q-card-section>
             </q-card>
 
+            <!-- ===================== RAZONES FINANCIERAS ===================== -->
+            <q-card flat class="rg-card rg-section rg-section--razonesfinancieras q-mb-md full-width" v-if="mostrarSecciones.razonesFinancieras">
+                <q-card-section class="rg-section__header">
+                    <q-icon name="monitor_heart" class="rg-section__icon" />
+                    <div>
+                        <div class="rg-section__title">Razones Financieras</div>
+                        <div class="rg-section__subtitle">Ejercicio {{ anio }} · Balance General y Estado de Resultados (Declaración Anual SAT)</div>
+                    </div>
+                </q-card-section>
+
+                <template v-if="razonesFinancieras.resumen">
+                    <!-- Salud financiera general -->
+                    <q-card-section class="row items-center q-col-gutter-md">
+                        <div class="col-12 col-sm-4 text-center">
+                            <div class="rg-salud-valor" :class="'rg-salud-valor--' + saludColorClase">
+                                {{ (razonesFinancieras.resumen.porcentajeSalud * 100).toFixed(0) }}%
+                            </div>
+                            <div class="rg-toggle-label">Salud Financiera General</div>
+                        </div>
+                        <div class="col-12 col-sm-8">
+                            <p class="rg-parrafo-veredicto">{{ razonesFinancieras.resumen.veredicto }}</p>
+                            <div class="row q-col-gutter-sm">
+                                <div class="col-auto"><q-badge color="green" :label="razonesFinancieras.resumen.buenas + ' Buenas'" /></div>
+                                <div class="col-auto"><q-badge color="orange" :label="razonesFinancieras.resumen.regulares + ' Regulares'" /></div>
+                                <div class="col-auto"><q-badge color="red" :label="razonesFinancieras.resumen.malas + ' de Atención'" /></div>
+                            </div>
+                        </div>
+                    </q-card-section>
+
+                    <q-separator class="rg-separator" />
+
+                    <!-- Tabla por categoría -->
+                    <q-card-section v-for="cat in razonesFinancieras.categorias" :key="cat.categoria">
+                        <div class="rg-subheading q-mb-sm">{{ cat.categoria }}</div>
+                        <q-table
+                            :data="cat.items"
+                            :columns="columnasRazonesFinancieras"
+                            row-key="nombre"
+                            dense
+                            flat
+                            hide-bottom
+                            class="rg-table"
+                            :pagination="{ rowsPerPage: 0 }"
+                        >
+                            <template v-slot:body-cell-valor="props">
+                                <q-td :props="props" class="rg-cell-money rg-cell-strong">
+                                    {{ formatoValorRazon(props.row.valor, props.row.formato) }}
+                                </q-td>
+                            </template>
+                            <template v-slot:body-cell-estado="props">
+                                <q-td :props="props">
+                                    <q-badge :style="{ backgroundColor: props.row.color }" :label="props.row.estado.toUpperCase()" />
+                                </q-td>
+                            </template>
+                        </q-table>
+                    </q-card-section>
+
+                    <q-card-section v-if="razonesFinancieras.advertencias.length > 0" class="rg-empty-note">
+                        <q-icon name="warning" size="16px" class="q-mr-xs" />
+                        Estos datos vinieron en blanco en el Excel y se tomaron como $0: {{ razonesFinancieras.advertencias.join(', ') }}
+                    </q-card-section>
+                </template>
+                <q-card-section v-else class="rg-empty-note">
+                    <q-icon name="info" size="16px" class="q-mr-xs" />
+                    {{ razonesFinancieras.mensaje || "Sin datos suficientes para calcular las Razones Financieras." }}
+                </q-card-section>
+            </q-card>
+
             <!-- ===================== PAGOS DE IVA ===================== -->
             <q-card flat class="rg-card rg-section rg-section--pagosiva q-mb-md full-width" v-if="mostrarSecciones.pagosIva">
                 <q-card-section class="rg-section__header">
@@ -596,6 +664,7 @@ import moment from "moment";
 import * as xlsx from "xlsx";
 import { generarPdfReporteGeneral } from "./pdfReporteGeneral";
 import { obtenerDeterminacionAnualDeclarada } from "./obtenerDeclaracionAnualDeclarada";
+import { obtenerRazonesFinancieras } from "./obtenerRazonesFinancieras";
 
 export default {
     name: "ReporteGeneralPreview",
@@ -654,6 +723,7 @@ export default {
                 pagosProvisionales: true,
                 usoCfdi: true,
                 comparativaAnual: true,
+                razonesFinancieras: true,
             },
             labelsSecciones: {
                 emitidos: "Emitidos por RFC",
@@ -667,6 +737,7 @@ export default {
                 pagosProvisionales: "Pagos Provisionales",
                 usoCfdi: "Uso de CFDI",
                 comparativaAnual: "Comparativa Anual",
+                razonesFinancieras: "Razones Financieras",
             },
 
             // ---- datos crudos / procesados ----
@@ -711,6 +782,12 @@ export default {
                 { name: "recibidos", label: "Recibidos", field: "recibidos", align: "right" },
                 { name: "nomina", label: "Nómina", field: "nomina", align: "right" },
             ],
+            columnasRazonesFinancieras: [
+                { name: "nombre", label: "Razón", field: "nombre", align: "left" },
+                { name: "formula", label: "Fórmula", field: "formula", align: "left" },
+                { name: "valor", label: "Valor", field: "valor", align: "right" },
+                { name: "estado", label: "Resultado", field: "estado", align: "center" },
+            ],
             // Comparativa Anual: "Determinado" (calculado por el sistema con
             // base en Uso de CFDI del año completo) vs "Declarado" (leído del
             // xlsx de la Declaración Anual descargada del SAT).
@@ -723,6 +800,15 @@ export default {
                 { name: "declarado", label: "Declarado", field: "declarado", align: "right" },
                 { name: "diferencia", label: "Diferencia", field: "diferencia", align: "right" },
             ],
+            // Razones Financieras: se calculan a partir del MISMO xlsx de la
+            // Declaración Anual que usa Comparativa Anual (no se sube nada).
+            razonesFinancieras: {
+                razones: [],
+                categorias: [],
+                resumen: null,
+                advertencias: [],
+                mensaje: "",
+            },
 
             // ---- columnas ----
             columnasComprobantesRfc: [
@@ -823,6 +909,13 @@ export default {
                 0
             );
         },
+        saludColorClase() {
+            const resumen = this.razonesFinancieras.resumen;
+            if (!resumen) return "malo";
+            if (resumen.porcentajeSalud >= 0.75) return "bueno";
+            if (resumen.porcentajeSalud >= 0.5) return "regular";
+            return "malo";
+        },
         // Agrupa tablaComparativaFlujo (flat, con {moneda, mes, totalEPUE, totalRPUE, diferenciaPUE})
         // en una tabla independiente por cada moneda, ordenada por # de mes calendario.
         comparativaFlujoPorMoneda() {
@@ -894,6 +987,7 @@ export default {
                     filas: this.tablaComparativaAnual,
                     mensaje: this.comparativaAnualMensaje,
                 },
+                razonesFinancieras: this.razonesFinancieras,
             };
         },
     },
@@ -947,6 +1041,16 @@ export default {
             const num = Number(valor);
             if (Number.isNaN(num)) return String(valor);
             return num.toFixed(2) + "%";
+        },
+        // Formatea el valor de una razón financiera según su tipo (porcentaje,
+        // moneda, días, o veces) — mismo criterio que formatearValor().
+        formatoValorRazon(valor, formato) {
+            if (valor === null || valor === undefined || Number.isNaN(Number(valor))) return "N/D";
+            const num = Number(valor);
+            if (formato === "porcentaje") return `${(num * 100).toFixed(2)}%`;
+            if (formato === "moneda") return this.formatoPesos(num);
+            if (formato === "dias") return `${num.toFixed(1)} días`;
+            return `${num.toFixed(2)} veces`;
         },
 
         // ---------------- FETCH: COMPROBANTES POR RFC ----------------
@@ -2336,6 +2440,13 @@ export default {
                         : Promise.resolve({ filas: [], mensaje: "" })
                 );
 
+                // Razones Financieras (mismo xlsx de la Declaración Anual, ya cacheado)
+                tareas.push(
+                    this.mostrarSecciones.razonesFinancieras
+                        ? obtenerRazonesFinancieras(rfc, año, xlsx)
+                        : Promise.resolve({ razones: [], categorias: [], resumen: null, advertencias: [], mensaje: "" })
+                );
+
                 const [
                     emitidos,
                     recibidos,
@@ -2349,6 +2460,7 @@ export default {
                     pagosProvisionales,
                     usoCfdi,
                     comparativaAnual,
+                    razonesFinancierasResultado,
                 ] = await Promise.all(tareas);
 
                 // ---- Comprobantes ----
@@ -2400,16 +2512,13 @@ export default {
 
                 // ---- CxC / CxP con dias de credito ----
                 const calcularDias = (lista) => {
-                    lista.forEach((c) => {
-                        const mayor = this.obtenerFechaMasGrande(c.detalles);
-                        if (mayor) {
-                            c.dias = moment(mayor).diff(moment(c.fecha), "days");
-                        } else {
-                            c.dias = 0;
-                        }
-                    });
-                    return lista;
-                };
+    lista.forEach((c) => {
+        const mayor = this.obtenerFechaMasGrande(c.detalles);
+        const fechaReferencia = mayor || moment().format();
+        c.dias = moment(fechaReferencia).diff(moment(c.fecha), "days");
+    });
+    return lista;
+};
                 this.tablaCxC = calcularDias(Array.isArray(cxc) ? cxc : []);
                 this.tablaCxP = calcularDias(Array.isArray(cxp) ? cxp : []);
 
@@ -2460,6 +2569,19 @@ export default {
                 } else {
                     this.tablaComparativaAnual = [];
                     this.comparativaAnualMensaje = "";
+                }
+
+                // ---- Razones Financieras ----
+                if (razonesFinancierasResultado && typeof razonesFinancierasResultado === "object") {
+                    this.razonesFinancieras = {
+                        razones: Array.isArray(razonesFinancierasResultado.razones) ? razonesFinancierasResultado.razones : [],
+                        categorias: Array.isArray(razonesFinancierasResultado.categorias) ? razonesFinancierasResultado.categorias : [],
+                        resumen: razonesFinancierasResultado.resumen || null,
+                        advertencias: Array.isArray(razonesFinancierasResultado.advertencias) ? razonesFinancierasResultado.advertencias : [],
+                        mensaje: razonesFinancierasResultado.mensaje || "",
+                    };
+                } else {
+                    this.razonesFinancieras = { razones: [], categorias: [], resumen: null, advertencias: [], mensaje: "" };
                 }
 
                 this.reporteGenerado = true;
@@ -2533,6 +2655,8 @@ export default {
     --rg-usocfdi-soft: #e5f6fa;
     --rg-comparativaanual: #7c3aed;
     --rg-comparativaanual-soft: #f3ecfe;
+    --rg-razonesfinancieras: #a21caf;
+    --rg-razonesfinancieras-soft: #fbe8f6;
 
     background: var(--rg-paper);
     color: var(--rg-ink);
@@ -2636,6 +2760,7 @@ export default {
 .rg-chip--active.rg-chip--pagosProvisionales { border-color: var(--rg-pp); color: var(--rg-pp) !important; background: var(--rg-pp-soft) !important; }
 .rg-chip--active.rg-chip--usoCfdi { border-color: var(--rg-usocfdi); color: var(--rg-usocfdi) !important; background: var(--rg-usocfdi-soft) !important; }
 .rg-chip--active.rg-chip--comparativaAnual { border-color: var(--rg-comparativaanual); color: var(--rg-comparativaanual) !important; background: var(--rg-comparativaanual-soft) !important; }
+.rg-chip--active.rg-chip--razonesFinancieras { border-color: var(--rg-razonesfinancieras); color: var(--rg-razonesfinancieras) !important; background: var(--rg-razonesfinancieras-soft) !important; }
 
 /* ===================== KPI CARDS ===================== */
 .rg-kpi {
@@ -2703,6 +2828,7 @@ export default {
 .rg-section--pp { border-top-color: var(--rg-pp); }
 .rg-section--usocfdi { border-top-color: var(--rg-usocfdi); }
 .rg-section--comparativaanual { border-top-color: var(--rg-comparativaanual); }
+.rg-section--razonesfinancieras { border-top-color: var(--rg-razonesfinancieras); }
 
 .rg-section__header {
     display: flex;
@@ -2732,6 +2858,22 @@ export default {
 .rg-section--pp .rg-section__icon { color: var(--rg-pp); background: var(--rg-pp-soft); }
 .rg-section--usocfdi .rg-section__icon { color: var(--rg-usocfdi); background: var(--rg-usocfdi-soft); }
 .rg-section--comparativaanual .rg-section__icon { color: var(--rg-comparativaanual); background: var(--rg-comparativaanual-soft); }
+.rg-section--razonesfinancieras .rg-section__icon { color: var(--rg-razonesfinancieras); background: var(--rg-razonesfinancieras-soft); }
+
+.rg-salud-valor {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+.rg-salud-valor--bueno { color: var(--rg-emitidos); }
+.rg-salud-valor--regular { color: #b45309; }
+.rg-salud-valor--malo { color: var(--rg-recibidos); }
+
+.rg-parrafo-veredicto {
+    font-size: 13px;
+    color: var(--rg-ink);
+    margin: 0 0 8px;
+}
 
 .rg-section__title {
     font-size: 15px;

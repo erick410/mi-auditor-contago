@@ -34,6 +34,10 @@ import {
     casosFlujo,
     casosAntiguedadSaldos,
     casosComparativaAnual,
+    construirElementosAFavor,
+    construirElementosEnContra,
+    calcularRangoCredito,
+    construirVeredictoCredito,
 } from "./pdfCasos";
 
 // ============================================================================
@@ -59,6 +63,8 @@ const CATEGORIA_SECCION = {
     "Cuentas por Cobrar": "Flujo y Cartera",
     "Cuentas por Pagar": "Flujo y Cartera",
     "Comparativa de Flujo (PUE)": "Flujo y Cartera",
+    "Razones Financieras": "Conclusión y Recomendación",
+    "Conclusión: ¿Es Sujeto de Crédito?": "Conclusión y Recomendación",
 };
 
 const ROMANOS = ["I", "II", "III", "IV", "V", "VI"];
@@ -290,6 +296,21 @@ function agregarPiePagina(doc, paginaInicioContenido) {
     }
 }
 
+// Encabezado (empresa / ubicación / fecha) — en TODAS las páginas de
+// contenido, no solo en las que "iniciarSeccion" abrió a propósito. Se hace
+// en una sola pasada AL FINAL, igual que el pie de página, porque durante la
+// generación se crean páginas nuevas por muchos caminos que no controlamos
+// directamente (tablas largas de jspdf-autotable partiéndose solas,
+// párrafos/viñetas desbordándose vía asegurarEspacio, etc.) y sería fácil
+// que alguno se nos escapara si lo intentáramos dibujar "al momento".
+function agregarEncabezadoEnTodasLasPaginas(doc, paginaInicioContenido, meta) {
+    const totalPaginas = doc.internal.getNumberOfPages();
+    for (let i = paginaInicioContenido; i <= totalPaginas; i++) {
+        doc.setPage(i);
+        agregarEncabezadoContenido(doc, meta);
+    }
+}
+
 // Subtítulo de sección NUMERADO (ej. "1. PAGOS DE IVA") — y registra su
 // posición en el arreglo de índice.
 // Divisor visual de categoría/tema (ej. "PARTE I — CUMPLIMIENTO FISCAL")
@@ -374,6 +395,114 @@ function agregarParrafo(doc, y, texto, opciones = {}) {
 
     return y + 3;
 }
+
+// Lista con viñetas ("•"), tipo "Principales clientes: ... — 82.2% (97 comprobantes)"
+// ----------------------------------------------------------------------------
+// TARJETAS DE ESTADÍSTICA (stat cards) — para romper el ritmo de puras
+// tablas: números grandes en cajitas de color, antes del detalle.
+// tarjetas: [{ label, valor, color }]  — de 2 a 4 tarjetas en una sola fila
+// ----------------------------------------------------------------------------
+function agregarTarjetasEstadisticas(doc, y, tarjetas) {
+    if (!tarjetas || tarjetas.length === 0) return y;
+
+    const gap = 4;
+    const anchoTotal = anchoUtil(doc);
+    const anchoTarjeta = (anchoTotal - gap * (tarjetas.length - 1)) / tarjetas.length;
+    const altoTarjeta = 20;
+
+    y = asegurarEspacio(doc, y, altoTarjeta + 6);
+
+    tarjetas.forEach((t, i) => {
+        const x = MARGEN + i * (anchoTarjeta + gap);
+        const color = t.color || COLOR_HEADER;
+
+        doc.setFillColor(250, 250, 250);
+        doc.roundedRect(x, y, anchoTarjeta, altoTarjeta, 1.5, 1.5, "F");
+        doc.setFillColor(...color);
+        doc.rect(x, y, 1.4, altoTarjeta, "F");
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(10.5);
+        doc.setTextColor(...color);
+        doc.text(String(t.valor), x + 4, y + 9.5);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(6.5);
+        doc.setTextColor(...COLOR_MUTED);
+        const etiqueta = doc.splitTextToSize(String(t.label).toUpperCase(), anchoTarjeta - 6);
+        doc.text(etiqueta[0] || "", x + 4, y + 15.5);
+    });
+
+    return y + altoTarjeta + 7;
+}
+
+// ----------------------------------------------------------------------------
+// MEDIDOR DE SALUD (semáforo horizontal) — zonas rojo/amarillo/verde con un
+// marcador en la posición del porcentaje real. Usado en Razones Financieras.
+// porcentaje: 0..1
+// ----------------------------------------------------------------------------
+function agregarMedidorSalud(doc, y, porcentaje) {
+    const ancho = anchoUtil(doc);
+    const alto = 3;
+    const x = MARGEN;
+
+    y = asegurarEspacio(doc, y, alto + 15);
+
+    const zonaMala = ancho * 0.5;
+    const zonaRegular = ancho * 0.25;
+    const zonaBuena = ancho * 0.25;
+
+    doc.setFillColor(...COLOR_NEGATIVO);
+    doc.roundedRect(x, y, zonaMala, alto, 1, 1, "F");
+    doc.setFillColor(217, 119, 6);
+    doc.rect(x + zonaMala, y, zonaRegular, alto, "F");
+    doc.setFillColor(...COLOR_POSITIVO);
+    doc.roundedRect(x + zonaMala + zonaRegular - 3, y, zonaBuena + 3, alto, 1, 1, "F");
+    doc.setFillColor(...COLOR_POSITIVO);
+    doc.rect(x + zonaMala + zonaRegular, y, zonaBuena - 3, alto, "F");
+
+    const posX = x + ancho * Math.min(Math.max(porcentaje, 0), 1);
+    doc.setFillColor(30, 30, 30);
+    doc.triangle(posX - 2.2, y - 3.5, posX + 2.2, y - 3.5, posX, y - 0.5, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(30, 30, 30);
+    doc.text(`${(porcentaje * 100).toFixed(0)}%`, posX, y + alto + 7, { align: "center" });
+
+    return y + alto + 13;
+}
+
+// ----------------------------------------------------------------------------
+// CALLOUT (recuadro destacado) — para el monto de crédito sugerido, en vez de
+// dejarlo perdido dentro de un párrafo.
+// ----------------------------------------------------------------------------
+function agregarCallout(doc, y, titulo, texto, color) {
+    const ancho = anchoUtil(doc);
+    const fontSizeTexto = 13;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(fontSizeTexto);
+    const lineasTexto = doc.splitTextToSize(texto, ancho - 12);
+    const alto = 10 + lineasTexto.length * 6 + 4;
+
+    y = asegurarEspacio(doc, y, alto + 6);
+
+    doc.setFillColor(...(color || COLOR_HEADER));
+    doc.roundedRect(MARGEN, y, ancho, alto, 2, 2, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8);
+    doc.setTextColor(255, 255, 255);
+    doc.text(titulo.toUpperCase(), MARGEN + 6, y + 7);
+
+    doc.setFontSize(fontSizeTexto);
+    lineasTexto.forEach((linea, i) => {
+        doc.text(linea, MARGEN + 6, y + 15 + i * 6);
+    });
+
+    return y + alto + 6;
+}
+
 
 // Lista con viñetas ("•"), tipo "Principales clientes: ... — 82.2% (97 comprobantes)"
 function agregarListaBullets(doc, y, items, opciones = {}) {
@@ -560,6 +689,15 @@ function seccionIva(doc, y, datos, ctx, indice, meta) {
 
     y = iniciarSeccion(doc, indice, "Pagos de IVA", y, meta);
     y = agregarParrafo(doc, y, evaluarCasos(casosIvaIntro, { filas, ...ctx }));
+
+    const totalCargo = filas.reduce((a, f) => a + (f.ivaCargo || 0), 0);
+    const totalFavor = filas.reduce((a, f) => a + (f.ivaFavor || 0), 0);
+    const totalComparativa = filas.reduce((a, f) => a + (f.comparativa || 0), 0);
+    y = agregarTarjetasEstadisticas(doc, y, [
+        { label: "IVA a Cargo (acum.)", valor: money(totalCargo), color: COLOR_NEGATIVO },
+        { label: "IVA a Favor (acum.)", valor: money(totalFavor), color: COLOR_POSITIVO },
+        { label: "Comparativa Neta", valor: money(totalComparativa), color: COLOR_HEADER },
+    ]);
 
     const tieneRetenidoAnterior = filas.some((f) => "ivaRetenidoAnterior" in f && f.ivaRetenidoAnterior !== 0);
     const columnas = [
@@ -933,6 +1071,22 @@ function seccionComparativaAnual(doc, y, datos, ctx, indice, meta) {
         `Comparativa entre lo Determinado por el sistema (con base en el Uso de CFDI del ejercicio ${ctx.anio} completo) y lo Declarado ante el SAT en la Declaración Anual.`
     );
 
+    const filaIngresos = ca.filas.find((f) => f.concepto === "Total de Ingresos Acumulables");
+    const filaDeducciones = ca.filas.find((f) => f.concepto === "Total de Deducciones Autorizadas");
+    const filaUtilidad = ca.filas.find((f) => f.concepto === "Utilidad Fiscal");
+    const filaPerdida = ca.filas.find((f) => f.concepto === "Pérdida Fiscal");
+    const resultadoDeterminado = (filaUtilidad && filaUtilidad.determinado) || 0;
+    const perdidaDeterminada = (filaPerdida && filaPerdida.determinado) || 0;
+    y = agregarTarjetasEstadisticas(doc, y, [
+        { label: "Ingresos Determinados", valor: money((filaIngresos && filaIngresos.determinado) || 0), color: COLOR_HEADER },
+        { label: "Deducciones Determinadas", valor: money((filaDeducciones && filaDeducciones.determinado) || 0), color: COLOR_MUTED },
+        {
+            label: resultadoDeterminado > 0 ? "Utilidad Determinada" : "Pérdida Determinada",
+            valor: money(resultadoDeterminado > 0 ? resultadoDeterminado : perdidaDeterminada),
+            color: resultadoDeterminado > 0 ? COLOR_POSITIVO : COLOR_NEGATIVO,
+        },
+    ]);
+
     y = dibujarTablaComparativaAnual(doc, y, ca.filas);
 
     if (ca.mensaje) {
@@ -944,6 +1098,148 @@ function seccionComparativaAnual(doc, y, datos, ctx, indice, meta) {
     return y;
 }
 
+
+// ----------------------------------------------------------------------------
+// Razones Financieras: tabla con "Resultado" coloreado según el semáforo
+// (bueno/regular/malo) que ya trae calculado cada razón (campo .color, hex).
+// ----------------------------------------------------------------------------
+function hexARgb(hex) {
+    const limpio = (hex || "#000000").replace("#", "");
+    const bigint = parseInt(limpio, 16) || 0;
+    return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+}
+
+function formatoValorRazon(valor, formato) {
+    if (formato === "porcentaje") return `${(valor * 100).toFixed(2)}%`;
+    if (formato === "moneda") return money(valor);
+    if (formato === "dias") return `${valor.toFixed(1)} días`;
+    return `${valor.toFixed(2)} veces`;
+}
+
+function dibujarTablaRazones(doc, y, items) {
+    if (!items || items.length === 0) return y;
+
+    const head = [["Razón", "Fórmula", "Valor", "Resultado"]];
+    const body = items.map((r) => [r.nombre, r.formula, formatoValorRazon(r.valor, r.formato), r.estado.toUpperCase()]);
+
+    doc.autoTable({
+        head,
+        body,
+        startY: y,
+        margin: { left: MARGEN, right: MARGEN, bottom: 16 },
+        theme: "grid",
+        styles: {
+            font: "helvetica",
+            fontSize: 6,
+            cellPadding: 1.4,
+            textColor: COLOR_TEXT,
+            lineColor: [225, 225, 225],
+            lineWidth: 0.1,
+            overflow: "linebreak",
+        },
+        headStyles: { fillColor: COLOR_HEADER, textColor: COLOR_HEADER_TEXT, fontStyle: "bold", halign: "center" },
+        alternateRowStyles: { fillColor: COLOR_STRIPE },
+        columnStyles: {
+            0: { halign: "left", cellWidth: 45 },
+            1: { halign: "left" },
+            2: { halign: "right", cellWidth: 25 },
+            3: { halign: "center", cellWidth: 22 },
+        },
+        didParseCell: (data) => {
+            if (data.section !== "body" || data.column.index !== 3) return;
+            const item = items[data.row.index];
+            if (!item) return;
+            data.cell.styles.textColor = hexARgb(item.color);
+            data.cell.styles.fontStyle = "bold";
+        },
+    });
+
+    return doc.lastAutoTable.finalY + 6;
+}
+
+function seccionRazonesFinancieras(doc, y, datos, ctx, indice, meta) {
+    const rf = datos.razonesFinancieras;
+    if (!rf) return y;
+
+    if (!rf.resumen) {
+        if (!rf.mensaje) return y;
+        y = iniciarSeccion(doc, indice, "Razones Financieras", y, meta);
+        y = agregarParrafo(doc, y, rf.mensaje, { color: COLOR_MUTED });
+        return y;
+    }
+
+    y = iniciarSeccion(doc, indice, "Razones Financieras", y, meta);
+    y = agregarParrafo(
+        doc,
+        y,
+        `El análisis de razones financieras evalúa ${rf.resumen.total} indicadores agrupados en cuatro categorías.`
+    );
+
+    y = agregarSubSubtitulo(doc, y, "Salud Financiera General");
+    y = agregarMedidorSalud(doc, y, rf.resumen.porcentajeSalud);
+    y = agregarTarjetasEstadisticas(doc, y, [
+        { label: "Buenas", valor: rf.resumen.buenas, color: COLOR_POSITIVO },
+        { label: "Regulares", valor: rf.resumen.regulares, color: [217, 119, 6] },
+        { label: "De Atención", valor: rf.resumen.malas, color: COLOR_NEGATIVO },
+    ]);
+    y = agregarParrafo(doc, y, rf.resumen.veredicto, { bold: true, fontSize: 10 });
+
+    rf.categorias.forEach((cat) => {
+        y = agregarSubSubtitulo(doc, y, cat.categoria);
+        y = dibujarTablaRazones(doc, y, cat.items);
+    });
+
+    if (rf.advertencias && rf.advertencias.length > 0) {
+        y = agregarParrafo(
+            doc,
+            y,
+            `Estos datos vinieron en blanco en el Excel y se tomaron como $0: ${rf.advertencias.join(", ")}.`,
+            { fontSize: 8, color: COLOR_MUTED }
+        );
+    }
+
+    return y;
+}
+
+// Conclusión final: sintetiza Razones Financieras + Comparativa Anual en una
+// recomendación de crédito (ver advertencia de "propuesta ajustable" en
+// pdfCasos.js — calcularRangoCredito / construirVeredictoCredito).
+function seccionConclusionCredito(doc, y, datos, ctx, indice, meta) {
+    const rf = datos.razonesFinancieras;
+    const ca = datos.comparativaAnual;
+    if (!rf || !rf.resumen) return y; // sin Razones Financieras no hay base objetiva para esta conclusión
+
+    y = iniciarSeccion(doc, indice, "Conclusión: ¿Es Sujeto de Crédito?", y, meta);
+
+    y = agregarSubSubtitulo(doc, y, "Elementos a favor");
+    y = agregarListaBullets(doc, y, construirElementosAFavor({ razonesFinancieras: rf }));
+
+    y = agregarSubSubtitulo(doc, y, "Elementos en contra");
+    y = agregarListaBullets(doc, y, construirElementosEnContra({ razonesFinancieras: rf, comparativaAnual: ca }));
+
+    y = agregarSubSubtitulo(doc, y, "Evaluación");
+    y = agregarParrafo(doc, y, construirVeredictoCredito({ razonesFinancieras: rf, comparativaAnual: ca }));
+
+    const rango = calcularRangoCredito({ razonesFinancieras: rf });
+    if (rango) {
+        y = agregarCallout(
+            doc,
+            y,
+            "Monto de crédito sugerido (orientativo)",
+            `${money(rango.minimo)}  —  ${money(rango.maximo)}`,
+            COLOR_HEADER
+        );
+    }
+
+    y = agregarParrafo(
+        doc,
+        y,
+        "Este reporte es una herramienta de apoyo a la toma de decisiones y no sustituye una auditoría financiera formal, un dictamen fiscal, ni asesoría crediticia profesional.",
+        { fontSize: 8, color: COLOR_MUTED }
+    );
+
+    return y;
+}
 
 function agregarFirma(doc, y, firmante) {
     if (!firmante || !firmante.nombre) return y;
@@ -1020,6 +1316,8 @@ export function generarPdfReporteGeneral(datos, meta = {}) {
     y = seccionCuentas(doc, y, datos, ctx, indice, metaEncabezado, "cxc");
     y = seccionCuentas(doc, y, datos, ctx, indice, metaEncabezado, "cxp");
     y = seccionFlujo(doc, y, datos, ctx, indice, metaEncabezado);
+    y = seccionRazonesFinancieras(doc, y, datos, ctx, indice, metaEncabezado);
+    y = seccionConclusionCredito(doc, y, datos, ctx, indice, metaEncabezado);
 
     if (firmante) {
         agregarFirma(doc, y, firmante);
@@ -1028,7 +1326,10 @@ export function generarPdfReporteGeneral(datos, meta = {}) {
     // 4) Rellenar el índice ya con las páginas reales
     agregarIndice(doc, indice);
 
-    // 5) Pie de página en todo el contenido (no en portada ni índice)
+    // 5) Encabezado (empresa/ubicación/fecha) y pie de página, en UNA sola
+    // pasada final sobre todas las páginas de contenido (ver por qué en el
+    // comentario de agregarEncabezadoEnTodasLasPaginas).
+    agregarEncabezadoEnTodasLasPaginas(doc, 3, metaEncabezado);
     agregarPiePagina(doc, 3);
 
     if (descargarAutomaticamente) {
