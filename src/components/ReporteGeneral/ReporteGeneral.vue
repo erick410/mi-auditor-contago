@@ -167,6 +167,7 @@
           <q-tab name="mails" label="Reporte General" />
           <q-tab name="alarms" label="Reporte de Impuestos" />
           <q-tab name="razonFinanciera" label="Reporte Razones Financieras" />
+          <q-tab name="reporteFinanciero" label="Reporte Financiero" />
         </q-tabs>
 
         <q-tab-panels bordered v-model="tab" animated>
@@ -841,6 +842,16 @@
               </div>
             </div>
           </q-tab-panel>
+
+          <q-tab-panel bordered name="reporteFinanciero" class="full-width">
+            <ReporteGeneralPreview
+  ref="reporteGeneral"
+  :anio="selectedAnio"
+  :mesI="selectedMesI"
+  :mesF="selectedMesF"
+  :autoGenerar="false"
+/>
+          </q-tab-panel>
         </q-tab-panels>
       </q-card>
     </div>
@@ -863,7 +874,7 @@ import {
   differenceInDays,
   utcToZonedTime,
 } from "date-fns";
-import { es } from "date-fns/locale";
+import { es, tr } from "date-fns/locale";
 import { QSpinnerCube } from "quasar";
 import {
   generarReporteEmpresarial,
@@ -883,14 +894,14 @@ import { Notify } from "quasar";
 import { parseExcel } from "@/utils/parseExcel";
 import { calcularRazones, formatearValor } from "@/utils/razonesFinancieras";
 import { generarReportePDF } from "@/utils/generarReportePDF";
-// import generarReporte
+import ReporteGeneralPreview from "../ReporteFinanciero/ReporteFinanciero.vue"
 export default {
   name: "MainLayout",
   components: {
     drawerPerfil,
     drawerEmpresas,
     ViewReporteGeneral,
-    Index,
+    Index,ReporteGeneralPreview
   },
   data() {
     return {
@@ -1572,7 +1583,7 @@ export default {
     },
   },
   mounted() {
-    console.log(this.$store.state.empresaStore.nombre)
+    console.log(this.$store.state.empresaStore.nombre);
   },
   methods: {
     irInicio() {
@@ -8612,26 +8623,40 @@ export default {
     },
 
     onArchivoSeleccionado() {
-      this.datosExcel = null
-      this.razones = []
+      this.datosExcel = null;
+      this.razones = [];
     },
 
     async onConsultar() {
       if (!this.archivoExcel) {
-        Notify.create({ type: 'warning', message: 'Selecciona un archivo Excel primero' })
-        return
+        Notify.create({
+          type: "warning",
+          message: "Selecciona un archivo Excel primero",
+        });
+        return;
       }
-      this.cargando = true
+      this.cargando = true;
       try {
-        // TODO mañana: cuando exista el endpoint, reemplazar esta línea por
-        // el POST del archivo y usar la respuesta del back como `datosExcel.value`
-        this.datosExcel = await parseExcel(this.archivoExcel)
-        Notify.create({ type: 'positive', message: 'Excel cargado correctamente' })
+        const { datos, advertencias } = await parseExcel(this.archivoExcel);
+        this.datosExcel = datos;
+
+        if (advertencias.length) {
+          Notify.create({
+            type: "warning",
+            message: `Estas filas vinieron en blanco en el Excel y se tomaron como $0: ${advertencias.join(
+              ", "
+            )}`,
+            timeout: 6000,
+            multiLine: true,
+          });
+        } else {
+          Notify.create({ type: "positive", message: "Excel cargado correctamente" });
+        }
       } catch (err) {
-        Notify.create({ type: 'negative', message: err.message, timeout: 5000 })
-        this.datosExcel = null
+        Notify.create({ type: "negative", message: err.message, timeout: 5000 });
+        this.datosExcel = null;
       } finally {
-        this.cargando = false
+        this.cargando = false;
       }
     },
 
@@ -8641,16 +8666,19 @@ export default {
     },
 
     async onDescargarPDF() {
-      this.generandoPDF = true
+      this.generandoPDF = true;
       try {
-        await generarReportePDF(this.razones, this.$store.state.empresaStore.nombre) 
+        await generarReportePDF(this.razones, this.$store.state.empresaStore.nombre);
       } catch (err) {
-        Notify.create({ type: 'negative', message: 'Error al generar el PDF: ' + err.message })
+        Notify.create({
+          type: "negative",
+          message: "Error al generar el PDF: " + err.message,
+        });
       } finally {
-        this.generandoPDF = false
+        this.generandoPDF = false;
       }
     },
-    formatearValor
+    formatearValor,
   },
 
   // Convertir hexadecimal a RGB

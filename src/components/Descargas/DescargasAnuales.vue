@@ -235,18 +235,14 @@ export default {
         async descargarArchivo(item) {
             this.descargandoId = item.id
             try {
-                const url = `${BASE_URL}/Archivo/${this.token.rfc}/${item.id}`
+                const url = `${BASE_URL}/ArchivoZip/${this.token.rfc}/${item.id}`
                 const res = await axios.get(url, { responseType: 'blob' })
 
                 const nombreSeguro = (item.nombreArchivo || `declaracion_${item.ejercicio}_${item.id}`)
                     .replace(/[^a-zA-Z0-9._-]/g, '_')
 
                 // Si formato es "ambos" el server normalmente regresa un zip; ajusta el tipo según lo que confirmes en backend
-                const contentType = nombreSeguro.toLowerCase().endsWith('.zip')
-                    ? 'application/zip'
-                    : nombreSeguro.toLowerCase().endsWith('.xlsx')
-                        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                        : 'application/pdf'
+                const contentType = 'application/zip'
 
                 const blob = new Blob([res.data], { type: contentType })
                 const blobUrl = URL.createObjectURL(blob)

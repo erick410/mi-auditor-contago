@@ -530,6 +530,7 @@ export default {
                     await this.GetReporteIvaFisicas(ivaCargo);
                 } else {
                     await this.GetReporteIva2024Fisicas();
+                    console.log(this.dataComprobantes, 'dataComprobantes')
                 }
             }
 
@@ -1485,15 +1486,17 @@ export default {
                 const ivaRet = (await this.GetReporteIvaRetenidoNeteadoAsync()) || [];
 
                 console.log('ivaRet', ivaRet)
+                console.log('emitidos', emitidos)
+                console.log('recibidos', recibidos)
                 const comp = (await this.GetComparativa(this.selectedAnio, 'IVA')) || [];
                 this.columns = [...this.columnsDefault];
            
            
                 const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
 
-                for (let x = 0; x < this.selectedMes.value; x++) {
+                for (let x = 0; x <= this.selectedMes.value; x++) {
                     const mes = meses[x];
-
+                    console.log(mes ,'mes')
                     const baseIvaTrasladado = emitidos
                         .filter(item => item.mes?.toUpperCase() === mes)
                         .reduce((acc, item) => acc + (item.baseIva || 0), 0);
@@ -1515,7 +1518,7 @@ export default {
                         .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
                    
-                    const ivaRetenidoAnterior =   ivaRet[x]?.importeIva || 0 ;
+                    const ivaRetenidoAnterior = ivaRet[x]?.importeIva || 0 ;
 
                     let ivaCargo = 0;
                     let ivaFavor = 0;
@@ -1560,10 +1563,11 @@ export default {
                         favorRegistrado: favorRegistrado,
                         comparativa: comparativa,
                     };
-
+                    console.log(objIva,'objIva')
                     this.dataComprobantes.push(objIva);
                 }
 
+                console.log(this.dataComprobantes, 'dataComprobantes2')
 
                 // Asegura que existan datos 
                 if (this.dataComprobantes.length > 0) {
@@ -1571,6 +1575,7 @@ export default {
                 } else {
 
                 }
+                console.log(this.dataComprobantes, 'dataComprobantes')
 
                 this.$q.loading.hide();
             },
