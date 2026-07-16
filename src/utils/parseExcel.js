@@ -49,6 +49,7 @@ export function parseExcel(file) {
 
                 const datos = {}
                 const datosAnterior = {}
+                const conceptosEncontrados = new Set()
 
                 Object.entries(HOJAS_A_LEER).forEach(([nombreHoja, config]) => {
                     const hoja = workbook.Sheets[nombreHoja]
@@ -63,11 +64,15 @@ export function parseExcel(file) {
                         const clave = config.conceptos[concepto]
                         if (!clave) return
 
+                        conceptosEncontrados.add(clave)
+
                         const valor = fila[config.columnaValor]
                         const valorAnterior = fila[config.columnaValorAnterior]
 
-                        if (typeof valor === 'number') datos[clave] = valor
-                        if (typeof valorAnterior === 'number') datosAnterior[clave] = valorAnterior
+                        datos[clave] = celdaANumero(valor)
+                        if (valorAnterior !== undefined) {
+                            datosAnterior[clave] = celdaANumero(valorAnterior)
+                        }
                     })
                 })
 
@@ -106,7 +111,12 @@ export function parseExcel(file) {
                     return
                 }
 
-                resolve(datos)
+                const advertencias = requeridos.filter((k) => datos[k] === 0)
+
+                resolve({
+                    datos, 
+                    advertencias
+                })
             } catch (err) {
                 reject(err)
             }
@@ -114,4 +124,9 @@ export function parseExcel(file) {
         reader.onerror = reject
         reader.readAsArrayBuffer(file)
     })
+}
+
+function celdaANumero(valor) {
+    if (typeof valor === 'number') return valor
+    return 0
 }
