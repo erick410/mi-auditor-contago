@@ -166,7 +166,7 @@
         >
           <q-tab name="mails" label="Reporte General" />
           <q-tab name="alarms" label="Reporte de Impuestos" />
-          <q-tab name="razonFinanciera" label="Reporte Razones Financieras" />
+          <!-- <q-tab name="razonFinanciera" label="Reporte Razones Financieras" /> -->
           <q-tab name="reporteFinanciero" label="Reporte Financiero" />
         </q-tabs>
 
@@ -771,7 +771,7 @@
               </div>
             </div>
           </q-tab-panel>
-          <q-tab-panel bordered name="razonFinanciera" class="full-width">
+          <!-- <q-tab-panel bordered name="razonFinanciera" class="full-width">
             <div class="q-pa-lg">
               <div class="row no-wrap justify-between items-center q-mb-md">
                 <div class="text-bold text-h5">Razones Financieras</div>
@@ -818,7 +818,6 @@
                 />
               </div>
 
-              <!-- Vista previa en pantalla -->
               <div class="q-mt-lg" v-if="razones.length">
                 <q-list bordered separator>
                   <q-item v-for="r in razones" :key="r.nombre">
@@ -841,7 +840,7 @@
                 </q-list>
               </div>
             </div>
-          </q-tab-panel>
+          </q-tab-panel> -->
 
           <q-tab-panel bordered name="reporteFinanciero" class="full-width">
             <ReporteGeneralPreview

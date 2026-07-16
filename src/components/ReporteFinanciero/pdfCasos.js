@@ -267,3 +267,171 @@ export const casosAntiguedadSaldos = [
             `Las cuentas por ${tipo === "cobrar" ? "cobrar" : "pagar"} del periodo se encuentran dentro de plazos de crédito razonables (menores a 60 días).`,
     },
 ];
+
+// ============================================================================
+// CONCLUSIÓN: ¿ES SUJETO DE CRÉDITO?
+// ----------------------------------------------------------------------------
+// IMPORTANTE: los umbrales de "% del capital de trabajo" usados aquí son una
+// PROPUESTA DE PUNTO DE PARTIDA (inspirada en el criterio de un reporte
+// ejecutivo de referencia), no una regla financiera universal ni asesoría
+// profesional. Ajusta estos porcentajes según la política de crédito real
+// de tu empresa/comité antes de usarlos en decisiones reales.
+// ============================================================================
+
+// ---- Elementos a favor (bullets), construidos solo con datos reales ----
+export function construirElementosAFavor({ razonesFinancieras }) {
+    const items = [];
+    const razones = (razonesFinancieras && razonesFinancieras.razones) || [];
+
+    const buscar = (nombre) => razones.find((r) => r.nombre === nombre);
+
+    const capitalTrabajo = buscar("Capital de Trabajo");
+    if (capitalTrabajo && capitalTrabajo.estado === "bueno") {
+        items.push(`Capital de trabajo positivo y amplio (${money(capitalTrabajo.valor)}), nivel Bueno.`);
+    }
+
+    const rotCxC = buscar("Rotación de Cuentas por Cobrar");
+    const diasCobranza = buscar("Días de Cobranza");
+    if (rotCxC && rotCxC.estado === "bueno") {
+        const detalleDias = diasCobranza ? ` (${diasCobranza.valor.toFixed(1)} días promedio)` : "";
+        items.push(`Cobranza eficiente: rotación de cuentas por cobrar de ${rotCxC.valor.toFixed(2)} veces al año${detalleDias}.`);
+    }
+
+    const circulante = buscar("Prueba Circulante");
+    if (circulante && circulante.estado === "bueno") {
+        items.push(`Liquidez de corto plazo adecuada: prueba circulante de ${circulante.valor.toFixed(2)} veces.`);
+    }
+
+    const margen = buscar("Margen de Utilidad Neta");
+    if (margen && margen.estado === "bueno") {
+        items.push(`Rentabilidad saludable: margen de utilidad neta de ${(margen.valor * 100).toFixed(2)}%.`);
+    }
+
+    const buenas = razones.filter((r) => r.estado === "bueno");
+    if (buenas.length >= 3) {
+        items.push(`${buenas.length} de las ${razones.length} razones financieras evaluadas se ubican en nivel Bueno.`);
+    }
+
+    if (items.length === 0) {
+        items.push("No se identificaron elementos claramente favorables en el análisis disponible.");
+    }
+    return items;
+}
+
+// ---- Elementos en contra (bullets), construidos solo con datos reales ----
+export function construirElementosEnContra({ razonesFinancieras, comparativaAnual }) {
+    const items = [];
+    const razones = (razonesFinancieras && razonesFinancieras.razones) || [];
+    const buscar = (nombre) => razones.find((r) => r.nombre === nombre);
+
+    const endeudamiento = buscar("Razón Deuda/Activo");
+    const calidadDeuda = buscar("Calidad de la Deuda");
+    if (endeudamiento && endeudamiento.estado === "malo") {
+        const detalleCalidad =
+            calidadDeuda && calidadDeuda.valor >= 0.9
+                ? `, y ${(calidadDeuda.valor * 100).toFixed(0)}% de esa deuda vence en el corto plazo`
+                : "";
+        items.push(`Endeudamiento elevado: ${(endeudamiento.valor * 100).toFixed(2)}% de los activos totales financiado con deuda${detalleCalidad}.`);
+    }
+
+    const margen = buscar("Margen de Utilidad Neta");
+    const roa = buscar("Rendimiento sobre Activos Totales (ROA)");
+    if (margen && margen.estado === "malo") {
+        const detalleRoa = roa ? ` y ROA de ${(roa.valor * 100).toFixed(2)}%` : "";
+        items.push(`Rentabilidad muy baja: margen neto de ${(margen.valor * 100).toFixed(2)}%${detalleRoa}, por debajo de los niveles considerados aceptables.`);
+    }
+
+    const acido = buscar("Prueba del Ácido");
+    if (acido && acido.estado === "malo") {
+        items.push(`Liquidez inmediata comprometida: prueba del ácido de ${acido.valor.toFixed(2)} veces, por debajo del mínimo recomendado de 1.0.`);
+    }
+
+    const rotInv = buscar("Rotación de Inventario");
+    const diasInv = buscar("Días de Inventario");
+    if (rotInv && rotInv.estado === "malo") {
+        const detalleDias = diasInv ? ` (${diasInv.valor.toFixed(1)} días en promedio)` : "";
+        items.push(`Rotación de inventario lenta: ${rotInv.valor.toFixed(2)} veces al año${detalleDias}, inmovilizando capital de trabajo.`);
+    }
+
+    // Comparativa Anual: deducciones declaradas por encima de lo comprobado
+    // (mismo criterio de riesgo fiscal que en tu reporte de referencia)
+    if (comparativaAnual && Array.isArray(comparativaAnual.filas)) {
+        const deducciones = comparativaAnual.filas.find((f) => f.concepto === "Total de Deducciones Autorizadas");
+        if (deducciones && deducciones.diferencia !== null && deducciones.diferencia !== undefined && deducciones.diferencia < 0) {
+            items.push(
+                `Deducciones declaradas ante el SAT superiores en ${money(Math.abs(deducciones.diferencia))} a lo que soportan los comprobantes — riesgo de observación por la autoridad.`
+            );
+        }
+    }
+
+    if (items.length === 0) {
+        items.push("No se identificaron elementos claramente desfavorables en el análisis disponible.");
+    }
+    return items;
+}
+
+// ---- Rango de crédito sugerido (propuesta de punto de partida, AJUSTABLE) ----
+export function calcularRangoCredito({ razonesFinancieras }) {
+    const resumen = razonesFinancieras && razonesFinancieras.resumen;
+    const razones = (razonesFinancieras && razonesFinancieras.razones) || [];
+    const capitalTrabajo = razones.find((r) => r.nombre === "Capital de Trabajo");
+
+    if (!resumen || !capitalTrabajo || capitalTrabajo.valor <= 0) {
+        return null; // Sin capital de trabajo positivo no hay base objetiva para un rango
+    }
+
+    let pctMin;
+    let pctMax;
+    let nivel;
+    if (resumen.porcentajeSalud >= 0.75) {
+        pctMin = 0.5;
+        pctMax = 0.8;
+        nivel = "estándar";
+    } else if (resumen.porcentajeSalud >= 0.5) {
+        pctMin = 0.3;
+        pctMax = 0.55;
+        nivel = "conservador, con garantías";
+    } else {
+        pctMin = 0.15;
+        pctMax = 0.3;
+        nivel = "muy conservador, condicionado a garantías sólidas";
+    }
+
+    return {
+        minimo: capitalTrabajo.valor * pctMin,
+        maximo: capitalTrabajo.valor * pctMax,
+        pctMin,
+        pctMax,
+        nivel,
+        capitalTrabajo: capitalTrabajo.valor,
+    };
+}
+
+// ---- Veredicto final (texto), combinando salud financiera + rango sugerido ----
+export function construirVeredictoCredito({ razonesFinancieras, comparativaAnual }) {
+    const resumen = razonesFinancieras && razonesFinancieras.resumen;
+    if (!resumen) {
+        return "No se cuenta con Razones Financieras calculadas para este ejercicio (falta la Declaración Anual descargada), por lo que no es posible emitir una recomendación de crédito con la metodología de este reporte.";
+    }
+
+    let apertura;
+    if (resumen.porcentajeSalud >= 0.75) {
+        apertura = "La empresa muestra indicadores financieros sólidos y puede considerarse sujeta de crédito bajo condiciones estándar.";
+    } else if (resumen.porcentajeSalud >= 0.5) {
+        apertura =
+            "La empresa puede considerarse sujeta de crédito, pero no bajo condiciones estándar ni con un límite amplio; se recomienda un enfoque acotado y con garantías.";
+    } else {
+        apertura =
+            "Los indicadores financieros evaluados muestran señales de alerta relevantes; no se recomienda otorgar crédito sin garantías sólidas y sin antes resolver los riesgos identificados.";
+    }
+
+    const rango = calcularRangoCredito({ razonesFinancieras });
+    let textoMonto;
+    if (rango) {
+        textoMonto = ` Con base en el capital de trabajo disponible (${money(rango.capitalTrabajo)}), se sugiere un monto orientativo de entre ${money(rango.minimo)} y ${money(rango.maximo)} (equivalente al ${(rango.pctMin * 100).toFixed(0)}%–${(rango.pctMax * 100).toFixed(0)}% del capital de trabajo), bajo un esquema ${rango.nivel}.`;
+    } else {
+        textoMonto = " No fue posible sugerir un monto orientativo porque el capital de trabajo disponible es negativo, cero, o no se pudo determinar.";
+    }
+
+    return `${apertura}${textoMonto} Esta cifra es una referencia orientativa derivada del análisis de razones financieras y de los datos fiscales declarados ante el SAT; NO sustituye un proceso formal de análisis y aprobación crediticia, el cual debe incorporar además estados financieros dictaminados, historial de pago con otros acreedores, y las garantías reales ofrecidas por la empresa.`;
+}
