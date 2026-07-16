@@ -22,7 +22,8 @@
 
 <script>
 import axios from 'axios'
-const BASE_URL = 'https://api-scraper.contago.com.mx'
+// const BASE_URL = 'https://api-scraper.contago.com.mx'
+const BASE_URL = 'http://localhost:8080'
 
 export default {
   name: 'DescargaComprobantes',
@@ -40,7 +41,7 @@ export default {
       error: null,
       pollTimer: null,
       pollIntervalMs: 3000,
-      pollTimeoutMs: 5 * 60 * 1000, 
+      pollTimeoutMs: 15 * 60 * 1000,
       pollElapsedMs: 0,
       mensajeEstado: 'Descargando...',
     }
