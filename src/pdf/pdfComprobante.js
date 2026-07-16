@@ -354,6 +354,43 @@ static _crearDocDefinition(f, opciones = {}) {
         : []),
 
         // =========================================================
+        // CFDI RELACIONADOS
+        // =========================================================
+        ...(f.cfdiRelacionados && f.cfdiRelacionados.length
+          ? [{
+              margin: [0, 6, 0, 0],
+              table: {
+                widths: ['*'],
+                body: [[{
+                  margin: [10, 6, 10, 6],
+                  stack: [
+                    { text: 'CFDI RELACIONADOS', style: 'etiqueta' },
+                    ...f.cfdiRelacionados.map((rel, idx) => ({
+                      margin: [0, idx === 0 ? 5 : 8, 0, 0],
+                      stack: [
+                        {
+                          text: rel.tipoRelacion?.tipoRelacion
+                            || `${rel.tipoRelacion?.clave || ''} · ${rel.tipoRelacion?.descripcion || ''}`,
+                          bold: true,
+                          fontSize: 8.5,
+                          color: colores.ink
+                        },
+                        ...(rel.uuid || []).map((u) => ({
+                          text: u,
+                          style: 'mono',
+                          fontSize: 8,
+                          margin: [0, 1, 0, 0]
+                        }))
+                      ]
+                    }))
+                  ]
+                }]]
+              },
+              layout: { hLineColor: () => acento, vLineColor: () => acento, hLineWidth: () => 1, vLineWidth: () => 1 }
+            }]
+          : []),
+
+        // =========================================================
         // CONCEPTOS (con descuento por línea)
         // =========================================================
         {
