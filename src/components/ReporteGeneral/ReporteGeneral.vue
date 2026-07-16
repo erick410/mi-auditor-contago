@@ -167,6 +167,7 @@
           <q-tab name="mails" label="Reporte General" />
           <q-tab name="alarms" label="Reporte de Impuestos" />
           <q-tab name="razonFinanciera" label="Reporte Razones Financieras" />
+          <q-tab name="reporteFinanciero" label="Reporte Financiero" />
         </q-tabs>
 
         <q-tab-panels bordered v-model="tab" animated>
@@ -841,6 +842,16 @@
               </div>
             </div>
           </q-tab-panel>
+
+          <q-tab-panel bordered name="reporteFinanciero" class="full-width">
+            <ReporteGeneralPreview
+  ref="reporteGeneral"
+  :anio="selectedAnio"
+  :mesI="selectedMesI"
+  :mesF="selectedMesF"
+  :autoGenerar="false"
+/>
+          </q-tab-panel>
         </q-tab-panels>
       </q-card>
     </div>
@@ -883,14 +894,14 @@ import { Notify } from "quasar";
 import { parseExcel } from "@/utils/parseExcel";
 import { calcularRazones, formatearValor } from "@/utils/razonesFinancieras";
 import { generarReportePDF } from "@/utils/generarReportePDF";
-// import generarReporte
+import ReporteGeneralPreview from "../ReporteFinanciero/ReporteFinanciero.vue"
 export default {
   name: "MainLayout",
   components: {
     drawerPerfil,
     drawerEmpresas,
     ViewReporteGeneral,
-    Index,
+    Index,ReporteGeneralPreview
   },
   data() {
     return {
