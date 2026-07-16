@@ -17,9 +17,7 @@
         </q-btn>
 
         <q-toolbar-title>
-          <span
-            style="font-size: 16px; font-weight: 500; letter-spacing: 0.01em"
-          >
+          <span style="font-size: 16px; font-weight: 500; letter-spacing: 0.01em">
             REPORTES
           </span>
         </q-toolbar-title>
@@ -28,13 +26,7 @@
           {{ $store.state.usuario.rfc }}
         </div>
 
-        <q-btn
-          flat
-          round
-          dense
-          class="header-btn"
-          @click="irSolicitudCancelacion()"
-        >
+        <q-btn flat round dense class="header-btn" @click="irSolicitudCancelacion()">
           <q-icon name="mdi-bell" color="white" size="23px" />
           <q-badge color="red-8" floating style="font-size: 9px">
             {{ cuentaSolicitudes }}
@@ -55,13 +47,7 @@
           <q-tooltip content-style="font-size:13px">Empresas</q-tooltip>
         </q-btn>
 
-        <q-btn
-          flat
-          round
-          dense
-          class="header-btn"
-          @click="drawerPerfil = !drawerPerfil"
-        >
+        <q-btn flat round dense class="header-btn" @click="drawerPerfil = !drawerPerfil">
           <q-icon name="mdi-account" color="white" size="23px" />
           <q-tooltip content-style="font-size:13px">Perfil</q-tooltip>
         </q-btn>
@@ -69,13 +55,7 @@
     </q-header>
 
     <!-- DRAWER DERECHO -->
-    <q-drawer
-      :width="350"
-      v-model="drawerPerfil"
-      behavior="mobile"
-      side="right"
-      bordered
-    >
+    <q-drawer :width="350" v-model="drawerPerfil" behavior="mobile" side="right" bordered>
       <drawerPerfil></drawerPerfil>
     </q-drawer>
 
@@ -100,8 +80,8 @@
         <q-card-section>
           <div class="text-h6">¡Información empresarial incompleta!</div>
           <div class="text-subtitle2">
-            Para generar reportes precisos y completos, necesitamos todos los
-            datos de tu empresa.
+            Para generar reportes precisos y completos, necesitamos todos los datos de tu
+            empresa.
             <strong>Los reportes actuales tienen información limitada.</strong>
           </div>
           <div class="text-body2 q-mt-sm">
@@ -173,10 +153,7 @@
     </div>
 
     <div class="row justify-center q-mt-md">
-      <q-card
-        bordered
-        class="col-xs-12 col-sm-10 col-md-10 col-lg-10 q-mt-md no-shadow"
-      >
+      <q-card bordered class="col-xs-12 col-sm-10 col-md-10 col-lg-10 q-mt-md no-shadow">
         <q-tabs
           v-model="tab"
           class="bg-grey-3"
@@ -189,14 +166,13 @@
         >
           <q-tab name="mails" label="Reporte General" />
           <q-tab name="alarms" label="Reporte de Impuestos" />
+          <q-tab name="razonFinanciera" label="Reporte Razones Financieras" />
         </q-tabs>
 
         <q-tab-panels bordered v-model="tab" animated>
           <q-tab-panel bordered name="mails" class="full-width">
             <div class="row full-width q-mt-md no-shadow">
-              <div class="text-bold q-mb-md col-12">
-                Configuración del reporte
-              </div>
+              <div class="text-bold q-mb-md col-12">Configuración del reporte</div>
               <div class="col-12">
                 <q-list bordered class="q-mt-md rounded-borders">
                   <q-expansion-item
@@ -225,9 +201,7 @@
                               <q-toggle
                                 color="blue"
                                 :value="checkConcentradosSelected(sectionName)"
-                                @input="
-                                  toggleAllConcentrados(sectionName, $event)
-                                "
+                                @input="toggleAllConcentrados(sectionName, $event)"
                               />
                             </q-item-section>
                           </q-item>
@@ -681,9 +655,7 @@
                     <q-btn
                       round
                       v-if="task.status !== 'loading'"
-                      :icon="
-                        task.status === 'error' ? 'mdi-update' : 'mdi-update'
-                      "
+                      :icon="task.status === 'error' ? 'mdi-update' : 'mdi-update'"
                       color="primary"
                       @click="runTask(index)"
                       style="margin-top: -10px"
@@ -772,10 +744,7 @@
 
               <!-- <span> span {{ imagenBase64 }}</span> -->
               <div v-if="imagenBase64" class="q-mb-md">
-                <img
-                  :src="imagenBase64"
-                  style="max-width: 100%; border-radius: 10px"
-                />
+                <img :src="imagenBase64" style="max-width: 100%; border-radius: 10px" />
               </div>
               <div class="row no-wrap justify-between q-mb-md">
                 <q-input
@@ -798,6 +767,77 @@
                   <q-icon name="download" left size="sm" />
                   Generar PDF
                 </q-btn>
+              </div>
+            </div>
+          </q-tab-panel>
+          <q-tab-panel bordered name="razonFinanciera" class="full-width">
+            <div class="q-pa-lg">
+              <div class="row no-wrap justify-between items-center q-mb-md">
+                <div class="text-bold text-h5">Razones Financieras</div>
+
+                <div class="row no-wrap items-center q-gutter-sm">
+                  <q-file
+                    v-model="archivoExcel"
+                    label="Subir Excel"
+                    filled
+                    accept=".xlsx,.xls"
+                    style="width: 250px"
+                    @update:model-value="onArchivoSeleccionado"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="attach_file" />
+                    </template>
+                  </q-file>
+
+                  <q-btn
+                    style="background: #e74747; color: white; height: 56px"
+                    label="Consultar"
+                    :loading="cargando"
+                    :disable="!archivoExcel"
+                    @click="onConsultar"
+                  />
+                </div>
+              </div>
+
+              <div class="row q-mt-md q-gutter-sm">
+                <q-btn
+                  style="background: #e74747; color: white"
+                  label="Calcular"
+                  :disable="!datosExcel"
+                  @click="onCalcular"
+                />
+                <q-btn
+                  v-if="razones.length"
+                  outline
+                  style="color: #e74747; border-color: #e74747"
+                  label="Descargar PDF"
+                  icon="picture_as_pdf"
+                  :loading="generandoPDF"
+                  @click="onDescargarPDF"
+                />
+              </div>
+
+              <!-- Vista previa en pantalla -->
+              <div class="q-mt-lg" v-if="razones.length">
+                <q-list bordered separator>
+                  <q-item v-for="r in razones" :key="r.nombre">
+                    <q-item-section avatar>
+                      <q-badge :style="{ backgroundColor: r.color }" rounded />
+                    </q-item-section>
+                    <q-item-section>
+                      <q-item-label>{{ r.nombre }}</q-item-label>
+                      <q-item-label caption>{{ r.descripcion }}</q-item-label>
+                    </q-item-section>
+                    <q-item-section side>
+                      <q-item-label class="text-bold">{{
+                        formatearValor(r.valor, r.formato)
+                      }}</q-item-label>
+                      <q-item-label caption :style="{ color: r.color }">{{
+                        r.estado.toUpperCase()
+                      }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-list>
               </div>
             </div>
           </q-tab-panel>
@@ -834,14 +874,16 @@ import {
   contenidoDatosFinancieros,
   descargarPDF,
 } from "../Pdf/GeneradorPDF.js";
-import {
-  generarIndiceEmpresarial,
-  descargarPDFIndice,
-} from "../Pdf/PortadaPDF.js";
+import { generarIndiceEmpresarial, descargarPDFIndice } from "../Pdf/PortadaPDF.js";
 import ViewReporteGeneral from "./ViewReporteGeneral.vue";
 import Index from "../Asistente/Index.vue";
 import { generarReporte } from "../Pdf/ReportePagosMensuales.js";
 import logo from "@/assets/logo_contago_sin_fondo.png";
+import { Notify } from "quasar";
+import { parseExcel } from "@/utils/parseExcel";
+import { calcularRazones, formatearValor } from "@/utils/razonesFinancieras";
+import { generarReportePDF } from "@/utils/generarReportePDF";
+// import generarReporte
 export default {
   name: "MainLayout",
   components: {
@@ -860,6 +902,11 @@ export default {
       leftDrawerOpen: false,
       drawer: false,
       miniState: true,
+      razones: [],
+      archivoExcel: null,
+      datosExcel: null,
+      cargando: false,
+      generandoPDF: false,
 
       //FECHAS
       itemsAnios: [
@@ -1524,6 +1571,9 @@ export default {
       this.$q.dark.set(val);
     },
   },
+  mounted() {
+    console.log(this.$store.state.empresaStore.nombre)
+  },
   methods: {
     irInicio() {
       this.$router.push({ name: "Home" });
@@ -1810,46 +1860,11 @@ export default {
         const inicio = performance.now();
         // HACEMOS LAS CONSULTAS
         const tareasContador = [
-          this.GetReporteContador(
-            rfc,
-            "comprobantes_emitidos",
-            "I",
-            año,
-            mesI,
-            mesF
-          ),
-          this.GetReporteContador(
-            rfc,
-            "comprobantes_emitidos",
-            "E",
-            año,
-            mesI,
-            mesF
-          ),
-          this.GetReporteContador(
-            rfc,
-            "comprobantes_recibidos",
-            "I",
-            año,
-            mesI,
-            mesF
-          ),
-          this.GetReporteContador(
-            rfc,
-            "comprobantes_recibidos",
-            "E",
-            año,
-            mesI,
-            mesF
-          ),
-          this.GetReporteContador(
-            rfc,
-            "comprobantes_nomina",
-            "N",
-            año,
-            mesI,
-            mesF
-          ),
+          this.GetReporteContador(rfc, "comprobantes_emitidos", "I", año, mesI, mesF),
+          this.GetReporteContador(rfc, "comprobantes_emitidos", "E", año, mesI, mesF),
+          this.GetReporteContador(rfc, "comprobantes_recibidos", "I", año, mesI, mesF),
+          this.GetReporteContador(rfc, "comprobantes_recibidos", "E", año, mesI, mesF),
+          this.GetReporteContador(rfc, "comprobantes_nomina", "N", año, mesI, mesF),
         ];
         // const resultadosContador = await Promise.all(tareasContador);
 
@@ -1907,22 +1922,8 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarEmitidos) {
           tareasImportes.push(
-            this.GetReporteImportes(
-              rfc,
-              "comprobantes_emitidos",
-              "I",
-              año,
-              mesI,
-              mesF
-            ),
-            this.GetReporteImportes(
-              rfc,
-              "comprobantes_emitidos",
-              "E",
-              año,
-              mesI,
-              mesF
-            )
+            this.GetReporteImportes(rfc, "comprobantes_emitidos", "I", año, mesI, mesF),
+            this.GetReporteImportes(rfc, "comprobantes_emitidos", "E", año, mesI, mesF)
           );
         } else {
           tareasImportes.push([]);
@@ -1930,22 +1931,8 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarRecibidos) {
           tareasImportes.push(
-            this.GetReporteImportes(
-              rfc,
-              "comprobantes_recibidos",
-              "I",
-              año,
-              mesI,
-              mesF
-            ),
-            this.GetReporteImportes(
-              rfc,
-              "comprobantes_recibidos",
-              "E",
-              año,
-              mesI,
-              mesF
-            )
+            this.GetReporteImportes(rfc, "comprobantes_recibidos", "I", año, mesI, mesF),
+            this.GetReporteImportes(rfc, "comprobantes_recibidos", "E", año, mesI, mesF)
           );
         } else {
           tareasImportes.push([]);
@@ -2001,38 +1988,26 @@ export default {
 
         if (this.mostrarSeccionesReporte.mostrarNomina) {
           tareasImportesN.push(
-            this.GetReporteImportesNomina(
-              rfc,
-              "comprobantes_nomina",
-              año,
-              mesI,
-              mesF
-            )
+            this.GetReporteImportesNomina(rfc, "comprobantes_nomina", año, mesI, mesF)
           );
         } else {
           tareasImportesN.push([]);
         }
 
         if (this.mostrarSeccionesReporte.mostrarNominaGeneral) {
-          tareasImportesN.push(
-            this.GetReporteNominaGeneral(rfc, año, mesI, mesF)
-          );
+          tareasImportesN.push(this.GetReporteNominaGeneral(rfc, año, mesI, mesF));
         } else {
           tareasImportesN.push([]);
         }
 
         if (this.mostrarSeccionesReporte.mostrarNominaTrabajadores == true) {
-          tareasImportesN.push(
-            this.GetReporteNominaTrabajador(rfc, año, mesI, mesF)
-          );
+          tareasImportesN.push(this.GetReporteNominaTrabajador(rfc, año, mesI, mesF));
         } else {
           tareasImportesN.push([]);
         }
 
         if (this.mostrarSeccionesReporte.mostrarNominaConceptos) {
-          tareasImportesN.push(
-            this.GetReporteNominaConceptos(rfc, año, mesI, mesF)
-          );
+          tareasImportesN.push(this.GetReporteNominaConceptos(rfc, año, mesI, mesF));
         } else {
           tareasImportesN.push([]);
         }
@@ -2224,9 +2199,7 @@ export default {
         //   this.GetReporteRiesgoFacturaGlobalAsync(rfc, año, mesI, mesF),
         // ];
 
-        const resultadosReporteRiesgos = await Promise.all(
-          tareasReporteRiesgos
-        );
+        const resultadosReporteRiesgos = await Promise.all(tareasReporteRiesgos);
 
         this.$q.loading.show({
           spinner: QSpinnerCube,
@@ -2305,33 +2278,17 @@ export default {
           tareasPagos.push([]);
         }
 
-        if (
-          this.mostrarSeccionesReporte.mostrarPagoAntesDeComprobanteRecibidos
-        ) {
+        if (this.mostrarSeccionesReporte.mostrarPagoAntesDeComprobanteRecibidos) {
           tareasPagos.push(
-            this.GetReportePagosAntesDeComprobanteAsync(
-              rfc,
-              "R",
-              año,
-              mesI,
-              mesF
-            )
+            this.GetReportePagosAntesDeComprobanteAsync(rfc, "R", año, mesI, mesF)
           );
         } else {
           tareasPagos.push([]);
         }
 
-        if (
-          this.mostrarSeccionesReporte.mostrarPagoAntesDeComprobanteEmitidos
-        ) {
+        if (this.mostrarSeccionesReporte.mostrarPagoAntesDeComprobanteEmitidos) {
           tareasPagos.push(
-            this.GetReportePagosAntesDeComprobanteAsync(
-              rfc,
-              "E",
-              año,
-              mesI,
-              mesF
-            )
+            this.GetReportePagosAntesDeComprobanteAsync(rfc, "E", año, mesI, mesF)
           );
         } else {
           tareasPagos.push([]);
@@ -2379,33 +2336,25 @@ export default {
         }
 
         if (this.mostrarSeccionesReporte.mostrarIvaRetRecibidos) {
-          tareasImpuestos.push(
-            this.GetReporteIvaRetAsync(rfc, "R", año, mesI, mesF)
-          );
+          tareasImpuestos.push(this.GetReporteIvaRetAsync(rfc, "R", año, mesI, mesF));
         } else {
           tareasImpuestos.push([]);
         }
 
         if (this.mostrarSeccionesReporte.mostrarIvaRetEmitidos) {
-          tareasImpuestos.push(
-            this.GetReporteIvaRetAsync(rfc, "E", año, mesI, mesF)
-          );
+          tareasImpuestos.push(this.GetReporteIvaRetAsync(rfc, "E", año, mesI, mesF));
         } else {
           tareasImpuestos.push([]);
         }
 
         if (this.mostrarSeccionesReporte.mostrarIsrNomina) {
-          tareasImpuestos.push(
-            this.GetReporteIsrNominaAsync(rfc, año, mesI, mesF)
-          );
+          tareasImpuestos.push(this.GetReporteIsrNominaAsync(rfc, año, mesI, mesF));
         } else {
           tareasImpuestos.push([]);
         }
 
         if (this.mostrarSeccionesReporte.mostrarRetencionesIsr) {
-          tareasImpuestos.push(
-            this.GetRetencionesIsrAsync(rfc, año, mesI, mesF)
-          );
+          tareasImpuestos.push(this.GetRetencionesIsrAsync(rfc, año, mesI, mesF));
         } else {
           tareasImpuestos.push([]);
         }
@@ -2461,9 +2410,7 @@ export default {
         //   this.GetReporteCuentasPendientesAsync(rfc, "R", año, mesI, mesF),
         // ];
 
-        const resultadosCuentasPendientes = await Promise.all(
-          tareasCuentasPendientes
-        );
+        const resultadosCuentasPendientes = await Promise.all(tareasCuentasPendientes);
 
         this.$q.loading.show({
           spinner: QSpinnerCube,
@@ -2476,17 +2423,13 @@ export default {
         const tareasAnticipos = [];
 
         if (this.mostrarSeccionesReporte.mostrarAnticiposEmitidos) {
-          tareasImpuestos.push(
-            this.GetReporteAnticipoAsync(rfc, "E", año, mesI, mesF)
-          );
+          tareasImpuestos.push(this.GetReporteAnticipoAsync(rfc, "E", año, mesI, mesF));
         } else {
           tareasAnticipos.push([]);
         }
 
         if (this.mostrarSeccionesReporte.mostrarAnticiposRecibidos) {
-          tareasImpuestos.push(
-            this.GetReporteAnticipoAsync(rfc, "R", año, mesI, mesF)
-          );
+          tareasImpuestos.push(this.GetReporteAnticipoAsync(rfc, "R", año, mesI, mesF));
         } else {
           tareasAnticipos.push([]);
         }
@@ -2532,9 +2475,7 @@ export default {
           const tope = mesF - mesI + 1;
           for (let x = 0; x < tope; x++) {
             //EMITIDOS
-            const nombreMes = this.obtenerNombreMes(
-              resultadosImportes[0][x].mes
-            );
+            const nombreMes = this.obtenerNombreMes(resultadosImportes[0][x].mes);
             var objEmitidos = {
               mes: nombreMes,
               contadorI: resultadosImportes[0][x].contador,
@@ -2576,9 +2517,7 @@ export default {
         if (resultadosImportesN[0]?.length > 0) {
           const topeNomina = mesF - mesI + 1;
           for (let x = 0; x < topeNomina; x++) {
-            const nombreMes = this.obtenerNombreMes(
-              resultadosImportesN[0][x].mes
-            );
+            const nombreMes = this.obtenerNombreMes(resultadosImportesN[0][x].mes);
 
             //NOMINA
             var objNomina = {
@@ -3572,38 +3511,32 @@ export default {
             {
               titulo: "Reporte Uso CFDI",
               contenido: this.dataReporte.usoCDFI,
-              esMensual:
-                !this.mostrarConcentradosReporte.mostrarUsoCFDI && esMensual,
+              esMensual: !this.mostrarConcentradosReporte.mostrarUsoCFDI && esMensual,
             },
             {
               titulo: "Emitidos",
               contenido: this.dataReporte.emitidos,
               colorOverride: coloresScheme.emitidos,
-              esMensual:
-                !this.mostrarConcentradosReporte.mostrarEmitidos && esMensual,
+              esMensual: !this.mostrarConcentradosReporte.mostrarEmitidos && esMensual,
             },
             {
               titulo: "RFC Emitidos",
               contenido: this.dataReporte.rfcEmitidos,
               colorOverride: coloresScheme.emitidos,
-              esMensual:
-                !this.mostrarConcentradosReporte.mostrarRfcEmitidos &&
-                esMensual,
+              esMensual: !this.mostrarConcentradosReporte.mostrarRfcEmitidos && esMensual,
             },
             {
               titulo: "Recibidos",
               contenido: this.dataReporte.recibidos,
               colorOverride: coloresScheme.recibidos,
-              esMensual:
-                !this.mostrarConcentradosReporte.mostrarRecibidos && esMensual,
+              esMensual: !this.mostrarConcentradosReporte.mostrarRecibidos && esMensual,
             },
             {
               titulo: "RFC Recibidos",
               contenido: this.dataReporte.rfcRecibidos,
               colorOverride: coloresScheme.recibidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarRfcRecibidos &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarRfcRecibidos && esMensual,
             },
           ],
         },
@@ -3615,17 +3548,14 @@ export default {
               titulo: "portada",
               contenido: {
                 titulo: "reporte de nómina",
-                descripcion: [
-                  "Lista de comprobantes timbrados, separados por mes.",
-                ],
+                descripcion: ["Lista de comprobantes timbrados, separados por mes."],
               },
               esMensual,
             },
             {
               titulo: "Nomina",
               contenido: this.dataReporte.nomina,
-              esMensual:
-                !this.mostrarConcentradosReporte.mostrarNomina && esMensual,
+              esMensual: !this.mostrarConcentradosReporte.mostrarNomina && esMensual,
             },
           ],
         },
@@ -3647,15 +3577,13 @@ export default {
               titulo: "Reporte Flujo Emitido",
               contenido: this.dataReporte.flujoEmitido,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarFlujoEmitido &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarFlujoEmitido && esMensual,
             },
             {
               titulo: "Reporte Flujo Recibido",
               contenido: this.dataReporte.flujoRecibido,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarFlujoRecibido &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarFlujoRecibido && esMensual,
               // Override color scheme for this specific section
               colorOverride: coloresScheme.recibidos,
             },
@@ -3663,56 +3591,51 @@ export default {
               titulo: "Nomina General",
               contenido: this.dataReporte.nominaGeneral,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarNominaGeneral &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarNominaGeneral && esMensual,
               colorOverride: coloresScheme.nomina,
             },
             {
               titulo: "Nomina Trabajadores",
               contenido: this.dataReporte.nominaTrabajadores,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarNominaTrabajadores &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarNominaTrabajadores && esMensual,
               colorOverride: coloresScheme.nomina,
             },
             {
               titulo: "Nomina Conceptos",
               contenido: this.dataReporte.nominaConceptos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarNominaConceptos &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarNominaConceptos && esMensual,
               colorOverride: coloresScheme.nomina,
             },
             {
               titulo: "cuentasPendientesEmitidos",
               contenido: this.dataReporte.cuentasPendientesEmitidos,
               esMensual:
-                !this.mostrarConcentradosReporte
-                  .mostrarCuentasPendientesEmitidos && esMensual,
+                !this.mostrarConcentradosReporte.mostrarCuentasPendientesEmitidos &&
+                esMensual,
               colorOverride: coloresScheme.emitidos,
             },
             {
               titulo: "cuentasPendientesRecibidos",
               contenido: this.dataReporte.cuentasPendientesRecibidos,
               esMensual:
-                !this.mostrarConcentradosReporte
-                  .mostrarCuentasPendientesRecibidos && esMensual,
+                !this.mostrarConcentradosReporte.mostrarCuentasPendientesRecibidos &&
+                esMensual,
               colorOverride: coloresScheme.recibidos,
             },
             {
               titulo: "metodosDePagoEmitidos",
               contenido: this.dataReporte.metodosDePagoEmitidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarMetodosPagoEmitidos &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarMetodosPagoEmitidos && esMensual,
               colorOverride: coloresScheme.emitidos,
             },
             {
               titulo: "metodosDePagoRecibidos",
               contenido: this.dataReporte.metodosDePagoRecibidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarMetodosPagoRecibidos &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarMetodosPagoRecibidos && esMensual,
               colorOverride: coloresScheme.recibidos,
             },
             {
@@ -3742,36 +3665,31 @@ export default {
               titulo: "PUE 99 Emitido",
               contenido: this.dataReporte.pue99Emitidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarPue99Emitido &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarPue99Emitido && esMensual,
             },
             {
               titulo: "PUE 99 Recibido",
               contenido: this.dataReporte.pue99Recibidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarPue99Recibido &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarPue99Recibido && esMensual,
             },
             {
               titulo: "PUE 30 Emitido",
               contenido: this.dataReporte.pue30Emitidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarPue30Emitido &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarPue30Emitido && esMensual,
             },
             {
               titulo: "PUE 30 Recibido",
               contenido: this.dataReporte.pue30Recibidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarPue99Recibido &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarPue99Recibido && esMensual,
             },
             {
               titulo: "Sin Impuestos Emitidos",
               contenido: this.dataReporte.rSinImpuestosEmitidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarSinImpuestosEmitidos &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarSinImpuestosEmitidos && esMensual,
             },
             {
               titulo: "Sin Impuestos Recibidos",
@@ -3784,78 +3702,73 @@ export default {
               titulo: "Riesgo Arrendamiento",
               contenido: this.dataReporte.riesgoArrendamiento,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarRiesgoArrendamiento &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarRiesgoArrendamiento && esMensual,
             },
             {
               titulo: "Riesgo Conceptos Emitidos",
               contenido: this.dataReporte.riesgoConceptosEmitidos,
               esMensual:
-                !this.mostrarConcentradosReporte
-                  .mostrarRiesgoConceptosEmitidos && esMensual,
+                !this.mostrarConcentradosReporte.mostrarRiesgoConceptosEmitidos &&
+                esMensual,
             },
             {
               titulo: "Riesgo Conceptos Recibidos",
               contenido: this.dataReporte.riesgoConceptosRecibidos,
               esMensual:
-                !this.mostrarConcentradosReporte
-                  .mostrarRiesgoConceptosRecibidos && esMensual,
+                !this.mostrarConcentradosReporte.mostrarRiesgoConceptosRecibidos &&
+                esMensual,
             },
             {
               titulo: "Gastos Efectivo",
               contenido: this.dataReporte.gastosEfectivo,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarGastosEfectivo &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarGastosEfectivo && esMensual,
             },
             {
               titulo: "Notas Sin Relación",
               contenido: this.dataReporte.notasSinRelacion,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarNotasSinRelacion &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarNotasSinRelacion && esMensual,
             },
             {
               titulo: "pagoFueraDeTiempoEmitidos",
               contenido: this.dataReporte.pagoFueraDeTiempoEmitidos,
               esMensual:
-                !this.mostrarConcentradosReporte
-                  .mostrarPagoFueraDeTiempoEmitidos && esMensual,
+                !this.mostrarConcentradosReporte.mostrarPagoFueraDeTiempoEmitidos &&
+                esMensual,
             },
             {
               titulo: "pagoFueraDeTiempoRecibidos",
               contenido: this.dataReporte.pagoFueraDeTiempoRecibidos,
               esMensual:
-                !this.mostrarConcentradosReporte
-                  .mostrarPagoFueraDeTiempoRecibidos && esMensual,
+                !this.mostrarConcentradosReporte.mostrarPagoFueraDeTiempoRecibidos &&
+                esMensual,
             },
             {
               titulo: "pagoAntesDeComprobanteEmitidos",
               contenido: this.dataReporte.pagoAntesDeComprobanteEmitidos,
               esMensual:
-                !this.mostrarConcentradosReporte
-                  .mostrarPagoAntesDeComprobanteEmitidos && esMensual,
+                !this.mostrarConcentradosReporte.mostrarPagoAntesDeComprobanteEmitidos &&
+                esMensual,
             },
             {
               titulo: "pagoAntesDeComprobanteRecibidos",
               contenido: this.dataReporte.pagoAntesDeComprobanteRecibidos,
               esMensual:
-                !this.mostrarConcentradosReporte
-                  .mostrarPagoAntesDeComprobanteRecibidos && esMensual,
+                !this.mostrarConcentradosReporte.mostrarPagoAntesDeComprobanteRecibidos &&
+                esMensual,
             },
             {
               titulo: "nominaDuplicadoO",
               contenido: this.dataReporte.nominaDuplicadoO,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarNominaDuplicadoO &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarNominaDuplicadoO && esMensual,
             },
             {
               titulo: "nominaDuplicadoE",
               contenido: this.dataReporte.nominaDuplicadoE,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarNominaDuplicadoE &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarNominaDuplicadoE && esMensual,
             },
             {
               titulo: "riesgoFacturadoGlobal",
@@ -3883,41 +3796,35 @@ export default {
             {
               titulo: "reporteIva",
               contenido: this.dataReporte.reporteIva,
-              esMensual:
-                !this.mostrarConcentradosReporte.mostrarReporteIva && esMensual,
+              esMensual: !this.mostrarConcentradosReporte.mostrarReporteIva && esMensual,
             },
             {
               titulo: "ivaRetEmitidos",
               contenido: this.dataReporte.ivaRetEmitidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarIvaRetEmitidos &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarIvaRetEmitidos && esMensual,
             },
             {
               titulo: "ivaRetRecibidos",
               contenido: this.dataReporte.ivaRetRecibidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarIvaRetRecibidos &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarIvaRetRecibidos && esMensual,
             },
             {
               titulo: "isrNomina",
               contenido: this.dataReporte.isrNomina,
-              esMensual:
-                !this.mostrarConcentradosReporte.mostrarIsrNomina && esMensual,
+              esMensual: !this.mostrarConcentradosReporte.mostrarIsrNomina && esMensual,
             },
             {
               titulo: "retencionesIsr",
               contenido: this.dataReporte.retencionesIsr,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarRetencionesIsr &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarRetencionesIsr && esMensual,
             },
             {
               titulo: "ieps",
               contenido: this.dataReporte.ieps,
-              esMensual:
-                !this.mostrarConcentradosReporte.mostrarIeps && esMensual,
+              esMensual: !this.mostrarConcentradosReporte.mostrarIeps && esMensual,
             },
           ],
         },
@@ -3940,16 +3847,16 @@ export default {
               contenido: this.dataReporte.consumoCombustibleEmitido,
               // colorOverride: coloresScheme.emitidos,
               esMensual:
-                !this.mostrarConcentradosReporte
-                  .mostrarConsumoCombustibleEmitido && esMensual,
+                !this.mostrarConcentradosReporte.mostrarConsumoCombustibleEmitido &&
+                esMensual,
             },
             {
               titulo: "consumoCombustibleRecibido",
               contenido: this.dataReporte.consumoCombustibleRecibido,
               // colorOverride: coloresScheme.recibidos,
               esMensual:
-                !this.mostrarConcentradosReporte
-                  .mostrarConsumoCombustibleRecibido && esMensual,
+                !this.mostrarConcentradosReporte.mostrarConsumoCombustibleRecibido &&
+                esMensual,
             },
           ],
         },
@@ -3972,16 +3879,14 @@ export default {
               contenido: this.dataReporte.anticiposEmitidos,
               colorOverride: coloresScheme.emitidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarAnticiposEmitidos &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarAnticiposEmitidos && esMensual,
             },
             {
               titulo: "anticiposRecibidos",
               contenido: this.dataReporte.anticiposRecibidos,
               colorOverride: coloresScheme.recibidos,
               esMensual:
-                !this.mostrarConcentradosReporte.mostrarAnticiposRecibidos &&
-                esMensual,
+                !this.mostrarConcentradosReporte.mostrarAnticiposRecibidos && esMensual,
             },
           ],
         },
@@ -4001,8 +3906,7 @@ export default {
               titulo: "listasNegras",
               contenido: this.dataReporte.listasNegras,
               colorOverride: coloresScheme.recibidos,
-              esMensual:
-                !this.mostrarConcentradosReporte.listasNegras && esMensual,
+              esMensual: !this.mostrarConcentradosReporte.listasNegras && esMensual,
             },
           ],
         },
@@ -4021,17 +3925,13 @@ export default {
       console.log("secciones", secciones);
       try {
         const logo = require("../../assets/logo_contago_sin_fondo.png");
-        const resultado = await generarReporteEmpresarial(
-          this.token,
-          secciones,
-          {
-            datosEmpresa: this.datosEmpresa,
-            logo: logo,
-            mesI: this.itemsMes[this.opcionesReporte.mesInicial - 1].label,
-            mesF: this.itemsMes[this.opcionesReporte.mesFinal - 1].label,
-            anio: this.opcionesReporte.anio,
-          }
-        );
+        const resultado = await generarReporteEmpresarial(this.token, secciones, {
+          datosEmpresa: this.datosEmpresa,
+          logo: logo,
+          mesI: this.itemsMes[this.opcionesReporte.mesInicial - 1].label,
+          mesF: this.itemsMes[this.opcionesReporte.mesFinal - 1].label,
+          anio: this.opcionesReporte.anio,
+        });
 
         // Descargar el PDF
         descargarPDF(resultado.blob, resultado.nombreDoc);
@@ -4240,14 +4140,8 @@ export default {
         this.selectedAnio,
         "IVA_visor_sat_16"
       );
-      const respuesta8 = await this.GetComparativa(
-        this.selectedAnio,
-        "IVA_visor_sat_8"
-      );
-      const respuesta0 = await this.GetComparativa(
-        this.selectedAnio,
-        "IVA_visor_sat_0"
-      );
+      const respuesta8 = await this.GetComparativa(this.selectedAnio, "IVA_visor_sat_8");
+      const respuesta0 = await this.GetComparativa(this.selectedAnio, "IVA_visor_sat_0");
       const respuestaExento = await this.GetComparativa(
         this.selectedAnio,
         "IVA_visor_sat_exento"
@@ -4295,28 +4189,19 @@ export default {
           const calculo = i.importeIvaAcreditado * porcentajeE[contE];
           console.log(calculo);
           this.dataComprobantes[contE].porcentajeE = porcentajeE[contE];
-          this.dataComprobantes[contE].calculoE = parseFloat(
-            calculo.toFixed(2)
-          );
+          this.dataComprobantes[contE].calculoE = parseFloat(calculo.toFixed(2));
           this.dataComprobantes[contE].importeIvaAcreditado = parseFloat(
             calculo.toFixed(2)
           );
 
           //RECALCULAMOS
           const ivaCargo_ = this.dataComprobantes[contE].importeIvaTrasladado;
-          const ivaAcreditado_ =
-            this.dataComprobantes[contE].importeIvaAcreditado;
+          const ivaAcreditado_ = this.dataComprobantes[contE].importeIvaAcreditado;
           const ivaRetenido_ = this.dataComprobantes[contE].ivaRetenido;
-          const ivaRetenidoAnterior_ =
-            this.dataComprobantes[contE].ivaRetenidoAnterior;
+          const ivaRetenidoAnterior_ = this.dataComprobantes[contE].ivaRetenidoAnterior;
 
           const calculo_ = parseFloat(
-            (
-              ivaCargo_ -
-              ivaAcreditado_ -
-              ivaRetenido_ +
-              ivaRetenidoAnterior_
-            ).toFixed(2)
+            (ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_).toFixed(2)
           );
           if (calculo_ > 0) {
             this.dataComprobantes[contE].ivaCargo = calculo_;
@@ -4362,8 +4247,7 @@ export default {
         const month = this.selectedMesF.value;
         const rfc = this.token.rfc;
         const response = await axios.get(
-          this.rutaAxios +
-            `Ingresos/GetPorcentajeIvaExentoAsync/${rfc}/${year}/${month}`
+          this.rutaAxios + `Ingresos/GetPorcentajeIvaExentoAsync/${rfc}/${year}/${month}`
         );
         this.$q.loading.hide();
         return response.data;
@@ -4379,10 +4263,7 @@ export default {
         this.dataComprobantes = [];
         let ivaAcreditable = await this.GetIvaAcreditado();
         let ivaRetenido = await this.GetIvaRetenido();
-        let comparativa = await this.GetComparativaIva(
-          this.selectedAnio,
-          "IVA"
-        );
+        let comparativa = await this.GetComparativaIva(this.selectedAnio, "IVA");
         let ObjIva = {};
         for (let x = 0; x < this.selectedMesF.value; x++) {
           ObjIva.año = this.selectedAnio;
@@ -4405,8 +4286,7 @@ export default {
           let ivaRetenido_ = ivaRetenido[x].importeIva;
           let ivaRetenidoAnterior_ = ivaRetenido[x + 1].importeIva;
 
-          let calculo =
-            ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_;
+          let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_;
           if (calculo > 0) {
             ObjIva.ivaCargo = calculo;
             ObjIva.ivaFavor = 0;
@@ -4540,9 +4420,7 @@ export default {
 
           // let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_
           let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_;
-          console.log(
-            ivaCargo_ + " - " + ivaAcreditado_ + " - " + ivaRetenido_
-          );
+          console.log(ivaCargo_ + " - " + ivaAcreditado_ + " - " + ivaRetenido_);
           console.log(calculo);
           if (calculo > 0) {
             ObjIva.ivaCargo = calculo;
@@ -4644,11 +4522,10 @@ export default {
         (await this.GetReporteIvaCompletoRecibidos(rfc, fechaI, fechaF)) || [];
       const ivaRet = (await this.GetIvaRetenido()) || [];
       const ivaRetEmitido = (await this.GetReporteIvaRetenidoNeteadoAsync()) || [];
-      
-      console.log(ivaRetEmitido, 'ivaRetEmitido')
 
-      const comp =
-        (await this.GetComparativaIva(this.selectedAnio, "IVA")) || [];
+      console.log(ivaRetEmitido, "ivaRetEmitido");
+
+      const comp = (await this.GetComparativaIva(this.selectedAnio, "IVA")) || [];
       const meses = [
         "ENERO",
         "FEBRERO",
@@ -4690,24 +4567,23 @@ export default {
           .filter((item) => item.mes?.toUpperCase() === mes)
           .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
+        const ivaRetenidoE = ivaRetEmitido
+          .filter(
+            (item) =>
+              item.mes?.toUpperCase() === mes && item.año === this.selectedAnio.toString()
+          )
+          .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-          const ivaRetenidoE = ivaRetEmitido
-                    .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio.toString())
-                    .reduce((acc, item) => acc + (item.importeIva || 0), 0);
-       
-                    const ivaRetenidoAnterior = ivaRet[x]?.importeIva + ivaRetenidoE
+        const ivaRetenidoAnterior = ivaRet[x]?.importeIva + ivaRetenidoE;
 
-          // const ivaRetenidoAnterior =
-          //   ivaRet.find((item) => item.mes?.toUpperCase() === mes)?.importeIva ||
-          //   0;
+        // const ivaRetenidoAnterior =
+        //   ivaRet.find((item) => item.mes?.toUpperCase() === mes)?.importeIva ||
+        //   0;
 
         let ivaCargo = 0;
         let ivaFavor = 0;
         const calculo =
-          importeIvaTrasladado -
-          importeIvaAcreditado +
-          ivaRetenido -
-          ivaRetenidoAnterior;
+          importeIvaTrasladado - importeIvaAcreditado + ivaRetenido - ivaRetenidoAnterior;
 
         if (calculo > 0) {
           ivaCargo = calculo;
@@ -4725,8 +4601,7 @@ export default {
           .filter((item) => item.mes?.toUpperCase() === mes)
           .reduce((acc, item) => acc + (item.ivaFavor || 0), 0);
 
-        let comparativa =
-          (ivaCargo - ivaFavor - cargoRegistrado + favorRegistrado) * -1;
+        let comparativa = (ivaCargo - ivaFavor - cargoRegistrado + favorRegistrado) * -1;
         if (comparativa !== 0) {
           comparativa *= -1;
         }
@@ -4871,8 +4746,7 @@ export default {
         const ivaRetenido = ivaRet
           .filter(
             (item) =>
-              item.mes?.toUpperCase() === mes &&
-              item.año === this.selectedAnio.toString()
+              item.mes?.toUpperCase() === mes && item.año === this.selectedAnio.toString()
           )
           .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
@@ -4887,8 +4761,7 @@ export default {
         let ivaCargo = 0;
         let ivaFavor = 0;
         // const calculo = importeIvaTrasladado - importeIvaAcreditado + ivaRetenido - ivaRetenidoAnterior;
-        const calculo =
-          importeIvaTrasladado - importeIvaAcreditado - ivaRetenido;
+        const calculo = importeIvaTrasladado - importeIvaAcreditado - ivaRetenido;
 
         if (calculo > 0) {
           ivaCargo = calculo;
@@ -4906,8 +4779,7 @@ export default {
           .filter((item) => item.mes?.toUpperCase() === mes)
           .reduce((acc, item) => acc + (item.ivaFavor || 0), 0);
 
-        let comparativa =
-          (ivaCargo - ivaFavor - cargoRegistrado + favorRegistrado) * -1;
+        let comparativa = (ivaCargo - ivaFavor - cargoRegistrado + favorRegistrado) * -1;
         if (comparativa !== 0) {
           comparativa *= -1;
         }
@@ -5111,8 +4983,7 @@ export default {
     async GetReporteIvaCompletoRecibidos(rfc, fechaI, fechaF) {
       try {
         const response = await axios.get(
-          this.rutaAxios +
-            `Gastos/GetReporteIvaCompletoAsync/${rfc}/${fechaI}/${fechaF}`
+          this.rutaAxios + `Gastos/GetReporteIvaCompletoAsync/${rfc}/${fechaI}/${fechaF}`
         );
         return response.data;
       } catch (error) {
@@ -5197,10 +5068,7 @@ export default {
         //CONSULTANOS LAS COMPARATIVAS
         this.dataIvaRetenido = [];
         let ivaRetenido = [];
-        let comparativaIva = await this.GetComparativa(
-          this.selectedAnio,
-          "IVARetenido"
-        );
+        let comparativaIva = await this.GetComparativa(this.selectedAnio, "IVARetenido");
 
         console.log(comparativaIva);
 
@@ -5221,8 +5089,7 @@ export default {
 
         //ASIGNAMOS LAS COMPARATIVAS
         for (let a = 1; a <= mesFin; a++) {
-          let diferencia =
-            ivaRetenido[a].importeIva - comparativaIva[a - 1].importe;
+          let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe;
           let objIva = {
             mes: ivaRetenido[a].mes,
             importeIva: ivaRetenido[a].importeIva,
@@ -5298,10 +5165,7 @@ export default {
     },
 
     async ReporteIsrEmitidoAsync() {
-      let comparativa = await this.GetComparativa(
-        this.selectedAnio,
-        "ISRRetenidoFavor"
-      );
+      let comparativa = await this.GetComparativa(this.selectedAnio, "ISRRetenidoFavor");
       try {
         let fechaI = this.selectedAnio + "-01-01";
         let fechaF = this.selectedAnio + "-" + this.selectedMes.value + "-01";
@@ -5392,10 +5256,7 @@ export default {
       });
       try {
         //CONSULTANOS LAS COMPARATIVAS
-        let comparativaSueldos = await this.GetComparativa(
-          this.selectedAnio,
-          "Sueldos"
-        );
+        let comparativaSueldos = await this.GetComparativa(this.selectedAnio, "Sueldos");
         let comparativaAsimilados = await this.GetComparativa(
           this.selectedAnio,
           "Asimilados"
@@ -5425,8 +5286,7 @@ export default {
         //ASIGNAMOS LAS COMPARATIVAS
         for (let a = 0; a < mesFin; a++) {
           this.dataSueldos[a].comparativa = comparativaSueldos[a].importe;
-          let diferencia =
-            this.dataSueldos[a].importe - comparativaSueldos[a].importe;
+          let diferencia = this.dataSueldos[a].importe - comparativaSueldos[a].importe;
           this.dataSueldos[a].diferencia = diferencia;
         }
         for (let a = 0; a < mesFin; a++) {
@@ -5437,8 +5297,7 @@ export default {
         }
         for (let a = 0; a < mesFin; a++) {
           this.dataOtros[a].comparativa = comparativaOtros[a].importe;
-          let diferencia =
-            this.dataOtros[a].importe - comparativaOtros[a].importe;
+          let diferencia = this.dataOtros[a].importe - comparativaOtros[a].importe;
           this.dataOtros[a].diferencia = diferencia;
         }
 
@@ -5538,11 +5397,9 @@ export default {
 
         //ASIGNAMOS LAS COMPARATIVAS
         for (let a = 0; a < mesFin; a++) {
-          this.dataArrendamientos[a].comparativa =
-            comparativaArrendamientos[a].importe;
+          this.dataArrendamientos[a].comparativa = comparativaArrendamientos[a].importe;
           let diferencia =
-            this.dataArrendamientos[a].importe -
-            comparativaArrendamientos[a].importe;
+            this.dataArrendamientos[a].importe - comparativaArrendamientos[a].importe;
           this.dataArrendamientos[a].diferencia = diferencia;
         }
         for (let a = 0; a < mesFin; a++) {
@@ -6222,10 +6079,7 @@ export default {
               const limiteInferior = parseFloat(rango.limite_inferior);
               const limiteSuperior = parseFloat(rango.limite_superior);
 
-              if (
-                baseCalculo >= limiteInferior &&
-                baseCalculo <= limiteSuperior
-              ) {
+              if (baseCalculo >= limiteInferior && baseCalculo <= limiteSuperior) {
                 valorEncontrado = rango;
                 break; // Salimos del bucle una vez que encontramos el valor
               }
@@ -6236,8 +6090,7 @@ export default {
 
             //CALCULOS
             baseImpuesto = baseCalculo - limiteInferior;
-            impuestoMarginal =
-              Math.round(baseImpuesto * (porcentaje / 100) * 100) / 100;
+            impuestoMarginal = Math.round(baseImpuesto * (porcentaje / 100) * 100) / 100;
             importeIsr = impuestoMarginal + cuotaFija;
             // console.log(cuotaFija, porcentaje);
           }
@@ -6690,8 +6543,7 @@ export default {
           utilidadFiscalPrevia: utilidadFiscalPrevia,
           utilidadFiscalPreviaAcumulada: utilidadFiscalPreviaAcumulada,
           ptuPagada: ptuPagada,
-          utilidadFiscalAcumuladaPreviaAntesDePerdidasFiscales:
-            utilidadFiscalAcumuladaPreviaAntesDePerdidasFiscales,
+          utilidadFiscalAcumuladaPreviaAntesDePerdidasFiscales: utilidadFiscalAcumuladaPreviaAntesDePerdidasFiscales,
           perdidasFiscalesPorAplicar: perdidasFiscalesPorAplicar,
           baseIsr: baseIsr,
           tasaIsr: tasaIsr,
@@ -7061,9 +6913,10 @@ export default {
           this.selectedMesF.value,
           0
         ).getDate();
-        const fF = `${this.selectedAnio}-${String(
-          this.selectedMesF.value
-        ).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+        const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(
+          2,
+          "0"
+        )}-${String(ultimoDia).padStart(2, "0")}`;
 
         let response = await axios.get(
           this.rutaAxios +
@@ -7089,9 +6942,10 @@ export default {
           this.selectedMesF.value,
           0
         ).getDate();
-        const fF = `${this.selectedAnio}-${String(
-          this.selectedMesF.value
-        ).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+        const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(
+          2,
+          "0"
+        )}-${String(ultimoDia).padStart(2, "0")}`;
 
         let response = await axios.get(
           this.rutaAxios +
@@ -7117,9 +6971,10 @@ export default {
           this.selectedMesF.value,
           0
         ).getDate();
-        const fF = `${this.selectedAnio}-${String(
-          this.selectedMesF.value
-        ).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+        const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(
+          2,
+          "0"
+        )}-${String(ultimoDia).padStart(2, "0")}`;
 
         let response = await axios.get(
           this.rutaAxios +
@@ -7152,12 +7007,8 @@ export default {
       const rangos = [];
 
       for (let mes = mesInicial; mes <= mesFinal; mes++) {
-        const inicio = moment(`${anio}-${mes}-01`)
-          .startOf("month")
-          .format("YYYY-MM-DD");
-        const fin = moment(`${anio}-${mes}-01`)
-          .endOf("month")
-          .format("YYYY-MM-DD");
+        const inicio = moment(`${anio}-${mes}-01`).startOf("month").format("YYYY-MM-DD");
+        const fin = moment(`${anio}-${mes}-01`).endOf("month").format("YYYY-MM-DD");
 
         rangos.push({ inicio, fin });
       }
@@ -7179,8 +7030,7 @@ export default {
           spinner: QSpinnerCube,
           spinnerColor: "red-8",
           spinnerSize: 140,
-          message:
-            "Gerando reporte de Ventas de " + r.inicio + " al " + r.fin + "...",
+          message: "Gerando reporte de Ventas de " + r.inicio + " al " + r.fin + "...",
         });
 
         const response = await axios.get(
@@ -7193,25 +7043,13 @@ export default {
         let objetoTotales = {
           detalles: [],
           producto: "Total",
-          cantidad: x.reduce(
-            (acumulador, objeto) => acumulador + objeto.cantidad,
-            0
-          ),
-          subTotal: x.reduce(
-            (acumulador, objeto) => acumulador + objeto.subTotal,
-            0
-          ),
-          descuento: x.reduce(
-            (acumulador, objeto) => acumulador + objeto.descuento,
-            0
-          ),
+          cantidad: x.reduce((acumulador, objeto) => acumulador + objeto.cantidad, 0),
+          subTotal: x.reduce((acumulador, objeto) => acumulador + objeto.subTotal, 0),
+          descuento: x.reduce((acumulador, objeto) => acumulador + objeto.descuento, 0),
           iva: x.reduce((acumulador, objeto) => acumulador + objeto.iva, 0),
           ieps: x.reduce((acumulador, objeto) => acumulador + objeto.ieps, 0),
           total: x.reduce((acumulador, objeto) => acumulador + objeto.total, 0),
-          ventas: x.reduce(
-            (acumulador, objeto) => acumulador + objeto.ventas,
-            0
-          ),
+          ventas: x.reduce((acumulador, objeto) => acumulador + objeto.ventas, 0),
           comprobantes: x.reduce(
             (acumulador, objeto) => acumulador + objeto.comprobantes,
             0
@@ -7240,12 +7078,7 @@ export default {
           spinner: QSpinnerCube,
           spinnerColor: "red-8",
           spinnerSize: 140,
-          message:
-            "Gerando reporte de Compras de " +
-            r.inicio +
-            " al " +
-            r.fin +
-            "...",
+          message: "Gerando reporte de Compras de " + r.inicio + " al " + r.fin + "...",
         });
 
         const response = await axios.get(
@@ -7258,25 +7091,13 @@ export default {
         let objetoTotales = {
           detalles: [],
           producto: "Total",
-          cantidad: x.reduce(
-            (acumulador, objeto) => acumulador + objeto.cantidad,
-            0
-          ),
-          subTotal: x.reduce(
-            (acumulador, objeto) => acumulador + objeto.subTotal,
-            0
-          ),
-          descuento: x.reduce(
-            (acumulador, objeto) => acumulador + objeto.descuento,
-            0
-          ),
+          cantidad: x.reduce((acumulador, objeto) => acumulador + objeto.cantidad, 0),
+          subTotal: x.reduce((acumulador, objeto) => acumulador + objeto.subTotal, 0),
+          descuento: x.reduce((acumulador, objeto) => acumulador + objeto.descuento, 0),
           iva: x.reduce((acumulador, objeto) => acumulador + objeto.iva, 0),
           ieps: x.reduce((acumulador, objeto) => acumulador + objeto.ieps, 0),
           total: x.reduce((acumulador, objeto) => acumulador + objeto.total, 0),
-          ventas: x.reduce(
-            (acumulador, objeto) => acumulador + objeto.ventas,
-            0
-          ),
+          ventas: x.reduce((acumulador, objeto) => acumulador + objeto.ventas, 0),
           comprobantes: x.reduce(
             (acumulador, objeto) => acumulador + objeto.comprobantes,
             0
@@ -7345,18 +7166,10 @@ export default {
         let premiumInicial = inicialPremium.detalle[0].litros;
         let dieselInicial = inicialDiesel.detalle[0].litros;
         console.log(magnaInicial);
-        for (
-          let a = this.selectedMesI.value;
-          a <= this.selectedMesF.value;
-          a++
-        ) {
+        for (let a = this.selectedMesI.value; a <= this.selectedMesF.value; a++) {
           //MAGNA
-          let BuscaMagnaV = ventas.find(
-            (f) => f.mes == a && f.producto === "MAGNA"
-          );
-          let BuscaMagnaC = compras.find(
-            (f) => f.mes == a && f.producto === "MAGNA"
-          );
+          let BuscaMagnaV = ventas.find((f) => f.mes == a && f.producto === "MAGNA");
+          let BuscaMagnaC = compras.find((f) => f.mes == a && f.producto === "MAGNA");
           let buscaMagnaM = mermaMagna.detalle[a - 1].litros;
           let buscaMagnaR = comparativaMagna.detalle[a - 1].litros;
           let ObjMagna = {
@@ -7383,8 +7196,7 @@ export default {
             ObjMagna.litrosComprados -
             ObjMagna.litrosVendidos -
             ObjMagna.mermas;
-          ObjMagna.diferencia =
-            ObjMagna.inventarioTeorico - ObjMagna.registrado;
+          ObjMagna.diferencia = ObjMagna.inventarioTeorico - ObjMagna.registrado;
           this.dataMagna.push(ObjMagna);
           magnaInicial =
             magnaInicial +
@@ -7393,12 +7205,8 @@ export default {
             ObjMagna.mermas;
 
           //PREMIUM
-          let BuscaPremiumV = ventas.find(
-            (f) => f.mes == a && f.producto === "PREMIUM"
-          );
-          let BuscaPremiumC = compras.find(
-            (f) => f.mes == a && f.producto === "PREMIUM"
-          );
+          let BuscaPremiumV = ventas.find((f) => f.mes == a && f.producto === "PREMIUM");
+          let BuscaPremiumC = compras.find((f) => f.mes == a && f.producto === "PREMIUM");
           let buscaPremiumM = mermaPremium.detalle[a - 1].litros;
           let buscaPremiumR = comparativaPremium.detalle[a - 1].litros;
 
@@ -7426,8 +7234,7 @@ export default {
             ObjPremium.litrosComprados -
             ObjPremium.litrosVendidos -
             ObjPremium.mermas;
-          ObjPremium.diferencia =
-            ObjPremium.inventarioTeorico - ObjPremium.registrado;
+          ObjPremium.diferencia = ObjPremium.inventarioTeorico - ObjPremium.registrado;
           this.dataPremium.push(ObjPremium);
           premiumInicial =
             premiumInicial +
@@ -7436,12 +7243,8 @@ export default {
             ObjPremium.mermas;
 
           //DIESEL
-          let BuscaDieselV = ventas.find(
-            (f) => f.mes == a && f.producto === "DIESEL"
-          );
-          let BuscaDieselC = compras.find(
-            (f) => f.mes == a && f.producto === "DIESEL"
-          );
+          let BuscaDieselV = ventas.find((f) => f.mes == a && f.producto === "DIESEL");
+          let BuscaDieselC = compras.find((f) => f.mes == a && f.producto === "DIESEL");
           let buscaDieselM = mermaDiesel.detalle[a - 1].litros;
           let buscaDieselR = comparativaDiesel.detalle[a - 1].litros;
 
@@ -7469,8 +7272,7 @@ export default {
             ObjDiesel.litrosComprados -
             ObjDiesel.litrosVendidos -
             ObjDiesel.mermas;
-          ObjDiesel.diferencia =
-            ObjDiesel.inventarioTeorico - ObjDiesel.registrado;
+          ObjDiesel.diferencia = ObjDiesel.inventarioTeorico - ObjDiesel.registrado;
           this.dataDiesel.push(ObjDiesel);
           dieselInicial =
             dieselInicial +
@@ -7695,18 +7497,10 @@ export default {
         let indiceM = 0;
         let indiceP = 0;
         let indiceD = 0;
-        for (
-          let a = this.selectedMesI.value;
-          a <= this.selectedMesF.value;
-          a++
-        ) {
+        for (let a = this.selectedMesI.value; a <= this.selectedMesF.value; a++) {
           //MAGNA
-          let BuscaMagnaV = ventas.find(
-            (f) => f.mes == a && f.producto === "MAGNA"
-          );
-          let BuscaMagnaC = compras.find(
-            (f) => f.mes == a && f.producto === "MAGNA"
-          );
+          let BuscaMagnaV = ventas.find((f) => f.mes == a && f.producto === "MAGNA");
+          let BuscaMagnaC = compras.find((f) => f.mes == a && f.producto === "MAGNA");
           let ObjMagna = {
             nombreMes: meses[a - 1],
 
@@ -7745,28 +7539,20 @@ export default {
           }
           ObjMagna.promedioCompras = indiceM;
 
-          ObjMagna.diferencia =
-            ObjMagna.subTotalVentas - ObjMagna.subTotalCompras;
+          ObjMagna.diferencia = ObjMagna.subTotalVentas - ObjMagna.subTotalCompras;
           if (ObjMagna.promedioVentas != 0) {
             ObjMagna.porcentajeUtilidad =
-              (ObjMagna.promedioCompras / ObjMagna.promedioVentas - 1) *
-              100 *
-              -1;
+              (ObjMagna.promedioCompras / ObjMagna.promedioVentas - 1) * 100 * -1;
           }
 
           //UTILIDAD DEL PERIODO
-          let utilidadM =
-            (ObjMagna.subTotalVentas * ObjMagna.porcentajeUtilidad) / 100;
+          let utilidadM = (ObjMagna.subTotalVentas * ObjMagna.porcentajeUtilidad) / 100;
           ObjMagna.utilidadPeriodo = utilidadM;
           this.dataMagnaU.push(ObjMagna);
 
           //PREMIUM
-          let BuscaPremiumV = ventas.find(
-            (f) => f.mes == a && f.producto === "PREMIUM"
-          );
-          let BuscaPremiumC = compras.find(
-            (f) => f.mes == a && f.producto === "PREMIUM"
-          );
+          let BuscaPremiumV = ventas.find((f) => f.mes == a && f.producto === "PREMIUM");
+          let BuscaPremiumC = compras.find((f) => f.mes == a && f.producto === "PREMIUM");
           let ObjPremium = {
             nombreMes: meses[a - 1],
 
@@ -7806,13 +7592,10 @@ export default {
           }
           ObjPremium.promedioCompras = indiceP;
 
-          ObjPremium.diferencia =
-            ObjPremium.subTotalVentas - ObjPremium.subTotalCompras;
+          ObjPremium.diferencia = ObjPremium.subTotalVentas - ObjPremium.subTotalCompras;
           if (ObjPremium.promedioVentas != 0) {
             ObjPremium.porcentajeUtilidad =
-              (ObjPremium.promedioCompras / ObjPremium.promedioVentas - 1) *
-              100 *
-              -1;
+              (ObjPremium.promedioCompras / ObjPremium.promedioVentas - 1) * 100 * -1;
           }
 
           //UTILIDAD DEL PERIODO
@@ -7823,12 +7606,8 @@ export default {
           this.dataPremiumU.push(ObjPremium);
 
           //DIESEL
-          let BuscaDieselV = ventas.find(
-            (f) => f.mes == a && f.producto === "DIESEL"
-          );
-          let BuscaDieselC = compras.find(
-            (f) => f.mes == a && f.producto === "DIESEL"
-          );
+          let BuscaDieselV = ventas.find((f) => f.mes == a && f.producto === "DIESEL");
+          let BuscaDieselC = compras.find((f) => f.mes == a && f.producto === "DIESEL");
           let ObjDiesel = {
             nombreMes: meses[a - 1],
 
@@ -7868,18 +7647,14 @@ export default {
           }
           ObjDiesel.promedioCompras = indiceD;
 
-          ObjDiesel.diferencia =
-            ObjDiesel.subTotalVentas - ObjDiesel.subTotalCompras;
+          ObjDiesel.diferencia = ObjDiesel.subTotalVentas - ObjDiesel.subTotalCompras;
           if (ObjDiesel.promedioVentas != 0) {
             ObjDiesel.porcentajeUtilidad =
-              (ObjDiesel.promedioCompras / ObjDiesel.promedioVentas - 1) *
-              100 *
-              -1;
+              (ObjDiesel.promedioCompras / ObjDiesel.promedioVentas - 1) * 100 * -1;
           }
 
           //UTILIDAD DEL PERIODO
-          let utilidadD =
-            (ObjDiesel.subTotalVentas * ObjDiesel.porcentajeUtilidad) / 100;
+          let utilidadD = (ObjDiesel.subTotalVentas * ObjDiesel.porcentajeUtilidad) / 100;
           ObjDiesel.utilidadPeriodo = utilidadD;
 
           this.dataDieselU.push(ObjDiesel);
@@ -8302,8 +8077,7 @@ export default {
         }
 
         mapa[rfc].subTotal += item.subTotal || 0;
-        mapa[rfc].totalImpuestosTrasladados +=
-          item.totalImpuestosTrasladados || 0;
+        mapa[rfc].totalImpuestosTrasladados += item.totalImpuestosTrasladados || 0;
         mapa[rfc].totalImpuestosRetenidos += item.totalImpuestosRetenidos || 0;
         mapa[rfc].total += item.total || 0;
       });
@@ -8439,20 +8213,20 @@ export default {
         //   this.dataIvaRetenidoNeteado.push(objIva);
         // }
         for (let a = 1; a <= mesFin; a++) {
-                    let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe
+          let diferencia = ivaRetenido[a].importeIva - comparativaIva[a - 1].importe;
 
-                    // let diferencia = ivaRetenido[a].importeIva - 0
-                    let objIva = {
-                        mes: ivaRetenido[a].mes,
-                        importeIva: ivaRetenido[a].importeIva,
-                        comparativa: comparativaIva[a - 1].importe,
-                        // comparativa: 0,
-                        diferencia: diferencia,
-                        detalles: ivaRetenido[a].detalles,
-                    }
-                    this.dataIvaRetenidoNeteado.push(objIva);
-                    objIva = {};
-                }
+          // let diferencia = ivaRetenido[a].importeIva - 0
+          let objIva = {
+            mes: ivaRetenido[a].mes,
+            importeIva: ivaRetenido[a].importeIva,
+            comparativa: comparativaIva[a - 1].importe,
+            // comparativa: 0,
+            diferencia: diferencia,
+            detalles: ivaRetenido[a].detalles,
+          };
+          this.dataIvaRetenidoNeteado.push(objIva);
+          objIva = {};
+        }
 
         let totales = {
           mes: "Total",
@@ -8485,15 +8259,12 @@ export default {
         message: "Gerando reporte de conceptos...",
       });
       const fI = `${this.selectedAnio}-01-01`;
-      const ultimoDia = new Date(
-        this.selectedAnio,
-        this.selectedMesF.value,
-        0
-      ).getDate();
+      const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
 
-      const fF = `${this.selectedAnio}-${String(
-        this.selectedMesF.value
-      ).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(
+        2,
+        "0"
+      )}-${String(ultimoDia).padStart(2, "0")}`;
 
       console.log(fF);
       // let fI = moment(this.fechaI).format('YYYY-MM-DD')
@@ -8549,14 +8320,11 @@ export default {
       this.dataAnticiposGastos = [];
 
       const fI = `${this.selectedAnio}-01-01`;
-      const ultimoDia = new Date(
-        this.selectedAnio,
-        this.selectedMesF.value,
-        0
-      ).getDate();
-      const fF = `${this.selectedAnio}-${String(
-        this.selectedMesF.value
-      ).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+      const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(
+        2,
+        "0"
+      )}-${String(ultimoDia).padStart(2, "0")}`;
 
       try {
         let response = await axios.get(
@@ -8587,14 +8355,11 @@ export default {
       this.dataAnticiposIngresos = [];
 
       const fI = `${this.selectedAnio}-01-01`;
-      const ultimoDia = new Date(
-        this.selectedAnio,
-        this.selectedMesF.value,
-        0
-      ).getDate();
-      const fF = `${this.selectedAnio}-${String(
-        this.selectedMesF.value
-      ).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+      const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(
+        2,
+        "0"
+      )}-${String(ultimoDia).padStart(2, "0")}`;
 
       try {
         let response = await axios.get(
@@ -8625,14 +8390,11 @@ export default {
       });
       this.dataCuentasPagar = [];
       const fI = `${this.selectedAnio}-01-01`;
-      const ultimoDia = new Date(
-        this.selectedAnio,
-        this.selectedMesF.value,
-        0
-      ).getDate();
-      const fF = `${this.selectedAnio}-${String(
-        this.selectedMesF.value
-      ).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+      const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(
+        2,
+        "0"
+      )}-${String(ultimoDia).padStart(2, "0")}`;
       try {
         let response = await axios.get(
           this.rutaAxios +
@@ -8671,14 +8433,11 @@ export default {
         message: "Consultando...",
       });
       const fI = `${this.selectedAnio}-01-01`;
-      const ultimoDia = new Date(
-        this.selectedAnio,
-        this.selectedMesF.value,
-        0
-      ).getDate();
-      const fF = `${this.selectedAnio}-${String(
-        this.selectedMesF.value
-      ).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+      const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(
+        2,
+        "0"
+      )}-${String(ultimoDia).padStart(2, "0")}`;
 
       try {
         let response = await axios.get(
@@ -8770,9 +8529,7 @@ export default {
       console.log(objeto);
       try {
         let response = await axios.post(
-          this.rutaAxios +
-            "ReporteGeneral/PostDeclaracionesAnuales/" +
-            this.token.rfc,
+          this.rutaAxios + "ReporteGeneral/PostDeclaracionesAnuales/" + this.token.rfc,
           objeto
         );
         let x = response.data;
@@ -8853,6 +8610,47 @@ export default {
         this.$q.loading.hide();
       }
     },
+
+    onArchivoSeleccionado() {
+      this.datosExcel = null
+      this.razones = []
+    },
+
+    async onConsultar() {
+      if (!this.archivoExcel) {
+        Notify.create({ type: 'warning', message: 'Selecciona un archivo Excel primero' })
+        return
+      }
+      this.cargando = true
+      try {
+        // TODO mañana: cuando exista el endpoint, reemplazar esta línea por
+        // el POST del archivo y usar la respuesta del back como `datosExcel.value`
+        this.datosExcel = await parseExcel(this.archivoExcel)
+        Notify.create({ type: 'positive', message: 'Excel cargado correctamente' })
+      } catch (err) {
+        Notify.create({ type: 'negative', message: err.message, timeout: 5000 })
+        this.datosExcel = null
+      } finally {
+        this.cargando = false
+      }
+    },
+
+    onCalcular() {
+      if (!this.datosExcel) return;
+      this.razones = calcularRazones(this.datosExcel);
+    },
+
+    async onDescargarPDF() {
+      this.generandoPDF = true
+      try {
+        await generarReportePDF(this.razones, this.$store.state.empresaStore.nombre) 
+      } catch (err) {
+        Notify.create({ type: 'negative', message: 'Error al generar el PDF: ' + err.message })
+      } finally {
+        this.generandoPDF = false
+      }
+    },
+    formatearValor
   },
 
   // Convertir hexadecimal a RGB
