@@ -144,7 +144,7 @@ function agregarPortada(doc, { empresa, rfc, mesInicialLabel, mesFinalLabel, ani
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     doc.setTextColor(...COLOR_PORTADA_BANDA);
-    doc.text("REPORTE FINANCIERO", pageWidth / 2, y, { align: "center", charSpace: 0.5 });
+    doc.text("R E P O R T E   F I N A N C I E R O", pageWidth / 2, y, { align: "center"});
 
     y += 9;
     doc.setFont("helvetica", "bold");
