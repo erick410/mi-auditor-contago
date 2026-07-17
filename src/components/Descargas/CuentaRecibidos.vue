@@ -768,6 +768,10 @@ export default {
           diferencia: item.cuentaC - cuentaS,
         }
       })
+      this.$q.notify({
+        type: 'positive',
+        message: `Proceso completado`,
+      })
       
     },
 
@@ -775,10 +779,11 @@ export default {
       this.$q.notify({ type: 'negative', message: mensaje })
     },
 
-    onDescargaCompletada (respuesta) {
+    async onDescargaCompletada (respuesta) {
       console.log(respuesta)
       const totalXml = respuesta.result?.total_xml
       const carpeta = respuesta.result?.carpeta
+      await this.GetPendientes()
 
       this.$q.notify({
         type: 'positive',

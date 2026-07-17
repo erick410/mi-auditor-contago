@@ -41,7 +41,7 @@
         error: null,
         pollTimer: null,
         pollIntervalMs: 3000,        // cada cuanto vuelve a preguntar
-        pollTimeoutMs: 5 * 60 * 1000, // deja de intentar despues de 5 min
+        pollTimeoutMs: 15 * 60 * 1000,
         pollElapsedMs: 0,
         mensajeEstado: '',
     }
