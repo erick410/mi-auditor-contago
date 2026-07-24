@@ -22,7 +22,8 @@
 
     <script>
     import axios from 'axios'
-    const BASE_URL = 'https://api-scraper.contago.com.mx'
+    // const BASE_URL = 'https://api-scraper.contago.com.mx'
+    const BASE_URL = 'http://localhost:8080'
 
     export default {
     name: 'ConsultaComprobantes',
