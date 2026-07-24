@@ -626,11 +626,20 @@ export default {
         });
         this.dialogConciliaSat = true;
       } else {
+        lista.forEach((tipo, i) => {
+          this.itemsConciliaSat.push({
+            tipo,
+            cuentaC: item[campos[i]],
+            cuentaS: 0,
+            diferencia: item[campos[i]] - 0,
+          });
+        });
+        this.dialogConciliaSat = true;
         this.$q.notify({
           type: "negative",
           position: "top-right",
           message:
-            "Sin datos del SAT. Primero descargue el metadata del periodo.",
+            "Sin datos del SAT. ",
         });
       }
       this.$q.loading.hide();
