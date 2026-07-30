@@ -22,17 +22,17 @@
 
     <script>
     import axios from 'axios'
-    // const BASE_URL = 'https://api-scraper.contago.com.mx'
-    const BASE_URL = 'http://localhost:8080'
+    const BASE_URL = 'https://api-scraper.contago.com.mx'
+    // const BASE_URL = 'http://localhost:8080'
 
     export default {
     name: 'ConsultaComprobantes',
 
     props: {
-    rfc: { type: String, required: true },
-    tipoDescarga: { type: String, required: true }, // 'emitidos' | 'recibidos'
-    fechaInicio: { type: String, required: true },  // 'YYYY-MM-DD'
-    fechaFin: { type: String, required: true },     // 'YYYY-MM-DD'
+        rfc: { type: String, required: true },
+        tipoDescarga: { type: String, required: true }, // 'emitidos' | 'recibidos'
+        fechaInicio: { type: String, required: true },  // 'YYYY-MM-DD'
+        fechaFin: { type: String, required: true },     // 'YYYY-MM-DD'
     },
 
     data () {
@@ -67,6 +67,7 @@
             tipo_descarga: this.tipoDescarga,
             fecha_inicio: this.fechaInicio,
             fecha_fin: this.fechaFin,
+            incluir_folios: false
         })
 
         this.mensajeEstado = 'Procesando en el SAT...'

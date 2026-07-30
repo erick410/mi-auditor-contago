@@ -607,10 +607,15 @@ export default {
       ];
       const año = this.selectedAnio;
       const mes = mesesIdx.indexOf(item.mes) + 1;
-      const dia = new Date(this.selectedAnio, this.mesConciliacion, 0).getDate();
+      const dia = new Date(this.selectedAnio, mes, 0).getDate(); // usa "mes" (el nuevo), no this.mesConciliacion (el viejo)
       this.mesConciliacion = mes;
-      this.fechaInicio = `${this.selectedAnio}-${this.mesConciliacion}-01`;
-      this.fechaFin = `${this.selectedAnio}-${this.mesConciliacion}-${dia}`;
+
+      const mesTexto = String(mes).padStart(2, '0');
+      const diaTexto = String(dia).padStart(2, '0');
+
+      this.fechaInicio = `${this.selectedAnio}-${mesTexto}-01`;
+      this.fechaFin = `${this.selectedAnio}-${mesTexto}-${diaTexto}`;
+      
       this.itemsConciliaSat = [];
       this.cabeceraConciliacionSat = `Verificación SAT — ${item.mes} ${año}`;
 
