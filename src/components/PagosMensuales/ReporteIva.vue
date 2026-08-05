@@ -1373,7 +1373,6 @@ export default {
             const ivaRet = (await this.GetIvaRetenido()) || [];
             const ivaRetEmitido = (await this.GetReporteIvaRetenidoNeteadoAsync()) || [];
             
-            console.log(ivaRetEmitido, 'ivaRetEmitido')
             const comp = (await this.GetComparativa(this.selectedAnio, 'IVA')) || [];
             this.columns = [...this.columnsDefault];
             const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
@@ -1392,19 +1391,20 @@ export default {
                 const baseIvaAcreditado = recibidos
                     .filter(item => item.mes?.toUpperCase() === mes)
                     .reduce((acc, item) => acc + (item.baseIva || 0), 0);
-
-                const importeIvaAcreditado = recibidos
+                    const importeIvaAcreditado = recibidos
                     .filter(item => item.mes?.toUpperCase() === mes)
-                    .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+                    .reduce((acc, item) => acc + (item.importeIva || 0), 0);    
 
                 const ivaRetenido = ivaRet
                     .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio)
                     .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-                    const ivaRetenidoE = ivaRetEmitido
-                    .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio)
+                // const ivaRetenidoE = ivaRetEmitido
+                //     .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio)
+                //     .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+                const ivaRetenidoE = ivaRetEmitido
+                    .filter(item => item.mes == x+1 && item.año === this.selectedAnio)
                     .reduce((acc, item) => acc + (item.importeIva || 0), 0);
-
                     // const ivaRetenidoAnterior = ivaRet
                     // .filter(item => item.mes?.toUpperCase() === mes && item.año === (this.selectedAnio - 1).toString())
                     // .reduce((acc, item) => acc + (item.importeIva || 0), 0);
