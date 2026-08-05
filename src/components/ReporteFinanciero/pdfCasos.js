@@ -56,13 +56,28 @@ export function evaluarCasos(catalogo, contexto) {
     return "";
 }
 
+// ¿El año del reporte es el año en curso (real, de hoy)? Si el reporte es de
+// un año pasado, no tiene sentido recordar una fecha límite de pago que ya
+// pasó hace tiempo.
+export function esAnioActual(anio) {
+    return String(anio) === String(new Date().getFullYear());
+}
+
 // Frase FIJA reutilizable: recordatorio de vencimiento (día 17 del mes
 // siguiente al último mes con impuesto a cargo). Aparece en IVA, ISR y
 // Pagos Provisionales en tu reporte original.
+// Se omite (regresa "") en dos casos, igual que tu lógica original:
+//   1) El reporte es de un año que YA PASÓ (no del año en curso).
+//   2) Hoy (fecha real de generación) ya pasó el día 17 del mes.
 // mesFinalLabel = último mes del periodo consultado (ej. "JUNIO")
-export function fraseVencimiento(mesFinalLabel) {
+export function fraseVencimiento(mesFinalLabel, anio) {
     const anterior = mesAnterior(mesFinalLabel);
     if (!anterior || !mesFinalLabel) return "";
+    if (anio !== undefined && anio !== null && !esAnioActual(anio)) return "";
+
+    const diaDeHoy = new Date().getDate();
+    if (diaDeHoy > 17) return "";
+
     return `Así mismo, el impuesto (a cargo) del mes de ${anterior} se entera a más tardar el día 17 de ${mesFinalLabel}.`;
 }
 
@@ -88,22 +103,36 @@ export const casosIvaIntro = [
 export const casosIvaOutro = [
     {
         id: "iva-outro-sin-diferencias",
-        condicion: ({ filas }) =>
-            filas.every((f) => !f.ivaCargo && !f.ivaFavor),
+        // Umbral de materialidad: solo cuenta como "diferencia real" si supera
+        // ±5 (pesos) — evita marcar como problema una diferencia de centavos
+        // por redondeo, igual que tu lógica original (v > 5 / v < -5).
+        condicion: ({ filas }) => filas.every((f) => Math.abs(f.comparativa || 0) <= 5),
         texto: () =>
-            "No se detectaron diferencias entre el IVA determinado por el sistema y el declarado ante el SAT en el periodo.",
+            "No se detectaron diferencias relevantes entre el IVA determinado por el sistema y el declarado ante el SAT en el periodo.",
     },
     {
-        id: "iva-outro-solo-cargo",
-        condicion: ({ filas }) => filas.some((f) => f.ivaCargo > 0) && !filas.some((f) => f.ivaFavor > 0),
-        texto: ({ mesFinalLabel }) =>
-            `Las diferencias positivas pueden ser observadas por la autoridad y requeridas su aclaración. ${fraseVencimiento(mesFinalLabel)}`,
+        id: "iva-outro-ambos",
+        condicion: ({ filas }) => filas.some((f) => f.comparativa > 5) && filas.some((f) => f.comparativa < -5),
+        texto: ({ mesFinalLabel, anio }) =>
+            `Las diferencias positivas pueden ser observadas por la autoridad y requeridas su aclaración. Las negativas se acreditan en los pagos posteriores o se solicita su devolución. ${fraseVencimiento(mesFinalLabel, anio)}`,
+    },
+    {
+        id: "iva-outro-solo-positivas",
+        condicion: ({ filas }) => filas.some((f) => f.comparativa > 5),
+        texto: ({ mesFinalLabel, anio }) =>
+            `Las diferencias positivas pueden ser observadas por la autoridad y requeridas su aclaración. ${fraseVencimiento(mesFinalLabel, anio)}`,
+    },
+    {
+        id: "iva-outro-solo-negativas",
+        condicion: ({ filas }) => filas.some((f) => f.comparativa < -5),
+        texto: ({ mesFinalLabel, anio }) =>
+            `Las negativas se acreditan en los pagos posteriores o se solicita su devolución. ${fraseVencimiento(mesFinalLabel, anio)}`,
     },
     {
         id: "iva-outro-default",
         condicion: () => true,
-        texto: ({ mesFinalLabel }) =>
-            `Las diferencias positivas pueden ser observadas por la autoridad y requeridas su aclaración. Las negativas se acreditan en los pagos posteriores o se solicita su devolución. ${fraseVencimiento(mesFinalLabel)}`,
+        texto: () =>
+            "No se detectaron diferencias relevantes entre el IVA determinado por el sistema y el declarado ante el SAT en el periodo.",
     },
 ];
 
@@ -128,14 +157,14 @@ export const casosIsrOutro = [
     {
         id: "isr-outro-retencion-simple",
         condicion: ({ categoria }) => CATEGORIAS_RETENCION_SIMPLE.includes(categoria),
-        texto: ({ mesFinalLabel }) =>
-            `Las diferencias positivas pueden ser observadas por la autoridad y requeridas su aclaración. ${fraseVencimiento(mesFinalLabel)}`,
+        texto: ({ mesFinalLabel, anio }) =>
+            `Las diferencias positivas pueden ser observadas por la autoridad y requeridas su aclaración. ${fraseVencimiento(mesFinalLabel, anio)}`,
     },
     {
         id: "isr-outro-default",
         condicion: () => true,
-        texto: ({ mesFinalLabel }) =>
-            `Las diferencias positivas pueden ser observadas por la autoridad y requeridas su aclaración. Las diferencias negativas son pagos de lo indebido, las que se pueden recuperar mediante solicitud de devolución. ${fraseVencimiento(mesFinalLabel)}`,
+        texto: ({ mesFinalLabel, anio }) =>
+            `Las diferencias positivas pueden ser observadas por la autoridad y requeridas su aclaración. Las diferencias negativas son pagos de lo indebido, las que se pueden recuperar mediante solicitud de devolución. ${fraseVencimiento(mesFinalLabel, anio)}`,
     },
 ];
 
@@ -162,8 +191,8 @@ export const casosPagosProvisionalesOutro = [
     {
         id: "pp-outro-default",
         condicion: () => true,
-        texto: ({ mesFinalLabel }) =>
-            `Las diferencias positivas y negativas podrán ser requeridas por la autoridad y se deben a una determinación incorrecta del pago provisional; se reflejarán en el impuesto anual como un financiamiento a cargo o una disminución de impuesto a pagar. ${fraseVencimiento(mesFinalLabel)}`,
+        texto: ({ mesFinalLabel, anio }) =>
+            `Las diferencias positivas y negativas podrán ser requeridas por la autoridad y se deben a una determinación incorrecta del pago provisional; se reflejarán en el impuesto anual como un financiamiento a cargo o una disminución de impuesto a pagar. ${fraseVencimiento(mesFinalLabel, anio)}`,
     },
 ];
 

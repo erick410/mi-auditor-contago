@@ -63,6 +63,7 @@ const CATEGORIA_SECCION = {
     "Cuentas por Cobrar": "Flujo y Cartera",
     "Cuentas por Pagar": "Flujo y Cartera",
     "Comparativa de Flujo (PUE)": "Flujo y Cartera",
+    "Análisis de Ciclo de Cobro y Pago": "Flujo y Cartera",
     "Razones Financieras": "Conclusión y Recomendación",
     "Conclusión: ¿Es Sujeto de Crédito?": "Conclusión y Recomendación",
 };
@@ -144,7 +145,7 @@ function agregarPortada(doc, { empresa, rfc, mesInicialLabel, mesFinalLabel, ani
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
     doc.setTextColor(...COLOR_PORTADA_BANDA);
-    doc.text("R E P O R T E   F I N A N C I E R O", pageWidth / 2, y, { align: "center"});
+    doc.text("REPORTE FINANCIERO", pageWidth / 2, y, { align: "center", charSpace: 0.5 });
 
     y += 9;
     doc.setFont("helvetica", "bold");
@@ -571,6 +572,28 @@ function agregarGraficaBarras(doc, y, datos, opciones = {}) {
 // ============================================================================
 // TABLA GENÉRICA (autoTable)
 // ============================================================================
+// Construye una fila de totales sintética a partir de las columnas: suma las
+// columnas "moneda"/"numero" (excepto las listadas en `excluir`, típicamente
+// columnas YA acumuladas mes a mes, donde sumarlas de nuevo no tendría
+// sentido), pone la etiqueta "TOTAL" en la primera columna de texto, y deja
+// en blanco las columnas "porcentaje". Se muestra SIEMPRE, incluso si el
+// total da $0.00.
+function construirFilaTotal(columnas, filas, excluir = []) {
+    const filaTotal = {};
+    const indiceEtiqueta = columnas.findIndex((c) => c.tipo === "texto" || c.tipo === undefined);
+    columnas.forEach((c, i) => {
+        if ((c.tipo === "moneda" || c.tipo === "numero") && !excluir.includes(c.name)) {
+            filaTotal[c.field] = filas.reduce((a, f) => a + (Number(f[c.field]) || 0), 0);
+        } else if (i === indiceEtiqueta) {
+            filaTotal[c.field] = "TOTAL";
+        } else {
+            filaTotal[c.field] = "";
+        }
+    });
+    if (filas.length > 0 && filas[0].moneda) filaTotal.moneda = filas[0].moneda;
+    return filaTotal;
+}
+
 function dibujarTabla(doc, y, { columnas, filas, opciones = {} }) {
     if (!columnas || columnas.length === 0 || !filas || filas.length === 0) {
         return y;
@@ -579,8 +602,18 @@ function dibujarTabla(doc, y, { columnas, filas, opciones = {} }) {
     const esAncha = columnas.length > 9;
     const fontSize = 6;
 
+    // Fila de totales: se agrega SIEMPRE que se pida (opciones.agregarTotales),
+    // sin importar si el total resulta en $0.00 — nunca se oculta.
+    let filasFinales = filas;
+    let filaTotalIndexFinal = opciones.filaTotalIndex !== undefined ? opciones.filaTotalIndex : null;
+    if (opciones.agregarTotales) {
+        const filaTotal = construirFilaTotal(columnas, filas, opciones.excluirDeSuma || []);
+        filasFinales = [...filas, filaTotal];
+        filaTotalIndexFinal = filasFinales.length - 1;
+    }
+
     const head = [columnas.map((c) => c.label)];
-    const body = filas.map((fila) =>
+    const body = filasFinales.map((fila) =>
         columnas.map((c) => {
             const valor = fila[c.field];
             if (c.field === "mes" || c.name === "mes") {
@@ -597,7 +630,7 @@ function dibujarTabla(doc, y, { columnas, filas, opciones = {} }) {
     );
 
     const enfatizar = opciones.enfatizarColumnas || [];
-    const filaTotalIndex = opciones.filaTotalIndex !== undefined ? opciones.filaTotalIndex : null;
+    const filaTotalIndex = filaTotalIndexFinal;
 
     doc.autoTable({
         head,
@@ -629,7 +662,7 @@ function dibujarTabla(doc, y, { columnas, filas, opciones = {} }) {
             if (data.section !== "body") return;
             const col = columnas[data.column.index];
             if (!col) return;
-            const fila = filas[data.row.index];
+            const fila = filasFinales[data.row.index];
             const valorCrudo = Number(fila[col.field]);
 
             if (col.tipo === "moneda" && !Number.isNaN(valorCrudo) && valorCrudo < 0) {
@@ -719,7 +752,7 @@ function seccionIva(doc, y, datos, ctx, indice, meta) {
         { name: "comparativa", label: "Comparativa", field: "comparativa", tipo: "moneda" }
     );
 
-    y = dibujarTabla(doc, y, { columnas, filas, opciones: { enfatizarColumnas: ["comparativa"] } });
+    y = dibujarTabla(doc, y, { columnas, filas, opciones: { enfatizarColumnas: ["comparativa"], agregarTotales: true } });
     y = agregarParrafo(doc, y, evaluarCasos(casosIvaOutro, { filas, ...ctx }));
 
     return y;
@@ -739,11 +772,31 @@ function seccionIsr(doc, y, datos, ctx, indice, meta) {
     const pagosIsr = datos.pagosIsr;
     if (!pagosIsr) return y;
 
-    const hayDatos = ISR_CATEGORIAS.some((c) => (pagosIsr[c.key] || []).length > 0);
+    const hayDatos = ISR_CATEGORIAS.some((c) =>
+        (pagosIsr[c.key] || []).some(
+            (f) => Math.abs(f.importe || 0) > 0.009 || Math.abs(f.comparativa || 0) > 0.009 || Math.abs(f.diferencia || 0) > 0.009
+        )
+    );
     if (!hayDatos) return y;
 
     y = iniciarSeccion(doc, indice, "Retenciones de ISR", y, meta);
     y = agregarParrafo(doc, y, "En las retenciones de ISR el sistema determina las siguientes diferencias:");
+
+    // Tarjetas de estadística: total retenido determinado, total registrado y
+    // diferencia neta, sumando las 7 categorías juntas.
+    const todasLasFilas = ISR_CATEGORIAS.flatMap((cat) => pagosIsr[cat.key] || []);
+    const totalImporte = todasLasFilas.reduce((a, f) => a + (f.importe || 0), 0);
+    const totalComparativa = todasLasFilas.reduce((a, f) => a + (f.comparativa || 0), 0);
+    const totalDiferencia = todasLasFilas.reduce((a, f) => a + (f.diferencia || 0), 0);
+    y = agregarTarjetasEstadisticas(doc, y, [
+        { label: "Total Retenido (Determinado)", valor: money(totalImporte), color: COLOR_HEADER },
+        { label: "Total Registrado", valor: money(totalComparativa), color: COLOR_MUTED },
+        {
+            label: "Diferencia Neta",
+            valor: money(totalDiferencia),
+            color: totalDiferencia >= 0 ? COLOR_POSITIVO : COLOR_NEGATIVO,
+        },
+    ]);
 
     const columnas = [
         { name: "mes", label: "Mes", field: "mes", tipo: "texto" },
@@ -756,8 +809,16 @@ function seccionIsr(doc, y, datos, ctx, indice, meta) {
         const filas = pagosIsr[cat.key];
         if (!filas || filas.length === 0) return;
 
+        // Si TODA la categoría (los 12 meses) no tiene actividad real —
+        // importe, comparativa y diferencia en $0.00 — se salta por completo:
+        // no aporta nada mostrar una tabla entera de puros ceros.
+        const tieneActividad = filas.some(
+            (f) => Math.abs(f.importe || 0) > 0.009 || Math.abs(f.comparativa || 0) > 0.009 || Math.abs(f.diferencia || 0) > 0.009
+        );
+        if (!tieneActividad) return;
+
         y = agregarSubSubtitulo(doc, y, cat.label);
-        y = dibujarTabla(doc, y, { columnas, filas, opciones: { enfatizarColumnas: ["diferencia"] } });
+        y = dibujarTabla(doc, y, { columnas, filas, opciones: { enfatizarColumnas: ["diferencia"], agregarTotales: true } });
         y = agregarParrafo(doc, y, evaluarCasos(casosIsrOutro, { filas, categoria: cat.key, ...ctx }));
     });
 
@@ -781,10 +842,47 @@ function seccionPagosProvisionales(doc, y, datos, ctx, indice, meta) {
         y = agregarParrafo(doc, y, `Régimen fiscal: ${pp.regimenLabel}`, { bold: true, fontSize: 9.5 });
     }
 
+    // Tarjetas: usamos el último mes (valores YA acumulados) para "Ingresos",
+    // y sumamos solo columnas de "cargo/comparativa" que son montos mensuales
+    // reales (no acumulados).
+    const ultimaFila = pp.filas[pp.filas.length - 1] || {};
+    const ingresosFinal = ultimaFila.ingresosAcumulados ?? ultimaFila.ingresosPorMes ?? null;
+    const campoCargo = ["impuestoCargo", "isrCargo", "isrAPagar", "pagoProvisional"].find((c) =>
+        pp.columnas.some((col) => col.field === c)
+    );
+    const totalCargo = campoCargo ? pp.filas.reduce((a, f) => a + (f[campoCargo] || 0), 0) : null;
+    const totalComparativa = pp.filas.reduce((a, f) => a + (f.comparativa || 0), 0);
+
+    const tarjetas = [];
+    if (ingresosFinal !== null) {
+        tarjetas.push({ label: "Ingresos Acumulados (último mes)", valor: money(ingresosFinal), color: COLOR_HEADER });
+    }
+    if (totalCargo !== null) {
+        tarjetas.push({ label: "Total Impuesto a Cargo", valor: money(totalCargo), color: COLOR_NEGATIVO });
+    }
+    tarjetas.push({
+        label: "Comparativa Neta",
+        valor: money(totalComparativa),
+        color: totalComparativa >= 0 ? COLOR_POSITIVO : COLOR_NEGATIVO,
+    });
+    y = agregarTarjetasEstadisticas(doc, y, tarjetas);
+
+    // Columnas que YA vienen acumuladas mes a mes — se excluyen de la suma
+    // en la fila de totales (sumarlas otra vez no tendría sentido).
+    const columnasAcumuladas = [
+        "ingresosAcumulados", "gastosAcumulados", "deduccionesAcumuladas",
+        "utilidadFiscalPreviaAcumulada", "utilidadFiscalAcumuladaPreviaAntesDePerdidasFiscales",
+        "pagosAnteriores", "isrPagosProvisionales", "baseCalculo",
+    ];
+
     y = dibujarTabla(doc, y, {
         columnas: pp.columnas,
         filas: pp.filas,
-        opciones: { enfatizarColumnas: ["comparativa", "isrAPagar", "isrCargo"] },
+        opciones: {
+            enfatizarColumnas: ["comparativa", "isrAPagar", "isrCargo"],
+            agregarTotales: true,
+            excluirDeSuma: columnasAcumuladas,
+        },
     });
 
     y = agregarParrafo(doc, y, evaluarCasos(casosPagosProvisionalesOutro, { filas: pp.filas, ...ctx }));
@@ -816,6 +914,16 @@ function seccionUsoCfdi(doc, y, datos, ctx, indice, meta) {
     };
     const filasFinales = [...filasConDiferencia, suma];
 
+    y = agregarTarjetasEstadisticas(doc, y, [
+        { label: "Total Emitidos", valor: money(suma.emitidos), color: COLOR_POSITIVO },
+        { label: "Total Recibidos + Nómina", valor: money(suma.recibidos + suma.nomina), color: COLOR_NEGATIVO },
+        {
+            label: "Diferencia Neta",
+            valor: money(suma.diferencia),
+            color: suma.diferencia >= 0 ? COLOR_POSITIVO : COLOR_NEGATIVO,
+        },
+    ]);
+
     const columnas = [
         { name: "uso", label: "Uso del CFDI", field: "uso", tipo: "texto" },
         { name: "emitidos", label: "Emitidos", field: "emitidos", tipo: "moneda" },
@@ -844,13 +952,23 @@ function seccionEmitidosRecibidos(doc, y, datos, ctx, indice, meta, tipo) {
     const titulo = tipo === "E" ? "Comprobantes Emitidos por RFC" : "Comprobantes Recibidos por RFC";
     y = iniciarSeccion(doc, indice, titulo, y, meta);
 
+    const campoConteoTarjeta = tipo === "E" ? "ingresos" : "egresos";
+    const totalImporte = filas.reduce((a, f) => a + (f.importeI || 0), 0);
+    const totalComprobantes = filas.reduce((a, f) => a + (f[campoConteoTarjeta] || 0), 0);
+    const ticketPromedio = totalComprobantes > 0 ? totalImporte / totalComprobantes : 0;
+    y = agregarTarjetasEstadisticas(doc, y, [
+        { label: tipo === "E" ? "Total Emitido" : "Total Recibido", valor: money(totalImporte), color: COLOR_HEADER },
+        { label: "Total Comprobantes", valor: totalComprobantes, color: COLOR_MUTED },
+        { label: "Ticket Promedio", valor: money(ticketPromedio), color: COLOR_HEADER },
+    ]);
+
     const columnas = [
         { name: "rfc", label: "RFC", field: "rfc", tipo: "texto" },
         { name: "nombre", label: "Nombre", field: "nombre", tipo: "texto" },
         { name: "conteo", label: tipo === "E" ? "# Ingresos" : "# Egresos", field: tipo === "E" ? "ingresos" : "egresos", tipo: "numero" },
         { name: "importeI", label: "Importe", field: "importeI", tipo: "moneda" },
     ];
-    y = dibujarTabla(doc, y, { columnas, filas });
+    y = dibujarTabla(doc, y, { columnas, filas, opciones: { agregarTotales: true } });
 
     const campoConteo = tipo === "E" ? "ingresos" : "egresos";
     const { top, totalGeneral } = calcularTopN(filas, "importeI", 5);
@@ -870,6 +988,15 @@ function seccionNomina(doc, y, datos, ctx, indice, meta) {
 
     y = iniciarSeccion(doc, indice, "Nómina Pagada", y, meta);
 
+    const totalPercepciones = filas.reduce((a, f) => a + (f.percepciones || 0), 0);
+    const totalDeducciones = filas.reduce((a, f) => a + (f.deducciones || 0), 0);
+    const totalNeto = filas.reduce((a, f) => a + (f.total || 0), 0);
+    y = agregarTarjetasEstadisticas(doc, y, [
+        { label: "Total Percepciones", valor: money(totalPercepciones), color: COLOR_HEADER },
+        { label: "Total Deducciones", valor: money(totalDeducciones), color: COLOR_NEGATIVO },
+        { label: "Total Neto Pagado", valor: money(totalNeto), color: COLOR_POSITIVO },
+    ]);
+
     const columnas = [
         { name: "mes", label: "Mes", field: "mes", tipo: "texto" },
         { name: "contador", label: "# Trabajadores", field: "contador", tipo: "numero" },
@@ -878,7 +1005,7 @@ function seccionNomina(doc, y, datos, ctx, indice, meta) {
         { name: "otrosPagos", label: "Otros Pagos", field: "otrosPagos", tipo: "moneda" },
         { name: "total", label: "Total", field: "total", tipo: "moneda" },
     ];
-    y = dibujarTabla(doc, y, { columnas, filas });
+    y = dibujarTabla(doc, y, { columnas, filas, opciones: { agregarTotales: true, excluirDeSuma: ["contador"] } });
 
     // Desglose de conceptos: se agregan todos los meses en un solo top-N
     const conceptos = datos.nominaConceptos || {};
@@ -948,6 +1075,15 @@ function seccionCuentas(doc, y, datos, ctx, indice, meta, tipo) {
 
     const filasResumidas = resumirTop10ConOtros(filas, campoImporte);
 
+    const totalImporte = filas.reduce((a, f) => a + (f[campoImporte] || 0), 0);
+    const totalGeneral = filas.reduce((a, f) => a + (f.total || 0), 0);
+    const vencidos = filas.filter((f) => (f.dias || 0) > 60).length;
+    y = agregarTarjetasEstadisticas(doc, y, [
+        { label: tipo === "cxc" ? "Total Por Cobrar" : "Total Por Pagar", valor: money(totalImporte), color: COLOR_HEADER },
+        { label: "Total General", valor: money(totalGeneral), color: COLOR_MUTED },
+        { label: "Comprobantes > 60 días", valor: vencidos, color: vencidos > 0 ? COLOR_NEGATIVO : COLOR_POSITIVO },
+    ]);
+
     const columnas = [
         { name: "serie", label: "Serie", field: "serie", tipo: "texto" },
         { name: "folio", label: "Folio", field: "folio", tipo: "texto" },
@@ -958,11 +1094,13 @@ function seccionCuentas(doc, y, datos, ctx, indice, meta, tipo) {
         { name: "moneda", label: "Moneda", field: "moneda", tipo: "texto" },
         { name: "dias", label: "Días", field: "dias", tipo: "numero" },
     ];
-    const seAgrupo = filas.length > 10;
+    // agregarTotales aquí suma filasResumidas (top10 + "Otros" si se agrupó),
+    // lo cual da el gran total real de TODOS los comprobantes — "Otros" ya
+    // trae el subtotal del resto, así que la suma final cuadra exacto.
     y = dibujarTabla(doc, y, {
         columnas,
         filas: filasResumidas,
-        opciones: seAgrupo ? { filaTotalIndex: filasResumidas.length - 1 } : {},
+        opciones: { agregarTotales: true, excluirDeSuma: ["dias"] },
     });
 
     const textoCaso = evaluarCasos(casosAntiguedadSaldos, { filas, tipo: tipo === "cxc" ? "cobrar" : "pagar" });
@@ -980,6 +1118,19 @@ function seccionFlujo(doc, y, datos, ctx, indice, meta) {
     grupos.forEach((grupo) => {
         y = agregarSubSubtitulo(doc, y, grupo.moneda);
 
+        const totalEmitido = grupo.filas.reduce((a, f) => a + (f.totalEPUE || 0), 0);
+        const totalRecibido = grupo.filas.reduce((a, f) => a + (f.totalRPUE || 0), 0);
+        const diferenciaTotal = grupo.filas.reduce((a, f) => a + (f.diferenciaPUE || 0), 0);
+        y = agregarTarjetasEstadisticas(doc, y, [
+            { label: "Total Emitido PUE", valor: money(totalEmitido, grupo.moneda), color: COLOR_POSITIVO },
+            { label: "Total Recibido PUE", valor: money(totalRecibido, grupo.moneda), color: COLOR_NEGATIVO },
+            {
+                label: "Diferencia",
+                valor: money(diferenciaTotal, grupo.moneda),
+                color: diferenciaTotal >= 0 ? COLOR_POSITIVO : COLOR_NEGATIVO,
+            },
+        ]);
+
         const columnas = [
             { name: "mes", label: "Mes", field: "mes", tipo: "texto" },
             { name: "totalEPUE", label: "Emitido PUE", field: "totalEPUE", tipo: "moneda" },
@@ -987,11 +1138,86 @@ function seccionFlujo(doc, y, datos, ctx, indice, meta) {
             { name: "diferenciaPUE", label: "Diferencia", field: "diferenciaPUE", tipo: "moneda" },
         ];
 
-        y = dibujarTabla(doc, y, { columnas, filas: grupo.filas, opciones: { enfatizarColumnas: ["diferenciaPUE"] } });
+        y = dibujarTabla(doc, y, {
+            columnas,
+            filas: grupo.filas,
+            opciones: { enfatizarColumnas: ["diferenciaPUE"], agregarTotales: true },
+        });
 
-        const diferenciaTotal = grupo.filas.reduce((a, f) => a + (f.diferenciaPUE || 0), 0);
         y = agregarParrafo(doc, y, evaluarCasos(casosFlujo, { moneda: grupo.moneda, diferenciaTotal }));
     });
+
+    return y;
+}
+
+// ----------------------------------------------------------------------------
+// ANÁLISIS DE CICLO DE COBRO Y PAGO
+// ----------------------------------------------------------------------------
+// Compara cuánto tarda la empresa en COBRAR a sus clientes (tablaCxC) contra
+// cuánto tarda en PAGAR a sus proveedores (tablaCxP), ponderado por el
+// importe de cada comprobante (para que una factura grande pese más que una
+// chica). Esto revela la brecha del ciclo de efectivo: si cobras mucho más
+// lento de lo que pagas, estás financiando esa diferencia con capital propio
+// o líneas de crédito.
+function promedioPonderadoDias(filas, campoImporte) {
+    if (!filas || filas.length === 0) return null;
+    const totalImporte = filas.reduce((a, f) => a + Math.abs(f[campoImporte] || 0), 0);
+    if (totalImporte === 0) return null;
+    const sumaPonderada = filas.reduce((a, f) => a + (f.dias || 0) * Math.abs(f[campoImporte] || 0), 0);
+    return sumaPonderada / totalImporte;
+}
+
+function seccionAnalisisCicloCobroPago(doc, y, datos, ctx, indice, meta) {
+    const cxc = datos.cxc || [];
+    const cxp = datos.cxp || [];
+    if (cxc.length === 0 && cxp.length === 0) return y;
+
+    const diasCobrar = promedioPonderadoDias(cxc, "porCobrar");
+    const diasPagar = promedioPonderadoDias(cxp, "porPagar");
+
+    y = iniciarSeccion(doc, indice, "Análisis de Ciclo de Cobro y Pago", y, meta);
+    y = agregarParrafo(
+        doc,
+        y,
+        "Este análisis compara cuánto tiempo tarda la empresa en cobrar a sus clientes frente a cuánto tiempo tarda en pagar a sus proveedores, ponderado por el importe de cada comprobante (las facturas de mayor monto pesan más en el promedio)."
+    );
+
+    if (diasCobrar === null || diasPagar === null) {
+        y = agregarParrafo(
+            doc,
+            y,
+            "No se cuenta con suficiente información de cuentas por cobrar y/o por pagar para determinar la brecha del ciclo de efectivo.",
+            { color: COLOR_MUTED }
+        );
+        return y;
+    }
+
+    const brecha = diasCobrar - diasPagar;
+
+    y = agregarTarjetasEstadisticas(doc, y, [
+        { label: "Días Promedio para Cobrar", valor: `${diasCobrar.toFixed(1)} días`, color: COLOR_NEGATIVO },
+        { label: "Días Promedio para Pagar", valor: `${diasPagar.toFixed(1)} días`, color: COLOR_POSITIVO },
+        {
+            label: "Brecha (Cobrar − Pagar)",
+            valor: `${brecha >= 0 ? "+" : ""}${brecha.toFixed(1)} días`,
+            color: brecha > 0 ? COLOR_NEGATIVO : COLOR_POSITIVO,
+        },
+    ]);
+
+    y = agregarGraficaBarras(doc, y, [
+        { label: "Días para Cobrar", valor: diasCobrar },
+        { label: "Días para Pagar", valor: diasPagar },
+    ]);
+
+    let texto;
+    if (brecha > 15) {
+        texto = `La empresa tarda en promedio ${diasCobrar.toFixed(0)} días en cobrar a sus clientes, mientras que paga a sus proveedores en ${diasPagar.toFixed(0)} días — una brecha de ${brecha.toFixed(0)} días. Esto significa que la empresa financia esa diferencia con capital propio o líneas de crédito, ya que debe cubrir sus pagos antes de recibir el cobro correspondiente. Se recomienda negociar plazos de pago más amplios con proveedores, o políticas de cobranza más estrictas con clientes.`;
+    } else if (brecha < -15) {
+        texto = `La empresa cobra a sus clientes (${diasCobrar.toFixed(0)} días en promedio) más rápido de lo que paga a sus proveedores (${diasPagar.toFixed(0)} días) — una posición favorable de ${Math.abs(brecha).toFixed(0)} días que le permite financiar parte de su operación con el crédito otorgado por sus proveedores.`;
+    } else {
+        texto = `Los plazos de cobro (${diasCobrar.toFixed(0)} días) y de pago (${diasPagar.toFixed(0)} días) están razonablemente equilibrados, sin una brecha significativa en el ciclo de efectivo.`;
+    }
+    y = agregarParrafo(doc, y, texto);
 
     return y;
 }
@@ -1316,6 +1542,7 @@ export function generarPdfReporteGeneral(datos, meta = {}) {
     y = seccionCuentas(doc, y, datos, ctx, indice, metaEncabezado, "cxc");
     y = seccionCuentas(doc, y, datos, ctx, indice, metaEncabezado, "cxp");
     y = seccionFlujo(doc, y, datos, ctx, indice, metaEncabezado);
+    y = seccionAnalisisCicloCobroPago(doc, y, datos, ctx, indice, metaEncabezado);
     y = seccionRazonesFinancieras(doc, y, datos, ctx, indice, metaEncabezado);
     y = seccionConclusionCredito(doc, y, datos, ctx, indice, metaEncabezado);
 
