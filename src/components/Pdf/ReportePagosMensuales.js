@@ -531,15 +531,13 @@ export async function generarReporte(
 
   y = doc.lastAutoTable.finalY + 20;
 
+  console.log(mesI)
+  console.log(mesF)
   const condicion1 =
     "Las diferencias positivas pueden ser observadas por la autoridad y requeridas su aclaración.";
   const condicion2 =
     "Las negativas se acreditan en los pagos posteriores o se solicita su devolución.";
-  let condicion3 =
-    "Asi mismo el impuesto (a cargo) del mes " +
-    mesAnterior(mesF).toUpperCase() +
-    " se entera a más tardar el 17 de " +
-    mesF;
+  let condicion3 = "Asi mismo el impuesto (a cargo) del mes " + mesAnterior(mesF).toUpperCase() + " se entera a más tardar el 17 de " + mesF;
 
   if (esAñoActual(anio) == false) {
     condicion3 = "";

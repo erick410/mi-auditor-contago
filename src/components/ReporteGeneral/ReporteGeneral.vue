@@ -4577,12 +4577,16 @@ export default {
           .filter((item) => item.mes?.toUpperCase() === mes)
           .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-        const ivaRetenidoE = ivaRetEmitido
-          .filter(
-            (item) =>
-              item.mes?.toUpperCase() === mes && item.año === this.selectedAnio.toString()
-          )
-          .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+          const ivaRetenidoE = ivaRetEmitido
+                    .filter(item => item.mes == x+1 && item.año === this.selectedAnio)
+                    .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+
+        // const ivaRetenidoE = ivaRetEmitido
+        //   .filter(
+        //     (item) =>
+        //       item.mes?.toUpperCase() === mes && item.año === this.selectedAnio.toString()
+        //   )
+        //   .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
         const ivaRetenidoAnterior = ivaRet[x]?.importeIva + ivaRetenidoE;
 
