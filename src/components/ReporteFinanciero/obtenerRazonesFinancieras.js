@@ -20,15 +20,17 @@ import { calcularRazones, agruparPorCategoria, resumenGeneral } from "./razonesF
  * }>}
  */
 export async function obtenerRazonesFinancieras(rfc, ejercicio, XLSX) {
+     
     const vacio = { razones: [], categorias: [], resumen: null, advertencias: [], mensaje: "" };
     if (!rfc || !ejercicio) return vacio;
 
     try {
+        console.log(ejercicio)
         const archivo = await obtenerXlsxDeclaracionAnual(rfc, ejercicio);
         if (!archivo) {
             return {
                 ...vacio,
-                mensaje: `No se encontró una Declaración Anual completada para el ejercicio ${ejercicio}. No se pueden calcular las Razones Financieras.`,
+                mensaje: `No se encontró una Declaración Anual completada para el ejercicio ${ejercicio - 1}. No se pueden calcular las Razones Financieras.`,
             };
         }
 

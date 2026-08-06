@@ -587,7 +587,7 @@
           <div>
             <div class="rg-section__title">Razones Financieras</div>
             <div class="rg-section__subtitle">
-              Ejercicio {{ anio }} · Balance General y Estado de Resultados
+              Ejercicio {{ anio - 1 }} · Balance General y Estado de Resultados
               (Declaración Anual SAT)
             </div>
           </div>
@@ -3649,7 +3649,7 @@ export default {
         // Razones Financieras (mismo xlsx de la Declaración Anual, ya cacheado)
         tareas.push(
           this.mostrarSecciones.razonesFinancieras
-            ? obtenerRazonesFinancieras(rfc, año, xlsx)
+            ? obtenerRazonesFinancieras(rfc, año - 1, xlsx)
             : Promise.resolve({
                 razones: [],
                 categorias: [],
