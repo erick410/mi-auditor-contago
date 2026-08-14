@@ -153,8 +153,6 @@ export default new Vuex.Store({
     setUsuario(state, usuario) {
       state.usuario = usuario;
     },
-
-    
   },
   actions: {
     guardarToken({ commit }, token) {
@@ -179,10 +177,7 @@ export default new Vuex.Store({
       commit("setUsuario", null);
       localStorage.removeItem("token");
       router.push({ name: "Login" });
-    },
-
-    
+    },    
   },
-  
   modules: {},
 });

@@ -17,7 +17,7 @@
 //     firmante: { nombre: 'OSCAR JESUS LUENGAS SOLANO', puesto: 'DIRECTOR LAUDEM AVE' },
 //   });
 // ============================================================================
-
+import { PLANTILLA_PORTADA_PNG } from "./plantillaPortada";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { LOGO_CONTAGO_PNG, LOGO_CONTAGO_RATIO } from "./logoContago";
@@ -117,76 +117,136 @@ function asegurarEspacio(doc, y, alto) {
 // ----------------------------------------------------------------------------
 // PORTADA
 // ----------------------------------------------------------------------------
+// function agregarPortada(doc, { empresa, rfc, mesInicialLabel, mesFinalLabel, anio, fechaReporte }) {
+//     const pageWidth = doc.internal.pageSize.getWidth();
+//     const pageHeight = doc.internal.pageSize.getHeight();
+
+//     // Banda superior de color de marca
+//     doc.setFillColor(...COLOR_PORTADA_BANDA);
+//     doc.rect(0, 0, pageWidth, 8, "F");
+
+//     // Logo centrado
+//     const logoAlto = LOGO_ANCHO_PORTADA * LOGO_CONTAGO_RATIO;
+//     try {
+//         doc.addImage(
+//             LOGO_CONTAGO_PNG,
+//             "PNG",
+//             (pageWidth - LOGO_ANCHO_PORTADA) / 2,
+//             60,
+//             LOGO_ANCHO_PORTADA,
+//             logoAlto
+//         );
+//     } catch (e) {
+//         console.log("No se pudo insertar el logo en portada:", e);
+//     }
+
+//     let y = 60 + logoAlto + 18;
+
+//     doc.setFont("helvetica", "bold");
+//     doc.setFontSize(11);
+//     doc.setTextColor(...COLOR_PORTADA_BANDA);
+//     doc.text("REPORTE FINANCIERO", pageWidth / 2, y, { align: "center", charSpace: 0.5 });
+
+//     y += 9;
+//     doc.setFont("helvetica", "bold");
+//     doc.setFontSize(22);
+//     doc.setTextColor(...COLOR_TEXT);
+//     doc.text("REPORTE GENERAL", pageWidth / 2, y, { align: "center" });
+
+//     y += 12;
+//     doc.setFont("helvetica", "normal");
+//     doc.setFontSize(15);
+//     doc.text(empresa || "Empresa", pageWidth / 2, y, { align: "center" });
+
+//     if (rfc) {
+//         y += 7;
+//         doc.setFontSize(10.5);
+//         doc.setTextColor(...COLOR_MUTED);
+//         doc.text(rfc.toUpperCase(), pageWidth / 2, y, { align: "center" });
+//     }
+
+//     y += 14;
+//     doc.setDrawColor(...COLOR_PORTADA_BANDA);
+//     doc.setLineWidth(0.6);
+//     doc.line(pageWidth / 2 - 30, y, pageWidth / 2 + 30, y);
+
+//     y += 10;
+//     doc.setFont("helvetica", "bold");
+//     doc.setFontSize(11);
+//     doc.setTextColor(...COLOR_TEXT);
+//     doc.text(`Periodo: ${mesInicialLabel} — ${mesFinalLabel} ${anio}`, pageWidth / 2, y, { align: "center" });
+
+//     y += 6;
+//     doc.setFont("helvetica", "normal");
+//     doc.setFontSize(9.5);
+//     doc.setTextColor(...COLOR_MUTED);
+//     doc.text(`Fecha de emisión: ${fechaReporte}`, pageWidth / 2, y, { align: "center" });
+
+//     // Banda inferior
+//     doc.setFillColor(...COLOR_PORTADA_BANDA);
+//     doc.rect(0, pageHeight - 8, pageWidth, 8, "F");
+// }
+
+// ----------------------------------------------------------------------------
+// Escribe un valor en una celda de la portada, con salto de línea automático
+// dentro del ancho real de la columna (nunca invade la columna vecina), y
+// reduce el tamaño de letra si el texto no cabe en 2 líneas. Regresa la
+// posición Y justo debajo del texto, para poder apilar más contenido (ej. RFC).
+// ----------------------------------------------------------------------------
 function agregarPortada(doc, { empresa, rfc, mesInicialLabel, mesFinalLabel, anio, fechaReporte }) {
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Banda superior de color de marca
-    doc.setFillColor(...COLOR_PORTADA_BANDA);
-    doc.rect(0, 0, pageWidth, 8, "F");
+    const anchoLogo = 26;
 
-    // Logo centrado
-    const logoAlto = LOGO_ANCHO_PORTADA * LOGO_CONTAGO_RATIO;
-    try {
-        doc.addImage(
-            LOGO_CONTAGO_PNG,
-            "PNG",
-            (pageWidth - LOGO_ANCHO_PORTADA) / 2,
-            60,
-            LOGO_ANCHO_PORTADA,
-            logoAlto
-        );
-    } catch (e) {
-        console.log("No se pudo insertar el logo en portada:", e);
-    }
 
-    let y = 60 + logoAlto + 18;
+    // 1) Fondo: la plantilla cubre toda la página
+    doc.addImage(PLANTILLA_PORTADA_PNG, "JPEG", 0, 0, pageWidth, pageHeight);
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(...COLOR_PORTADA_BANDA);
-    doc.text("REPORTE FINANCIERO", pageWidth / 2, y, { align: "center", charSpace: 0.5 });
+    // 2) Overlay de datos — misma X que las tres etiquetas (33.5mm)
+    const x = 50;
+    const anchoMax = 140; // ancho disponible antes de chocar con la gráfica de fondo
 
-    y += 9;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
     doc.setTextColor(...COLOR_TEXT);
-    doc.text("REPORTE GENERAL", pageWidth / 2, y, { align: "center" });
 
-    y += 12;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(15);
-    doc.text(empresa || "Empresa", pageWidth / 2, y, { align: "center" });
-
+    // --- NOMBRE DE LA EMPRESA ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    let yEmpresa = 146.3;
+    const lineasEmpresa = doc.splitTextToSize(empresa || "Empresa", anchoMax);
+    doc.text(lineasEmpresa, x, yEmpresa);
     if (rfc) {
-        y += 7;
-        doc.setFontSize(10.5);
+        const lineHeight = 13 * 0.42 + 1.2;
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
         doc.setTextColor(...COLOR_MUTED);
-        doc.text(rfc.toUpperCase(), pageWidth / 2, y, { align: "center" });
+        doc.text(rfc.toUpperCase(), x, yEmpresa + lineasEmpresa.length * lineHeight + 1.5);
+        doc.setTextColor(...COLOR_TEXT);
     }
 
-    y += 14;
-    doc.setDrawColor(...COLOR_PORTADA_BANDA);
-    doc.setLineWidth(0.6);
-    doc.line(pageWidth / 2 - 30, y, pageWidth / 2 + 30, y);
-
-    y += 10;
+    // --- PERIODO ---
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(11);
-    doc.setTextColor(...COLOR_TEXT);
-    doc.text(`Periodo: ${mesInicialLabel} — ${mesFinalLabel} ${anio}`, pageWidth / 2, y, { align: "center" });
+    doc.setFontSize(12);
+    doc.text(`${mesInicialLabel} — ${mesFinalLabel}`, x, 174.2);
 
-    y += 6;
+    // --- AÑO ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text(String(anio), x, 201.8);
+
+    // Fecha de emisión, discreta al pie
     doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
+    doc.setFontSize(9);
     doc.setTextColor(...COLOR_MUTED);
-    doc.text(`Fecha de emisión: ${fechaReporte}`, pageWidth / 2, y, { align: "center" });
+    doc.text(`Fecha de emisión: ${fechaReporte}`, x-35, pageHeight - 12);
 
-    // Banda inferior
-    doc.setFillColor(...COLOR_PORTADA_BANDA);
-    doc.rect(0, pageHeight - 8, pageWidth, 8, "F");
+    const altoLogo = anchoLogo * LOGO_CONTAGO_RATIO;
+try {
+    doc.addImage(LOGO_CONTAGO_PNG, "PNG", 140, 14.5, 55, 18);
+} catch (e) {
+    console.log("No se pudo insertar el logo en portada:", e);
 }
-
+}
 // ----------------------------------------------------------------------------
 // ÍNDICE — se reserva una página en blanco y se llena al final, cuando ya
 // se conoce en qué página quedó cada sección.

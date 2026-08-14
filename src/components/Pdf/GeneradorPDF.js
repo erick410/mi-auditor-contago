@@ -1288,6 +1288,174 @@ const agregarIndice = (
   doc.text(`Página 2 de ${totalPages}`, 280, 285, { align: "right" });
 };
 
+// const agregaSubPortada = async (doc, indice) => {
+//   const listaSubPortada = [
+//     {
+//       titulo: "Comprobantes facturados",
+//       descripcion:
+//         "Lista de comprobantes emitidos y recibidos durante el o los meses seleccionados, separados por USO de CFDI los comprobantes se encuentran separados en ingreso y egreso, tanto emitidos como recibidos. Además de señalar los 10 principales clientes y proveedores. ",
+//     },
+//     {
+//       titulo: "Nómina",
+//       descripcion: "Lista de comprobantes timbrados, separados por mes.",
+//     },
+//     {
+//       titulo: "Flujo",
+//       descripcion:
+//         "Se muestran los comprobantes emitidos y recibidos, cobrados y pagados, comprobantes con el método de pago en PUE,  Se consideran efectivamente cobrados o pagados,  conforme a la fecha de aplicación del comprobante,  este puede ser emitido con fecha y aplicación fiscal de hasta 72 horas anteriores a la fecha de timbrado. En estos comprobantes se debe indicar la forma de pago, así como la moneda y el tipo de cambio en caso de aplicar. Comprobantes con el método de pago en PPD con complemento de pago. Los comprobantes en PPD se consideran efectivamente cobrados o pagados, siempre y cuando exista un comprobante del tipo P y con complemento de pago, que haga referencia al comprobante emitido en un inicio en PPD, en el cual se debe señalar la fecha, moneda y forma de pago, esta fecha es la que se tomará en cuenta de manera fiscal, para la aplicación del mismo.",
+//     },
+//     {
+//       titulo: "Flujo Nómina",
+//       descripcion:
+//         "Los comprobantes de tipo N, tendrán afectación fiscal, dependiendo de la fecha de pago, indicada en el nodo del complemento de nómina, ya que este indica la fecha en la que efectivamente hubo una salida de recursos.",
+//     },
+//     {
+//       titulo: "Cuentas por cobrar y por pagar",
+//       descripcion:
+//         "Se considera una cuenta por cobrar al comprobante del tipo I, con método de pago PPD, que no contenga complementos de pago relacionados o cuya suma de complementos no cubran la totalidad del importe emitido, estos también pueden disminuir si se realizan notas de crédito (Comprobantes del tipo E), que tengan relacionado de manera adecuada un comprobante del tipo I, y que por ende disminuya el saldo insoluto,  marcando la deuda como saldada.",
+//     },
+//     {
+//       titulo: "Riesgo fiscal | Comprobantes en PUE, con forma de pago 99",
+//       descripcion:
+//         "Para los comprobantes emitidos con método de pago PUE, se debe de indicar la forma de pago, con la cual se está cubriendo el costo del bien o servicio, dejando únicamente la forma de pago 99,  para aquellos comprobantes emitidos en PPD, ya que se desconoce el método de pago, con el cual se pagará dicha factura.",
+//     },
+//     {
+//       titulo: "Riesgo fiscal | Comprobantes en PUE, con forma de pago 30",
+//       descripcion:
+//         "La forma de pago 30,  se utiliza para marcar la disminución de un anticipo,  esta debe de estar únicamente en los comprobantes del tipo E.",
+//     },
+//     {
+//       titulo: "Riesgo fiscal | Comprobantes sin impuestos",
+//       descripcion:
+//         "Se muestran comprobantes que no cuentan con el nodo impuestos en ninguno de sus conceptos, para su validación,  en algunos casos se debe de indicar el IVA  (Exento o tasa 0),  esto no implica que no deba de llevar impuestos.",
+//     },
+//     {
+//       titulo:
+//         "Riesgo fiscal | Comprobantes de arrendamiento sin cuenta predial",
+//       descripcion:
+//         "Estas facturas contemplan servicios con las claves 80131500,  80131501, 80131502 y 80131503  Para estos conceptos se recomienda indicar el numero de cuenta predial,  en el nodo establecido, con el fin de identificar de manera adecuada el inmueble arrendado.",
+//     },
+//     {
+//       titulo:
+//         "Riesgo fiscal | Conceptos con clave 01010101 No existe en el catálogo",
+//       descripcion:
+//         "Este clave se debe de utilizar siempre y cuando no se encuentre alguna clave que se asemeje al bien o servicio, esta clave se recomienda para la elaboración de facturas globales y no reemplaza la necesidad de consultar el catálogo del SAT para identificar la clasificación de los productos o servicios.",
+//     },
+//     {
+//       titulo: "Riesgo fiscal | Notas de crédito sin relación",
+//       descripcion:
+//         "El objetivo de las notas de crédito es la disminución de ingresos que fueron registrados en facturas previas o para corregir un importe registrado en una factura que ya fue emitida, en el cual  se recomienda que exista previamente un CFDI  de ingreso o un CFDI de egreso.",
+//     },
+//     {
+//       titulo: "Riesgo fiscal | Pagos fuera de tiempo",
+//       descripcion:
+//         "Se debe emitir el CFDI con complemento para recepción de pagos a más tardar al quinto día natural del mes siguiente al que se recibió el pago. Dado que en el dato es un insumo para la determinación del IVA, se consideró un plazo similar al establecido para la declaración de dicho impuesto.",
+//     },
+//     {
+//       titulo: "Riesgo fiscal | Pagos antes de comprobante",
+//       descripcion:
+//         "Esto incumple a la regla que nos indica que para la emisión de un complemento de pago, debe de existir un comprobante previo del tipo I,  estos comprobantes nos indican lo contrario.",
+//     },
+//     {
+//       titulo: "Riesgo fiscal | Gastos en efectivo",
+//       descripcion:
+//         "Se muestran todos los comprobantes que superan el importe de $2,000.00 pesos que no son deducibles.",
+//     },
+//     {
+//       titulo: "Riesgo fiscal | Factura global",
+//       descripcion: "",
+//     },
+//     {
+//       titulo: "Riesgo fiscal | Nominas duplicadas",
+//       descripcion:
+//         "El sistema nos permite identificar, aquellos recibos de nomina que cuenten con el mismo tipo de nómina, (O |Ordinaria, Extraordinaria) y tengan las mismas fechas de aplicación (fecha inicial, fecha final y fecha de pago).",
+//     },
+//     {
+//       titulo: "Impuestos",
+//       descripcion:
+//         "En este apartado sé determina el IVA conforme al flujo que se señaló anteriormente en los comprobantes emitidos y recibidos según las tasas de los comprobantes, así mismo para el IVA retenido y retenciones de ISR conforme a las tasas de los comprobantes efectivamente pagados, las retenciones de ISR de nómina se toman en cuenta conforme a la fecha de aplicación del comprobante y su régimen correspondiente  .",
+//     },
+//     {
+//       titulo: "Combustibles",
+//       descripcion:
+//         "Se muestra la compra y venta de combustibles durante el período, observando el tipo de combustible, el importe y el número de litros, de igual manera se observa sí estos fueron pagados de contado o a crédito. ",
+//     },
+//     {
+//       titulo: "Anticipos",
+//       descripcion: "",
+//     },
+//     {
+//       titulo: "Listas Negras",
+//       descripcion: "",
+//     },
+//   ];
+
+//   // importamos imagen de la portada
+//   const imagenPortada = require("../../assets/portada3.jpg");
+
+//   doc.addPage();
+
+//   const currentPage = doc.getNumberOfPages();
+
+//   doc.setPage(currentPage);
+
+//   // aplicamos marca de agua de la portada
+//   doc.saveGraphicsState();
+//   doc.setGState(new doc.GState({ opacity: 1 }));
+//   doc.addImage(imagenPortada, "PNG", 0, 0, 298, 211, "", "FAST", 0);
+//   doc.restoreGraphicsState();
+
+//   const objTexto = { ...listaSubPortada[indice] };
+
+//   // crear contenedor HTML dinamicamente
+//   const container = document.createElement("div");
+
+//   container.style.width = "180mm";
+//   container.style.textAlign = "justify";
+//   container.style.position = "relative";
+//   container.style.zIndex = "999";
+
+//   const titulo = document.createElement("h2");
+//   titulo.innerText = objTexto.titulo;
+//   titulo.style.textAlign = "right";
+//   titulo.style.fontFamily = "Helvetica";
+//   titulo.style.fontWeight = "bold";
+
+//   const descripcion = document.createElement("p");
+//   descripcion.innerHTML = objTexto.descripcion.replace(/\n/g, "<br>");
+//   descripcion.style.fontFamily = "Helvetica";
+//   descripcion.style.fontSize = "20px";
+//   descripcion.style.textAlign = "justify";
+
+//   container.appendChild(titulo);
+//   container.appendChild(descripcion);
+//   document.body.appendChild(container);
+
+//   try {
+//     await doc.html(container, {
+//       x: 100,
+//       y: 20,
+//       width: 180,
+//       autoPaging: false,
+//       windowWidth: 800,
+//       html2canvas: {
+//         scale: 0.25,
+//         allowTaint: true,
+//         useCORS: true,
+//         backgroundColor: null,
+//       },
+//       page: currentPage,
+//       callback: () => {
+//         document.body.removeChild(container);
+//       },
+//     });
+//   } catch (error) {
+//     console.error("Error al renderizar HTML en PDF:", error);
+//     if (document.body.contains(container)) {
+//       document.body.removeChild(container);
+//     }
+//   }
+// };
 const agregaSubPortada = async (doc, indice) => {
   const listaSubPortada = [
     {
@@ -1394,69 +1562,38 @@ const agregaSubPortada = async (doc, indice) => {
   const imagenPortada = require("../../assets/portada3.jpg");
 
   doc.addPage();
-
   const currentPage = doc.getNumberOfPages();
-
   doc.setPage(currentPage);
 
-  // aplicamos marca de agua de la portada
+  // aplicamos marca de agua/fondo de la subportada
   doc.saveGraphicsState();
   doc.setGState(new doc.GState({ opacity: 1 }));
-  doc.addImage(imagenPortada, "PNG", 0, 0, 298, 211, "", "FAST", 0);
+  doc.addImage(imagenPortada, "JPEG", 0, 0, 298, 211, "", "FAST", 0);
   doc.restoreGraphicsState();
 
   const objTexto = { ...listaSubPortada[indice] };
 
-  // crear contenedor HTML dinamicamente
-  const container = document.createElement("div");
+  // Área de texto (ajusta estos valores a tu diseño real)
+  const anchoMaximo = 160; // ancho del bloque de texto en mm
+  const margenDerecho = 270; // coordenada X donde termina el texto (alineado a la derecha)
+  let posY = 30;
 
-  container.style.width = "180mm";
-  container.style.textAlign = "justify";
-  container.style.position = "relative";
-  container.style.zIndex = "999";
+  // Título
+  doc.setTextColor(0, 0, 0);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(20);
+  const lineasTitulo = doc.splitTextToSize(objTexto.titulo || "", anchoMaximo);
+  doc.text(lineasTitulo, margenDerecho, posY, { align: "right" });
+  posY += lineasTitulo.length * 8 + 8;
 
-  const titulo = document.createElement("h2");
-  titulo.innerText = objTexto.titulo;
-  titulo.style.textAlign = "right";
-  titulo.style.fontFamily = "Helvetica";
-  titulo.style.fontWeight = "bold";
-
-  const descripcion = document.createElement("p");
-  descripcion.innerHTML = objTexto.descripcion.replace(/\n/g, "<br>");
-  descripcion.style.fontFamily = "Helvetica";
-  descripcion.style.fontSize = "20px";
-  descripcion.style.textAlign = "justify";
-
-  container.appendChild(titulo);
-  container.appendChild(descripcion);
-  document.body.appendChild(container);
-
-  try {
-    await doc.html(container, {
-      x: 100,
-      y: 20,
-      width: 180,
-      autoPaging: false,
-      windowWidth: 800,
-      html2canvas: {
-        scale: 0.25,
-        allowTaint: true,
-        useCORS: true,
-        backgroundColor: null,
-      },
-      page: currentPage,
-      callback: () => {
-        document.body.removeChild(container);
-      },
-    });
-  } catch (error) {
-    console.error("Error al renderizar HTML en PDF:", error);
-    if (document.body.contains(container)) {
-      document.body.removeChild(container);
-    }
+  // Descripción
+  if (objTexto.descripcion) {
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    const lineasDescripcion = doc.splitTextToSize(objTexto.descripcion, anchoMaximo);
+    doc.text(lineasDescripcion, margenDerecho, posY, { align: "right" });
   }
 };
-
 /**
  * Generar grafica
  * @param {jsPDF} doc - Documento PDF
