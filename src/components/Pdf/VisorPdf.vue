@@ -253,8 +253,8 @@
                             // base64 = await ComprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
                             break;
                         case "PAGO":
-                            base64 = await pdfComprobante.comprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
-                            // base64 = await Pago20Base64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
+                            // base64 = await pdfComprobante.comprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
+                            base64 = await Pago20Base64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
                             break;
                         case "CARTA PORTE":
                             base64 = await CartaPorte30Base64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
