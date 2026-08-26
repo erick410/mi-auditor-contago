@@ -1,6 +1,29 @@
 <template>
     <div class="drawer-perfil">
 
+        <!-- Dialog FIEL faltante o vencida -->
+        <q-dialog v-model="dialogFielFaltante" persistent transition-show="flip-down" transition-hide="flip-up">
+            <q-card style="min-width:360px;border-radius:16px">
+                <q-card-section style="background:#BF2F2F;border-radius:16px 16px 0 0" class="text-center">
+                    <q-icon name="mdi-alert-circle" size="40px" color="white" />
+                    <div class="text-h6 text-white q-mt-sm">
+                        {{ fielInfo ? 'FIEL Vencida' : 'FIEL No Encontrada' }}
+                    </div>
+                </q-card-section>
+                <q-card-section class="text-center q-pa-lg">
+                    <div class="text-body2 text-grey-8">
+                        {{ fielInfo
+                            ? 'Tu FIEL se encuentra vencida. Por favor sube una nueva para continuar operando.'
+                            : 'No se encontró una FIEL registrada. Por favor súbela para continuar operando.' }}
+                    </div>
+                </q-card-section>
+                <q-card-actions class="q-px-md q-pb-md">
+                    <q-btn unelevated color="red-7" class="full-width" label="Subir FIEL" style="border-radius:10px"
+                        @click="subirFiel()" />
+                </q-card-actions>
+            </q-card>
+        </q-dialog>
+
         <!-- Dialog cargar sellos -->
         <q-dialog v-model="dialogSubirArchivos" persistent transition-show="flip-down" transition-hide="flip-up">
             <q-card style="min-width:360px;border-radius:16px">
@@ -116,6 +139,7 @@ export default {
         return {
             isPwd: false,
             dialogSubirArchivos: false,
+            dialogFielFaltante: false,
             GuardandoSellos: false
         }
     },
@@ -132,6 +156,9 @@ export default {
         iniciales() {
             return this.token.nombre
                 .split(' ').map(p => p[0]).slice(0, 2).join('').toUpperCase()
+        },
+        fielInfo() {
+            return this.archivos.find(a => a.tipo === 'FIEL')
         }
     },
     created() { this.GetVigenciaArchivos() },
@@ -147,6 +174,18 @@ export default {
         irSolicitudCancelacion() { this.$router.push({ name: 'SolicitudCancelacion' }) },
         irConfiguracion() { this.$router.push('Configuracion') },
         abriDialog() { this.dialogSubirArchivos = true },
+
+        checkFiel() {
+            const fiel = this.fielInfo
+            const vencida = fiel ? moment(fiel.fechaVigencia).isBefore(moment()) : false
+            this.dialogFielFaltante = !fiel || vencida
+        },
+
+        subirFiel() {
+            this.dialogFielFaltante = false
+            this.dialogSubirArchivos = true
+            this.$store.state.archivosStore.tipo = 'FIEL'
+        },
 
         async validarArchivos() {
             if (!this.archivo.tipo)
@@ -168,9 +207,11 @@ export default {
 
         async GetVigenciaArchivos() {
             this.$store.state.listaArchivosVigenciaStore = []
+            console.log(this.$store.state.listaArchivosVigenciaStore)
             try {
                 const { data } = await axios.get(this.rutaDescargas + `Validacion/GetVigenciaArchivos/erp_${this.token.rfc}`)
                 this.$store.state.listaArchivosVigenciaStore = data
+                this.checkFiel()
             } catch (e) { console.error(e) }
         },
 

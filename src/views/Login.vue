@@ -121,7 +121,7 @@
                         <q-card-actions class="q-px-md">
                             <q-btn unelevated color="primary" size="lg" class="full-width" @click="validarUsuario()"
                                 label="Validar Empresa" />
-                            <q-btn flat color="primary" class="full-width q-mt-md" label="Crear Cuenta"
+                            <q-btn   outline color="primary" class="full-width q-mt-md" size="lg" label="Crear Cuenta"
                                 @click="formCrearCuenta = true" />
                         </q-card-actions>
                     </template>
