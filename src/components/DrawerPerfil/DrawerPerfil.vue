@@ -55,6 +55,15 @@
                                     @click="isPwd = !isPwd" />
                             </template>
                         </q-input>
+
+                        <!-- Nuevo: solo aplica para FIEL, ya que Constancia/Opinión/Anual/
+                             Declaraciones se solicitan con RFC + contraseña de la FIEL -->
+                        <q-checkbox
+                            v-if="archivo.tipo === 'FIEL'"
+                            v-model="descargarDocumentos"
+                            class="q-mt-md"
+                            label="Al guardar, solicitar automáticamente los documentos del Reporte de Riesgo Financiero (Constancia, Opinión, Declaración Anual, Declaraciones de pagos y XML de comprobantes de los dos ejercicios anteriores y del periodo actual)"
+                        />
                     </q-card-section>
                     <q-card-actions class="q-px-md q-pb-md">
                         <q-btn unelevated color="red-7" class="full-width" label="Guardar" style="border-radius:10px"
@@ -134,13 +143,21 @@
 import axios from 'axios'
 import moment from 'moment'
 
+// Mismos endpoints/constantes que usa ReporteRiesgoFinanciero.vue para
+// solicitar Constancia, Opinión, Declaración Anual y Declaraciones de pagos.
+const BASE_URL_DESCARGA = 'https://descargasat.contago.com.mx/api/Descarga'
+const SCRAPER_URL = 'https://satscraper.contago.com.mx'
+// TODO: idealmente esta key debería vivir en el backend (proxy), no en el bundle del cliente.
+const SCRAPER_API_KEY = 'sk_live_Vqm3D1BiHpSA43mOn7VOVn21UaTSFKuhupp3UpbnpM4'
+
 export default {
     data() {
         return {
             isPwd: false,
             dialogSubirArchivos: false,
             dialogFielFaltante: false,
-            GuardandoSellos: false
+            GuardandoSellos: false,
+            descargarDocumentos: true
         }
     },
     computed: {
@@ -192,9 +209,18 @@ export default {
                 return this.$q.notify({ type: 'negative', message: 'Seleccione el tipo de archivo.' })
             this.GuardandoSellos = true
             try {
+                const esFiel = this.archivo.tipo === 'FIEL'
+                const password = this.archivo.password
                 let response = await axios.post(this.rutaDescargas + `Validacion/PostValidarArchivos/erp_${this.token.rfc}/${this.token.rfc}`, this.archivo)
                 this.$q.notify({ type: 'positive', message: 'Archivo guardado exitosamente.' })
                 this.GetVigenciaArchivos()
+
+                // Si es FIEL y el usuario marcó la casilla, dispara la solicitud
+                // de todos los documentos del Reporte de Riesgo Financiero.
+                if (esFiel && this.descargarDocumentos) {
+                    this.solicitarDocumentosReporte(password)
+                }
+
                 this.inicializar()
                 console.log(response)
             } catch (e) {
@@ -202,6 +228,114 @@ export default {
                 this.$q.notify({ type: 'negative', message: e.response.data })
             } finally {
                 this.GuardandoSellos = false
+            }
+        },
+
+        // Dispara en paralelo la solicitud de: Constancia de Situación Fiscal,
+        // Opinión de Cumplimiento, Declaración Anual (los dos ejercicios
+        // cerrados), Declaraciones de pagos (datos, año actual y anterior) y
+        // XML de comprobantes Emitidos/Recibidos (los dos ejercicios
+        // anteriores completos, más el periodo actual del año en curso) —
+        // la misma lista que rastrea el panel de Reporte de Riesgo
+        // Financiero.
+        async solicitarDocumentosReporte(password) {
+            const rfc = this.token.rfc
+            const anioActual = new Date().getFullYear()
+            const aniosAnual = [String(anioActual - 1), String(anioActual - 2)]
+            const aniosDeclaraciones = [String(anioActual), String(anioActual - 1)]
+
+            // Cada tarea es { etiqueta, ejecutar() } — ejecutar() debe regresar
+            // la promesa del axios.post sin atrapar el error aquí, para que el
+            // resultado real (éxito/fallo) se refleje en el resumen final.
+            const tareas = []
+
+            tareas.push({
+                etiqueta: 'Constancia de Situación Fiscal',
+                ejecutar: () => axios.post(`${BASE_URL_DESCARGA}/DescargarConstancia`, { rfc, password })
+            })
+            tareas.push({
+                etiqueta: 'Opinión de Cumplimiento',
+                ejecutar: () => axios.post(`${BASE_URL_DESCARGA}/DescargarOpinion`, { rfc, password })
+            })
+            aniosAnual.forEach((anio) => {
+                tareas.push({
+                    etiqueta: `Declaración Anual ${anio}`,
+                    ejecutar: () => axios.post(`${BASE_URL_DESCARGA}/DescargarAnualTodas`, { rfc, password, ejercicio: anio, formato: 'ambos' })
+                })
+            })
+            aniosDeclaraciones.forEach((anio) => {
+                tareas.push({
+                    etiqueta: `Declaraciones de pagos ${anio}`,
+                    ejecutar: () => axios.post(
+                        `${SCRAPER_URL}/sat/consultar-datos`,
+                        new URLSearchParams({ rfc, anio: String(anio), meses: 'TODOS' }),
+                        { headers: { 'X-API-KEY': SCRAPER_API_KEY, 'Content-Type': 'application/x-www-form-urlencoded' } }
+                    ).then(({ data }) => axios.post(`${this.rutaAxios}ScraperDescargasPagos/PostDescargaScraper/${rfc}`, {
+                        _id: '',
+                        periodo: 'TODOS',
+                        anio: String(anio),
+                        respuesta: JSON.stringify(data, null, 2),
+                        log_id: data.log_id,
+                        estatus: 'Vigente',
+                        fecha: new Date().toISOString().slice(0, 10)
+                    }))
+                })
+            })
+
+            // XML de comprobantes (Emitidos y Recibidos): los dos ejercicios
+            // anteriores completos, más el periodo actual (del 1 de enero al
+            // día de hoy del año en curso, ya que ese ejercicio aún no cierra)
+            const hoy = new Date().toISOString().slice(0, 10)
+            const periodosXml = [
+                ...aniosAnual.map((anio) => ({ anio, fechaInicial: `${anio}-01-01 00:00:00`, fechaFinal: `${anio}-12-31 23:59:59` })),
+                { anio: String(anioActual), fechaInicial: `${anioActual}-01-01 00:00:00`, fechaFinal: `${hoy} 23:59:59` }
+            ]
+            periodosXml.forEach(({ anio, fechaInicial, fechaFinal }) => {
+                ['Emitido', 'Recibido'].forEach((tipo) => {
+                    const payload = {
+                        tipo,
+                        fechaInicial,
+                        fechaFinal,
+                        RfcReceptor: rfc,
+                        RfcEmisor: rfc,
+                        RfcSolicitante: rfc,
+                        TipoSolicitud: 'CFDI',
+                        usuario: this.token.nombre,
+                        TipoComprobante: { tipo: 'Todos', value: '' },
+                        EstadoComprobante: { estatus: 'Todos', value: 'Todos' }
+                    }
+                    tareas.push({
+                        etiqueta: `XML ${tipo} ${anio}`,
+                        ejecutar: () => axios.post(`${this.rutaDescargas}Descargas/PostSolicitud/erp_${rfc}`, payload)
+                    })
+                })
+            })
+
+            this.$q.notify({ type: 'info', message: 'Solicitando los documentos del Reporte de Riesgo Financiero...' })
+
+            const resultados = await Promise.allSettled(tareas.map((t) => t.ejecutar()))
+
+            const fallidas = []
+            resultados.forEach((resultado, i) => {
+                if (resultado.status === 'rejected') {
+                    const e = resultado.reason
+                    // Log del CUERPO real del error (el mensaje de validación del
+                    // backend), no solo "Request failed with status code 400".
+                    const detalle = (e && e.response && e.response.data) || (e && e.message) || e
+                    console.error(`Error al solicitar "${tareas[i].etiqueta}":`, detalle)
+                    fallidas.push(tareas[i].etiqueta)
+                }
+            })
+
+            if (fallidas.length === 0) {
+                this.$q.notify({ type: 'positive', message: 'Listo. Se solicitaron todos los documentos del Reporte de Riesgo Financiero.' })
+            } else if (fallidas.length === tareas.length) {
+                this.$q.notify({ type: 'negative', message: 'No se pudo solicitar ningún documento. Revisa la consola para ver el detalle de cada error.' })
+            } else {
+                this.$q.notify({
+                    type: 'warning',
+                    message: `Se solicitaron ${tareas.length - fallidas.length} de ${tareas.length} documentos. Fallaron: ${fallidas.join(', ')}. Revisa la consola para el detalle.`
+                })
             }
         },
 
@@ -227,6 +361,7 @@ export default {
 
         inicializar() {
             this.dialogSubirArchivos = false
+            this.descargarDocumentos = false
             this.$store.state.archivosStore = {
                 tipo: '', nombreCer: '', archivoCer: { base64: '' },
                 nombreKey: '', archivoKey: { base64: '' }, password: ''

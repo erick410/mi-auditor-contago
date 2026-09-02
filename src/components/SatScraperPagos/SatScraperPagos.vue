@@ -499,6 +499,8 @@ export default {
                 const response = await axios.get(
                     `${this.rutaAxios}ScraperDescargasPagos/GetDescarpaScraper/${this.token.rfc}/${this.form.anio}/${this.form.meses}`
                 );
+                console.log('Respuesta del scraper:', response.data);
+                
                 if (response.data !== '') {
                     try { this.resultado = JSON.parse(response.data.respuesta); } catch { /* sigue al scraper */ }
                 }
@@ -540,6 +542,7 @@ export default {
                     new URLSearchParams({ rfc: this.form.rfc, anio: this.form.anio, meses: this.form.meses }),
                     { headers: { 'X-API-KEY': this.form.apiKey, 'Content-Type': 'application/x-www-form-urlencoded' } }
                 );
+                console.log('Consulta SAT exitosa:', data);
                 this.resultado = data;
                 await this.saveDescargaScraper({
                     _id: '', periodo: this.form.meses, anio: this.form.anio,

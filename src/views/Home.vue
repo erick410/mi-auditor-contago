@@ -123,6 +123,7 @@ export default {
         { name: 'Pagos Mensuales', sub: 'Declaraciones y pagos', icon: 'mdi-cash-clock', action: () => this.$router.push({ name: 'PagosMensuales' }), bloqueados: ['ALHELI FLORES'] },
         { name: 'Conceptos', sub: 'Catálogo de conceptos', icon: 'mdi-format-list-checkbox', action: () => this.$router.push({ name: 'Conceptos' }), bloqueados: ['ALHELI FLORES'] },
         { name: 'Reporte Empresarial', sub: 'Análisis general', icon: 'mdi-file-chart', action: () => this.$router.push({ name: 'ReporteGeneral' }), bloqueados: ['ALICIA BALDERAS', 'KARINA GIRON', 'ANA ADAME','ALHELI FLORES'] },
+        { name: 'Riesgo Financiero', sub: 'Reporte', icon: 'mdi-file-chart', action: () => this.$router.push({ name: 'ReporteRiesgoFinanciero' }), bloqueados: [] },
       ]
     }
   },

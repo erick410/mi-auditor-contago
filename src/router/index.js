@@ -113,6 +113,9 @@ import MainConceptos from "../components/Conceptos/MainConceptos.vue"
 import Conceptos from "../components/Conceptos/ListaConceptos.vue"
 
 import SatScraperPagos from "../components/SatScraperPagos/SatScraperPagos.vue";
+
+import ReporteRiesgoFinanciero from "../components/RiesgoFinanciero/ReporteRiesgoFinanciero.vue";
+
 Vue.use(VueRouter);
 
 const routes = [
@@ -161,6 +164,12 @@ const routes = [
         path: "ViewReporteGeneral",
         component: ViewReporteGeneral,
         name: "ViewReporteGeneral",
+        meta: { Administrador: true, Gasolinero: true },
+      },
+      {
+        path: "ReporteRiesgoFinanciero",
+        component: ReporteRiesgoFinanciero,
+        name: "ReporteRiesgoFinanciero",
         meta: { Administrador: true, Gasolinero: true },
       },
     ],
@@ -829,6 +838,8 @@ const routes = [
       },
     ],
   },
+
+  
 ];
 
 
