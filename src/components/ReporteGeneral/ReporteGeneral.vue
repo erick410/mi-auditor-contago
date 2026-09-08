@@ -4578,9 +4578,9 @@ export default {
           .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
           const ivaRetenidoE = ivaRetEmitido
-                    .filter(item => item.mes == x+1 && item.año === this.selectedAnio)
+                    .filter(item =>  item.mes?.toUpperCase() === mes  && item.año === this.selectedAnio.toString())
                     .reduce((acc, item) => acc + (item.importeIva || 0), 0);
-
+console.log(ivaRetenidoE, "ivaRetenidoE");
         // const ivaRetenidoE = ivaRetEmitido
         //   .filter(
         //     (item) =>

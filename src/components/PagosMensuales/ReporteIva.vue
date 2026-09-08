@@ -1372,7 +1372,7 @@ export default {
             const recibidos = (await this.GetReporteIvaCompletoRecibidos(rfc, fechaI, fechaF)) || [];
             const ivaRet = (await this.GetIvaRetenido()) || [];
             const ivaRetEmitido = (await this.GetReporteIvaRetenidoNeteadoAsync()) || [];
-            
+            console.log('ivaRetEmitido', ivaRetEmitido)
             const comp = (await this.GetComparativa(this.selectedAnio, 'IVA')) || [];
             this.columns = [...this.columnsDefault];
             const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
@@ -1403,8 +1403,10 @@ export default {
                 //     .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio)
                 //     .reduce((acc, item) => acc + (item.importeIva || 0), 0);
                 const ivaRetenidoE = ivaRetEmitido
-                    .filter(item => item.mes == x+1 && item.año === this.selectedAnio)
+                    .filter(item =>  item.mes?.toUpperCase() === mes  && item.año === this.selectedAnio)
                     .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+                    console.log('ivaRetenidoE', ivaRetenidoE)
+                    console.log(this.selectedAnio, 'this.selectedAnio')
                     // const ivaRetenidoAnterior = ivaRet
                     // .filter(item => item.mes?.toUpperCase() === mes && item.año === (this.selectedAnio - 1).toString())
                     // .reduce((acc, item) => acc + (item.importeIva || 0), 0);
