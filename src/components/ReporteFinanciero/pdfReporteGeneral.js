@@ -1556,11 +1556,31 @@ function agregarFirma(doc, y, firmante) {
 // FUNCIÓN PRINCIPAL
 // ============================================================================
 export function generarPdfReporteGeneral(datos, meta = {}) {
+    console.log(meta)
+    let nombre = ""
+    let puesto = ""
+
+    const nombre1 = "OSCAR JESUS LUENGAS SOLANO"
+    const nombre2 = "EDGAR PÉREZ CUATEPITZI"
+    const puesto1 = "DIRECTOR GENERAL"
+    const puesto2 = "ALIANZAS ESTRATÉGICAS LAUDEM AVE"
+
+    if(meta.usuario.toLowerCase() == "admin"){
+        nombre = nombre1;
+        puesto = puesto1;
+    } else {
+        nombre = nombre2;
+        puesto = puesto2;
+    }
+
     const {
         empresa = "",
         rfc = "",
         ubicacion = "San Andrés Cholula, Puebla",
-        firmante = null,
+        firmante = {
+           nombre  : nombre,
+           puesto  : puesto,
+        },
         descargarAutomaticamente = true,
     } = meta;
 

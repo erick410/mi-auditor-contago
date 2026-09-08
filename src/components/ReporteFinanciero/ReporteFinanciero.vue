@@ -3888,6 +3888,7 @@ export default {
         generarPdfReporteGeneral(this.datosParaPdf, {
           empresa: empresaStore.nombre || "",
           rfc: empresaStore.rfc || "",
+          usuario: this.token ? this.token.nombre : "",
           // Firmante opcional: si lo defines, se agrega una página de
           // firma al final del PDF (igual que tu reporte original).
           // firmante: { nombre: "OSCAR JESUS LUENGAS SOLANO", puesto: "DIRECTOR LAUDEM AVE" },
