@@ -1345,7 +1345,7 @@ export default {
     itemsAnios() {
       let hoy = new Date().getFullYear();
       let años = [];
-      for (let a = 0; a <= 6; a++) {
+      for (let a = 0; a <= 8; a++) {
         años.push(hoy);
         hoy--;
       }
