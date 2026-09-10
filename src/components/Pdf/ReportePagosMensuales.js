@@ -3366,6 +3366,16 @@ if (user === 'admin') {
     align: "center",
   });
 
+}else if (user === 'edgarpc') {
+  y += 12;
+  doc.text("EDGAR PÉREZ CUATEPITZI", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
+  y += 10;
+  doc.text("ALIANZAS ESTRATÉGICAS LAUDEM AVE", doc.internal.pageSize.width / 2, y, {
+    align: "center",
+  });
+
 }  else {
   y += 12;
   doc.text("ALIANZAS ESTRATÉGICAS", doc.internal.pageSize.width / 2, y, {

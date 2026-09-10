@@ -568,7 +568,8 @@ export default {
                     const ivaCargo_ = this.dataComprobantes[contE].importeIvaTrasladado;
                     const ivaAcreditado_ = this.dataComprobantes[contE].importeIvaAcreditado;
                     const ivaRetenido_ = this.dataComprobantes[contE].ivaRetenido;
-                    const ivaRetenidoAnterior_ = this.dataComprobantes[contE].ivaRetenidoAnterior;
+                    // const ivaRetenidoAnterior_ = this.dataComprobantes[contE].ivaRetenidoAnterior;
+                    const ivaRetenidoAnterior_ = 0;
 
                     const calculo_ = parseFloat((ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_).toFixed(2));
                     if (calculo_ > 0) {
@@ -725,7 +726,7 @@ export default {
                         let ivaAcreditado_ = ivaAcreditable[x].importeIva
                         let ivaRetenido_ = ObjIva.ivaRetenido
                         let ivaRetenidoAnterior_ = ivaRetenido[x + 1].importeIva
-                        let calculo = ivaCargo_ - ivaAcreditado_ - ivaRetenido_ 
+                        let calculo = ivaCargo_ - ivaAcreditado_ + ivaRetenido_ 
                         if (calculo > 0) {
                             ObjIva.ivaCargo = calculo
                             ObjIva.ivaFavor = 0
@@ -1372,7 +1373,7 @@ export default {
             const recibidos = (await this.GetReporteIvaCompletoRecibidos(rfc, fechaI, fechaF)) || [];
             const ivaRet = (await this.GetIvaRetenido()) || [];
             const ivaRetEmitido = (await this.GetReporteIvaRetenidoNeteadoAsync()) || [];
-            
+            console.log('ivaRetEmitido', ivaRetEmitido)
             const comp = (await this.GetComparativa(this.selectedAnio, 'IVA')) || [];
             this.columns = [...this.columnsDefault];
             const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
@@ -1403,8 +1404,10 @@ export default {
                 //     .filter(item => item.mes?.toUpperCase() === mes && item.año === this.selectedAnio)
                 //     .reduce((acc, item) => acc + (item.importeIva || 0), 0);
                 const ivaRetenidoE = ivaRetEmitido
-                    .filter(item => item.mes == x+1 && item.año === this.selectedAnio)
+                    .filter(item =>  item.mes?.toUpperCase() === mes  && item.año === this.selectedAnio)
                     .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+                    console.log('ivaRetenidoE', ivaRetenidoE)
+                    console.log(this.selectedAnio, 'this.selectedAnio')
                     // const ivaRetenidoAnterior = ivaRet
                     // .filter(item => item.mes?.toUpperCase() === mes && item.año === (this.selectedAnio - 1).toString())
                     // .reduce((acc, item) => acc + (item.importeIva || 0), 0);

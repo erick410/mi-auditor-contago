@@ -1951,9 +1951,10 @@ export default {
           // .reduce((a, i) => a + (i.importeIva || 0), 0);
 
           const ivaRetenidoE = ivaRetEmitido
-            .filter((item) => item.mes == x + 1 && item.año === año)
+            .filter((item) =>  item.mes?.toUpperCase() === mes  && item.año === año.toString())
             .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
+          console.log(`Mes: ${mes}, IVA Retenido: ${ivaRetenido}, IVA Retenido Emitido: ${ivaRetenidoE}`);
           const ivaRetenidoAnterior =
             (ivaRet[x]?.importeIva || 0) + ivaRetenidoE;
 
@@ -3887,6 +3888,7 @@ export default {
         generarPdfReporteGeneral(this.datosParaPdf, {
           empresa: empresaStore.nombre || "",
           rfc: empresaStore.rfc || "",
+          usuario: this.token ? this.token.nombre : "",
           // Firmante opcional: si lo defines, se agrega una página de
           // firma al final del PDF (igual que tu reporte original).
           // firmante: { nombre: "OSCAR JESUS LUENGAS SOLANO", puesto: "DIRECTOR LAUDEM AVE" },

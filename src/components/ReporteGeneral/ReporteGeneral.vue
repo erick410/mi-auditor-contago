@@ -4208,7 +4208,8 @@ export default {
           const ivaCargo_ = this.dataComprobantes[contE].importeIvaTrasladado;
           const ivaAcreditado_ = this.dataComprobantes[contE].importeIvaAcreditado;
           const ivaRetenido_ = this.dataComprobantes[contE].ivaRetenido;
-          const ivaRetenidoAnterior_ = this.dataComprobantes[contE].ivaRetenidoAnterior;
+          // const ivaRetenidoAnterior_ = this.dataComprobantes[contE].ivaRetenidoAnterior;
+          const ivaRetenidoAnterior_ = 0;
 
           const calculo_ = parseFloat(
             (ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_).toFixed(2)
@@ -4578,9 +4579,9 @@ export default {
           .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
           const ivaRetenidoE = ivaRetEmitido
-                    .filter(item => item.mes == x+1 && item.año === this.selectedAnio)
+                    .filter(item =>  item.mes?.toUpperCase() === mes  && item.año === this.selectedAnio.toString())
                     .reduce((acc, item) => acc + (item.importeIva || 0), 0);
-
+console.log(ivaRetenidoE, "ivaRetenidoE");
         // const ivaRetenidoE = ivaRetEmitido
         //   .filter(
         //     (item) =>
