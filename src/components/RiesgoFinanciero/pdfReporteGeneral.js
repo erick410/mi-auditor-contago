@@ -75,6 +75,7 @@ const CATEGORIA_SECCION = {
     "Razones Financieras": "Conclusión y Recomendación",
     "Conclusión: ¿Es Sujeto de Crédito?": "Conclusión y Recomendación",
     "Conclusión General de Riesgo": "Conclusión y Recomendación",
+    "Gastos con Régimen Fiscal Distinto": "Flujo y Cartera",
 };
 
 const ROMANOS = ["I", "II", "III", "IV", "V", "VI"];
@@ -120,6 +121,39 @@ function asegurarEspacio(doc, y, alto) {
         doc.addPage();
         return MARGEN + 6;
     }
+    return y;
+}
+
+
+function seccionGastosDifRegimen(doc, y, datos, ctx, indice, meta) {
+    const filas = datos.gastosDifRegimen;
+    if (!filas || filas.length === 0) return y;
+
+    y = iniciarSeccion(doc, indice, "Gastos con Régimen Fiscal Distinto", y, meta);
+    y = agregarParrafo(
+        doc,
+        y,
+        "Se listan los comprobantes recibidos cuyo régimen fiscal del receptor es distinto al régimen fiscal registrado del emisor, lo cual puede representar un riesgo de deducibilidad ante el SAT."
+    );
+
+    const totalImporte = filas.reduce((a, f) => a + (f.total || 0), 0);
+    y = agregarTarjetasEstadisticas(doc, y, [
+        { label: "Total Comprobantes", valor: filas.length, color: COLOR_HEADER },
+        { label: "Importe Total", valor: money(totalImporte), color: COLOR_NEGATIVO },
+    ]);
+
+    const columnas = [
+        { name: "serie", label: "Serie", field: "serie", tipo: "texto" },
+        { name: "folio", label: "Folio", field: "folio", tipo: "texto" },
+        { name: "rfc", label: "RFC", field: "rfc", tipo: "texto" },
+        { name: "nombre", label: "Nombre", field: "nombre", tipo: "texto" },
+        { name: "regimenFiscalReceptorDescripcion", label: "Régimen Receptor", field: "regimenFiscalReceptorDescripcion", tipo: "texto" },
+        { name: "subTotal", label: "Subtotal", field: "subTotal", tipo: "moneda" },
+        { name: "total", label: "Total", field: "total", tipo: "moneda" },
+        { name: "folioFiscal", label: "Folio Fiscal", field: "folioFiscal", tipo: "texto" },
+    ];
+
+    y = dibujarTabla(doc, y, { columnas, filas, opciones: { agregarTotales: true } });
     return y;
 }
 
@@ -1868,6 +1902,7 @@ const condicionRecibidos = (datos) => !!(datos.comprobantesRecibidos && datos.co
 const condicionNomina = (datos) => !!(datos.nomina && datos.nomina.length > 0);
 const condicionCxc = (datos) => !!(datos.cxc && datos.cxc.length > 0);
 const condicionCxp = (datos) => !!(datos.cxp && datos.cxp.length > 0);
+const condicionGastosDifRegimen = (datos) => !!(datos.gastosDifRegimen && datos.gastosDifRegimen.length > 0);
 const condicionFlujo = (datos) => !!(datos.comparativaFlujoPorMoneda && datos.comparativaFlujoPorMoneda.length > 0);
 const condicionCiclo = (datos) => condicionCxc(datos) || condicionCxp(datos);
 const condicionRazonesFinancieras = (datos) => {
@@ -1899,7 +1934,8 @@ const SECCIONES_DISPONIBLES = [
     { titulo: "Nómina Pagada", condicion: condicionNomina, dibujar: seccionNomina },
     { titulo: "Cuentas por Cobrar", condicion: condicionCxc, dibujar: (doc, y, datos, ctx, indice, meta) => seccionCuentas(doc, y, datos, ctx, indice, meta, "cxc") },
     { titulo: "Cuentas por Pagar", condicion: condicionCxp, dibujar: (doc, y, datos, ctx, indice, meta) => seccionCuentas(doc, y, datos, ctx, indice, meta, "cxp") },
-    { titulo: "Comparativa de Flujo (PUE)", condicion: condicionFlujo, dibujar: seccionFlujo },
+     { titulo: "Gastos con Régimen Fiscal Distinto", condicion: condicionGastosDifRegimen, dibujar: seccionGastosDifRegimen },
+     { titulo: "Comparativa de Flujo (PUE)", condicion: condicionFlujo, dibujar: seccionFlujo },
     { titulo: "Análisis de Ciclo de Cobro y Pago", condicion: condicionCiclo, dibujar: seccionAnalisisCicloCobroPago },
     { titulo: "Razones Financieras", condicion: condicionRazonesFinancieras, dibujar: seccionRazonesFinancieras },
     { titulo: "Conclusión: ¿Es Sujeto de Crédito?", condicion: condicionConclusionCredito, dibujar: seccionConclusionCredito },

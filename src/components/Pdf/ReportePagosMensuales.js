@@ -3366,9 +3366,9 @@ if (user === 'admin') {
     align: "center",
   });
 
-}else if (user === 'edgarpc') {
+}else if (user === 'edgar') {
   y += 12;
-  doc.text("EDGAR PÉREZ CUATEPITZI", doc.internal.pageSize.width / 2, y, {
+  doc.text("CP EDGAR PÉREZ CUATEPITZI", doc.internal.pageSize.width / 2, y, {
     align: "center",
   });
   y += 10;

@@ -17,6 +17,35 @@
         </div>
 
         <div class="wb-right">
+
+          <!-- Listas Negras primero -->
+          <div class="ind ind-clickable" :style="{
+            background: colorFondo(semaforo.listasNegras),
+            borderColor: colorBorde(semaforo.listasNegras)
+          }">
+            <div class="ind-dot" :style="{ background: colorDot(semaforo.listasNegras) }"></div>
+            <div class="ind-info">
+              <span class="ind-tipo" :style="{ color: colorTipo(semaforo.listasNegras) }">Listas Negras </span>
+              <span class="ind-fecha" :style="{ color: colorFecha(semaforo.listasNegras) }">
+                {{ conteoRiesgoListas.rojo + conteoRiesgoListas.amarillo }} de {{ proveedoresListaNegra.length }}
+              </span>
+              <span class="ind-label" :style="{ color: colorLabel(semaforo.listasNegras) }">
+                {{ labelEstadoListas(semaforo.listasNegras) }}
+              </span>
+            </div>
+            <q-btn
+              flat round dense
+              :icon="mostrarDetalleListas ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+              size="sm"
+              :style="{ color: colorTipo(semaforo.listasNegras) }"
+              @click="toggleDetalleListas"
+            >
+              <q-tooltip content-style="font-size:13px">
+                {{ mostrarDetalleListas ? 'Ocultar detalle' : 'Ver detalle' }}
+              </q-tooltip>
+            </q-btn>
+          </div>
+
           <div class="ind" :style="{
             background: colorFondo(semaforo.emitidos),
             borderColor: colorBorde(semaforo.emitidos)
@@ -49,13 +78,45 @@
             </div>
           </div>
 
-          <q-btn v-if="solicitudDisponible " flat round dense icon="mdi-plus-circle-outline" size="md" color="grey-7"
-            @click="crearSolicitud">
-            <q-tooltip content-style="font-size:13px">
-              Crear solicitud de descarga
-            </q-tooltip>
-          </q-btn>
+          <!-- Separador visual antes del toolbar de acciones -->
+          <div class="wb-divider"></div>
+
+          <div class="wb-toolbar">
+            <q-btn
+              v-if="solicitudDisponible"
+              flat round dense
+              icon="mdi-cloud-download-outline"
+              size="md"
+              color="grey-7"
+              @click="crearSolicitud"
+            >
+              <q-tooltip content-style="font-size:13px">
+                Crear solicitud de descarga SAT
+              </q-tooltip>
+            </q-btn>
+          </div>
+
         </div>
+
+        <!-- Panel de detalle de Listas Negras -->
+        <div v-if="mostrarDetalleListas" class="detalle-listas">
+          <div v-if="!proveedoresListaNegra.length" class="detalle-vacio">
+            No hay proveedores registrados en listas negras.
+          </div>
+          <div v-else class="detalle-item" v-for="p in proveedoresListaNegra" :key="p.rfc">
+            <div class="detalle-badge" :style="{ background: colorDot(evaluarRiesgoProveedor(p)) }"></div>
+            <div class="detalle-info">
+              <div class="detalle-nombre">{{ p.nombre }}</div>
+              <div class="detalle-rfc">{{ p.rfc }}</div>
+              <div class="detalle-estados">
+                <span v-if="p.listaNegra">Lista Negra: {{ p.listaNegra }}</span>
+                <span v-if="p.lista69B">69-B: {{ p.lista69B }}</span>
+                <span v-if="p.noLocalizado">{{ p.noLocalizado }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
       <div class="sec">
         <div class="sec-hdr">
@@ -113,7 +174,9 @@ export default {
   data() {
     return {
       descarga: { emitidos: null, recibidos: null },
-      semaforo: { emitidos: null, recibidos: null },
+      semaforo: { emitidos: null, recibidos: null, listasNegras: null },
+      proveedoresListaNegra: [],
+      mostrarDetalleListas: false,
       modulosComprobantes: [
         { name: 'Ingresos', sub: 'CFDIs emitidos', icon: 'mdi-file-document-plus', action: () => this.$router.push({ name: 'Ingresos' }), bloqueados: ['ALHELI FLORES'] },
         { name: 'Compras', sub: 'CFDIs recibidos', icon: 'mdi-file-document-minus', action: () => this.$router.push({ name: 'Compras' }), bloqueados: [] },
@@ -124,28 +187,29 @@ export default {
         { name: 'Conceptos', sub: 'Catálogo de conceptos', icon: 'mdi-format-list-checkbox', action: () => this.$router.push({ name: 'Conceptos' }), bloqueados: ['ALHELI FLORES'] },
         { name: 'Reporte Empresarial', sub: 'Análisis general', icon: 'mdi-file-chart', action: () => this.$router.push({ name: 'ReporteGeneral' }), bloqueados: ['ALICIA BALDERAS', 'KARINA GIRON', 'ANA ADAME','ALHELI FLORES'] },
         { name: 'Riesgo Financiero', sub: 'Reporte', icon: 'mdi-file-chart', action: () => this.$router.push({ name: 'ReporteRiesgoFinanciero' }), bloqueados: [] },
-      ]
+      ],
+      anioConsultaListas: null,
     }
   },
 
   computed: {
-  solicitudDisponible() {
-    if (!this.fechaMasVieja) return false
+    solicitudDisponible() {
+      if (!this.fechaMasVieja) return false
 
-    const hoy = new Date()
-    const fecha = new Date(this.fechaMasVieja)
+      const hoy = new Date()
+      const fecha = new Date(this.fechaMasVieja)
 
-    const esHoy = (
-      fecha.getDate()     === hoy.getDate()   &&
-      fecha.getMonth()    === hoy.getMonth()  &&
-      fecha.getFullYear() === hoy.getFullYear()
-    )
+      const esHoy = (
+        fecha.getDate()     === hoy.getDate()   &&
+        fecha.getMonth()    === hoy.getMonth()  &&
+        fecha.getFullYear() === hoy.getFullYear()
+      )
 
-    const emitidosAlDia  = this.semaforo.emitidos  === 'verde'
-    const recibidosAlDia = this.semaforo.recibidos === 'verde'
+      const emitidosAlDia  = this.semaforo.emitidos  === 'verde'
+      const recibidosAlDia = this.semaforo.recibidos === 'verde'
 
-    return !esHoy && !(emitidosAlDia && recibidosAlDia)
-},
+      return !esHoy && !(emitidosAlDia && recibidosAlDia)
+    },
     usuarioActual() {
       return this.$store.state.usuario.nombre;
     },
@@ -172,13 +236,23 @@ export default {
       return new Date(fe) < new Date(fr) ? fe : fr
     },
     rutaDescargas() {
-            return this.$store.state.rutaDescargas;
-        },
+      return this.$store.state.rutaDescargas;
+    },
+    rutaReportes() {
+      return this.$store.state.rutaMongoStore; // ajusta si en tu store se llama diferente
+    },
+    conteoRiesgoListas() {
+      const conteo = { rojo: 0, amarillo: 0, verde: 0 }
+      this.proveedoresListaNegra.forEach(p => {
+        conteo[this.evaluarRiesgoProveedor(p)]++
+      })
+      return conteo
+    },
   },
 
   created() {
-    // this.listaEmpresas()
     this.cargarSemaforo()
+    this.cargarListasNegras()
   },
 
   methods: {
@@ -190,29 +264,74 @@ export default {
           `Descargas/GetUltimaDescarga/${rfc}`
         )
         this.descarga = { emitidos: data.emitidos, recibidos: data.recibidos }
-        this.semaforo = { emitidos: data.emitidos?.semaforo, recibidos: data.recibidos?.semaforo }
+        this.semaforo.emitidos = data.emitidos?.semaforo
+        this.semaforo.recibidos = data.recibidos?.semaforo
 
         console.log(data)
       } catch (e) {
         console.error('Semáforo no disponible', e)
       }
     },
+
+    async cargarListasNegras() {
+      try {
+        const rfc = this.$store.state.usuario.rfc
+        if (!rfc) return
+        const anio = new Date().getFullYear()
+        this.anioConsultaListas = anio
+        const { data } = await axios.get(
+          this.rutaReportes + `ReporteGeneral/GetReporteListasNegrasDashboardAsync/${rfc}/${anio}`
+        )
+
+        this.proveedoresListaNegra = data.proveedores || []
+        this.semaforo.listasNegras = this.calcularSemaforoListas(this.proveedoresListaNegra)
+      } catch (e) {
+        console.error('Listas negras no disponibles', e)
+      }
+    },
+
+    toggleDetalleListas() {
+      this.mostrarDetalleListas = !this.mostrarDetalleListas
+    },
+
+    extraerEstado(valor) {
+      if (!valor) return ''
+      return valor.split('|')[0].trim()
+    },
+
+    evaluarRiesgoProveedor(p) {
+      const estadoNegra = this.extraerEstado(p.listaNegra)
+      const estado69B = this.extraerEstado(p.lista69B)
+      const noLocalizado = !!p.noLocalizado
+
+      if (estadoNegra === 'Definitivo' || estado69B === 'Definitivo') return 'rojo'
+      if (estadoNegra === 'Presunto' || estado69B === 'Presunto' || noLocalizado) return 'amarillo'
+      return 'verde'
+    },
+
+    calcularSemaforoListas(proveedores) {
+      if (!proveedores.length) return 'verde'
+      const niveles = proveedores.map(p => this.evaluarRiesgoProveedor(p))
+      if (niveles.includes('rojo')) return 'rojo'
+      if (niveles.includes('amarillo')) return 'amarillo'
+      return 'verde'
+    },
+
     colorDot(v) { return { rojo: '#E24B4A', amarillo: '#EF9F27', verde: '#639922' }[v] || '#ccc' },
     colorFondo(v) { return { rojo: '#FCEBEB', amarillo: '#FAEEDA', verde: '#EAF3DE' }[v] || '#f4f5f7' },
     colorBorde(v) { return { rojo: '#F09595', amarillo: '#FAC775', verde: '#97C459' }[v] || '#e3e3e3' },
 
-    // ← estos son los que necesitas corregir
     colorTipo(v) { return { rojo: '#791F1F', amarillo: '#633806', verde: '#27500A' }[v] || '#aaa' },
     colorFecha(v) { return { rojo: '#A32D2D', amarillo: '#854F0B', verde: '#3B6D11' }[v] || '#111' },
     colorLabel(v) { return { rojo: '#A32D2D', amarillo: '#854F0B', verde: '#3B6D11' }[v] || '#aaa' },
 
-
     labelEstado(v) { return { rojo: 'Desactualizado', amarillo: 'Por actualizar', verde: 'Al día' }[v] || '—' },
+    labelEstadoListas(v) { return { rojo: 'Riesgo detectado', amarillo: 'Por revisar', verde: 'Sin riesgo' }[v] || '—' },
+
     formatFecha(fecha) {
       if (!fecha) return '—'
       return new Date(fecha).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' })
     },
-    
 
     async crearSolicitud() {
       if (!this.fechaMasVieja) {
@@ -229,7 +348,7 @@ export default {
         Rfc: this.$store.state.usuario.rfc,
         razon_social: this.$store.state.empresaStore.nombre,
         fecha_de_la_solicitud: this.fechaMasVieja,
-        tipo: 'Ambos'  // ya no es por tipo individual
+        tipo: 'Ambos'
       }
 
       try {
@@ -266,8 +385,8 @@ export default {
   gap: 32px;
   flex-wrap: wrap;
   width: 100%;
-  /* ← agrega esto */
   margin: 0;
+  position: relative;
 }
 
 .wb-left {
@@ -308,8 +427,22 @@ export default {
 
 .wb-right {
   display: flex;
+  align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.wb-divider {
+  width: 1px;
+  height: 34px;
+  background: #ddd;
+  margin: 0 4px;
+}
+
+.wb-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .ind {
@@ -320,6 +453,10 @@ export default {
   gap: 10px;
   min-width: 155px;
   border: 0.5px solid transparent;
+}
+
+.ind-clickable {
+  padding-right: 6px;
 }
 
 .ind-dot {
@@ -333,6 +470,7 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
 }
 
 .ind-tipo {
@@ -354,6 +492,71 @@ export default {
   font-weight: 600;
 }
 
+.detalle-listas {
+  width: 100%;
+  background: #fff;
+  border: 0.5px solid #e3e3e3;
+  border-radius: 12px;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.detalle-vacio {
+  font-size: 13px;
+  color: #999;
+  padding: 8px 0;
+}
+
+.detalle-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 0.5px solid #eee;
+}
+
+.detalle-item:last-child {
+  border-bottom: none;
+}
+
+.detalle-badge {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+
+.detalle-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detalle-nombre {
+  font-size: 13px;
+  font-weight: 600;
+  color: #222;
+}
+
+.detalle-rfc {
+  font-size: 11px;
+  color: #888;
+}
+
+.detalle-estados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 11px;
+  color: #666;
+  margin-top: 2px;
+}
+
 .content-logo {
   padding: 40px 0px;
   display: flex;
@@ -361,17 +564,13 @@ export default {
   gap: 32px;
 }
 
-/* ← límite de ancho */
-
 .content {
   padding: 10px 100px;
   display: flex;
   flex-direction: column;
   gap: 32px;
   max-width: 1400px;
-  /* ← límite de ancho */
   margin: 0 auto;
-  /* ← centra el contenido */
   width: 100%;
 }
 

@@ -906,6 +906,43 @@
         </q-card-section>
       </q-card>
 
+<!-- ===================== GASTOS CON RÉGIMEN FISCAL DISTINTO ===================== -->
+<q-card
+  flat
+  class="rg-card rg-section rg-section--gastosdifregimen q-mb-md full-width"
+  v-if="mostrarSecciones.gastosDifRegimen"
+>
+  <q-card-section class="rg-section__header">
+    <q-icon name="rule" class="rg-section__icon" />
+    <div>
+      <div class="rg-section__title">Gastos con Régimen Fiscal Distinto</div>
+      <div class="rg-section__subtitle">
+        {{ tablaGastosDifRegimen.length }} comprobantes
+      </div>
+    </div>
+  </q-card-section>
+  <q-table
+    :data="tablaGastosDifRegimen"
+    :columns="columnasGastosDifRegimen"
+    row-key="folioFiscal"
+    dense
+    flat
+    class="rg-table"
+    :pagination="{ rowsPerPage: 10 }"
+  >
+    <template v-slot:body-cell-subTotal="props">
+      <q-td :props="props" class="rg-cell-money">{{
+        formatoPesos(props.row.subTotal, props.row.moneda)
+      }}</q-td>
+    </template>
+    <template v-slot:body-cell-total="props">
+      <q-td :props="props" class="rg-cell-money rg-cell-strong">{{
+        formatoPesos(props.row.total, props.row.moneda)
+      }}</q-td>
+    </template>
+  </q-table>
+</q-card>
+
       <!-- ===================== ACCION PDF ===================== -->
       <div class="row justify-end q-mt-lg">
         <q-btn
@@ -985,7 +1022,8 @@ export default {
         pagosProvisionales: true,
         usoCfdi: true,
         comparativaAnual: true,
-        razonesFinancieras: true,
+        razonesFinancieras: true, 
+        gastosDifRegimen: true, // NUEVO
       },
       labelsSecciones: {
         emitidos: "Emitidos por RFC",
@@ -1000,6 +1038,7 @@ export default {
         usoCfdi: "Uso de CFDI",
         comparativaAnual: "Comparativa Anual",
         razonesFinancieras: "Razones Financieras",
+         gastosDifRegimen: "Gastos con Régimen Distinto", // NUEVO
       },
 
       // ---- datos crudos / procesados ----
@@ -1020,7 +1059,7 @@ export default {
         demasIngresos: [],
         isrRetenidoFavor: [],
       },
-      categoriasIsr: [
+      tablaGastosDifRegimen: [],categoriasIsr: [
         { key: "sueldos", label: "Sueldos y Salarios" },
         { key: "asimilados", label: "Asimilados" },
         { key: "otros", label: "Otros" },
@@ -1287,6 +1326,29 @@ export default {
           align: "right",
         },
       ],
+      columnasGastosDifRegimen: [ // NUEVO
+  { name: "serie", label: "Serie", field: "serie", align: "center" },
+  { name: "folio", label: "Folio", field: "folio", align: "center" },
+  {
+    name: "fecha",
+    label: "Fecha",
+    field: (row) => this.formatoFecha(row.fecha),
+    align: "left",
+  },
+  { name: "rfc", label: "RFC Emisor", field: "rfc", align: "left" },
+  { name: "nombre", label: "Nombre", field: "nombre", align: "left" },
+  {
+    name: "regimenFiscalReceptor",
+    label: "Régimen del Receptor",
+    field: "regimenFiscalReceptorDescripcion",
+    align: "left",
+  },
+  { name: "subTotal", label: "Subtotal", field: "subTotal", align: "right" },
+  { name: "total", label: "Total", field: "total", align: "right" },
+  { name: "moneda", label: "Moneda", field: "moneda", align: "center" },
+  { name: "usoCfdi", label: "Uso CFDI", field: "usoCfdi", align: "left" },
+  { name: "folioFiscal", label: "Folio Fiscal", field: "folioFiscal", align: "left" },
+],
     };
   },
   computed: {
@@ -1472,6 +1534,7 @@ export default {
           mensaje: this.comparativaAnualMensaje,
         },
         razonesFinancieras: this.razonesFinancieras,
+         gastosDifRegimen: this.tablaGastosDifRegimen, 
       };
     },
   },
@@ -3527,6 +3590,20 @@ export default {
       }
     },
 
+
+    async GetReporteGastosDifRegimen(rfc, fI, fF) {
+  try {
+    const response = await axios.get(
+      `${this.rutaAxios}Gastos/GetReporteGastosDifRegimenAsync/erp_${rfc}/${fI}/${fF}`
+    );
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+},
+
+
     // ---------------- ORQUESTADOR PRINCIPAL ----------------
     async generarReporte() {
       if (!this.puedeGenerar) return;
@@ -3599,6 +3676,12 @@ export default {
             : Promise.resolve([])
         );
 
+          tareas.push(
+  this.mostrarSecciones.gastosDifRegimen
+    ? this.GetReporteGastosDifRegimen(rfc, fI, fF)
+    : Promise.resolve([])
+);
+
         // Flujo (emitido / recibido)
         tareas.push(
           this.mostrarSecciones.flujo
@@ -3659,6 +3742,7 @@ export default {
                 mensaje: "",
               })
         );
+      
 
         const [
           emitidos,
@@ -3666,6 +3750,7 @@ export default {
           importesN,
           cxc,
           cxp,
+          gastosDifRegimen,
           flujoEmitido,
           flujoRecibido,
           pagosIva,
@@ -3743,7 +3828,7 @@ export default {
         };
         this.tablaCxC = calcularDias(Array.isArray(cxc) ? cxc : []);
         this.tablaCxP = calcularDias(Array.isArray(cxp) ? cxp : []);
-
+        this.tablaGastosDifRegimen = Array.isArray(gastosDifRegimen) ? gastosDifRegimen : [];
         // ---- Comparativa de flujo ----
         this.tablaComparativaFlujo = this.compararPUEPorMes(
           flujoEmitido || [],
@@ -3941,6 +4026,8 @@ export default {
   --rg-comparativaanual-soft: #f3ecfe;
   --rg-razonesfinancieras: #a21caf;
   --rg-razonesfinancieras-soft: #fbe8f6;
+--rg-gastosdifregimen: #dc2626;
+--rg-gastosdifregimen-soft: #fef2f2;
 
   background: var(--rg-paper);
   color: var(--rg-ink);
@@ -4057,6 +4144,19 @@ export default {
   border-color: var(--rg-cxp);
   color: var(--rg-cxp) !important;
   background: var(--rg-cxp-soft) !important;
+}
+.rg-chip--active.rg-chip--gastosDifRegimen {
+  border-color: var(--rg-gastosdifregimen);
+  color: var(--rg-gastosdifregimen) !important;
+  background: var(--rg-gastosdifregimen-soft) !important;
+}
+
+.rg-section--gastosdifregimen {
+  border-top-color: var(--rg-gastosdifregimen);
+}
+.rg-section--gastosdifregimen .rg-section__icon {
+  color: var(--rg-gastosdifregimen);
+  background: var(--rg-gastosdifregimen-soft);
 }
 .rg-chip--active.rg-chip--flujo {
   border-color: var(--rg-flujo);

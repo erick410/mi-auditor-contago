@@ -671,7 +671,9 @@ export default {
         motor.mostrarSecciones.razonesFinancieras = true // no depende de comprobantes
 
         // 3) Corre el fetch normal del reporte financiero (sin tocar su código)
+        motor.mostrarSecciones.razonesFinancieras = false
         await motor.generarReporte()
+        motor.mostrarSecciones.razonesFinancieras = true 
 
         // 4) Sustituye las Razones Financieras por las de los DOS ejercicios
         //    (aniosAnual) en vez de la de un solo año que calcula internamente

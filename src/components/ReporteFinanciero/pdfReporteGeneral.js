@@ -66,6 +66,7 @@ const CATEGORIA_SECCION = {
     "Análisis de Ciclo de Cobro y Pago": "Flujo y Cartera",
     "Razones Financieras": "Conclusión y Recomendación",
     "Conclusión: ¿Es Sujeto de Crédito?": "Conclusión y Recomendación",
+    "Gastos con Régimen Fiscal Distinto": "Flujo y Cartera",
 };
 
 const ROMANOS = ["I", "II", "III", "IV", "V", "VI"];
@@ -1169,6 +1170,39 @@ function seccionCuentas(doc, y, datos, ctx, indice, meta, tipo) {
     return y;
 }
 
+function seccionGastosDifRegimen(doc, y, datos, ctx, indice, meta) {
+    const filas = datos.gastosDifRegimen;
+    if (!filas || filas.length === 0) return y;
+
+    y = iniciarSeccion(doc, indice, "Gastos con Régimen Fiscal Distinto", y, meta);
+    y = agregarParrafo(
+        doc,
+        y,
+        "Se listan los comprobantes recibidos cuyo régimen fiscal del receptor es distinto al régimen fiscal registrado del emisor, lo cual puede representar un riesgo de deducibilidad ante el SAT."
+    );
+
+    const totalImporte = filas.reduce((a, f) => a + (f.total || 0), 0);
+    y = agregarTarjetasEstadisticas(doc, y, [
+        { label: "Total Comprobantes", valor: filas.length, color: COLOR_HEADER },
+        { label: "Importe Total", valor: money(totalImporte), color: COLOR_NEGATIVO },
+    ]);
+
+    const columnas = [
+        { name: "serie", label: "Serie", field: "serie", tipo: "texto" },
+        { name: "folio", label: "Folio", field: "folio", tipo: "texto" },
+        { name: "rfc", label: "RFC", field: "rfc", tipo: "texto" },
+        { name: "nombre", label: "Nombre", field: "nombre", tipo: "texto" },
+        { name: "regimenFiscalReceptorDescripcion", label: "Régimen Receptor", field: "regimenFiscalReceptorDescripcion", tipo: "texto" },
+        { name: "subTotal", label: "Subtotal", field: "subTotal", tipo: "moneda" },
+        { name: "total", label: "Total", field: "total", tipo: "moneda" },
+        { name: "folioFiscal", label: "Folio Fiscal", field: "folioFiscal", tipo: "texto" },
+    ];
+
+    y = dibujarTabla(doc, y, { columnas, filas, opciones: { agregarTotales: true } });
+
+    return y;
+}
+
 function seccionFlujo(doc, y, datos, ctx, indice, meta) {
     const grupos = datos.comparativaFlujoPorMoneda;
     if (!grupos || grupos.length === 0) return y;
@@ -1560,8 +1594,8 @@ export function generarPdfReporteGeneral(datos, meta = {}) {
     let nombre = ""
     let puesto = ""
 
-    const nombre1 = "OSCAR JESUS LUENGAS SOLANO"
-    const nombre2 = "EDGAR PÉREZ CUATEPITZI"
+    const nombre1 = "CP OSCAR JESUS LUENGAS SOLANO"
+    const nombre2 = "CP EDGAR PÉREZ CUATEPITZI"
     const puesto1 = "DIRECTOR GENERAL"
     const puesto2 = "ALIANZAS ESTRATÉGICAS LAUDEM AVE"
 
@@ -1621,6 +1655,7 @@ export function generarPdfReporteGeneral(datos, meta = {}) {
     y = seccionNomina(doc, y, datos, ctx, indice, metaEncabezado);
     y = seccionCuentas(doc, y, datos, ctx, indice, metaEncabezado, "cxc");
     y = seccionCuentas(doc, y, datos, ctx, indice, metaEncabezado, "cxp");
+    y = seccionGastosDifRegimen(doc, y, datos, ctx, indice, metaEncabezado);
     y = seccionFlujo(doc, y, datos, ctx, indice, metaEncabezado);
     y = seccionAnalisisCicloCobroPago(doc, y, datos, ctx, indice, metaEncabezado);
     y = seccionRazonesFinancieras(doc, y, datos, ctx, indice, metaEncabezado);
