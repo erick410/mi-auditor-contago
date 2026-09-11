@@ -3411,6 +3411,7 @@ export default {
             "PagosProvisionales/GetRegimenEmpresaAsync/erp_" +
             this.token.rfc
         );
+        console.log(response.data);
         let x = [...response.data];
         this.añosRegimen = [...x];
         this.dialogRegimen = true;
