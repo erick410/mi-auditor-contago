@@ -3426,8 +3426,9 @@ export default {
 
     async GetReporteListasNegrasAsync(rfc, año) {
       try {
-        const curl = `${this.rutaAxios}ReporteGeneral/GetReporteListasNegrasAsync/${rfc}/${año}`;
+        const curl = `${this.rutaAxios}ReporteGeneral/GetReporteListasNegrasDashboardAsync/${rfc}/${año}`;
         const response = await axios.get(curl);
+        console.log('GetReporteListasNegrasAsync',response);
 
         // TRATAMOS LOS DATOS
         const data = response.data;
@@ -4071,6 +4072,18 @@ export default {
         message: "Generando PDF...",
       });
       const base64Logo = await this.convertToBase64(logo);
+
+      const rfc = this.token.rfc;
+
+  // Listas Negras (contiene lista negra Y 69-B en el mismo objeto por proveedor)
+  const datosListasNegras = await this.GetReporteListasNegrasAsync(rfc, this.selectedAnio);
+
+  // Régimen Diferente — necesita rango de fechas, igual que el resto de reportes de Gastos
+  const fI = `${this.selectedAnio}-01-01`;
+  const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+  const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
+  const datosGastosDifRegimen = await this.GetReporteGastosDifRegimenAsync(rfc, fI, fF);
+
       // REPORTE DE IVA
       // await this.GetReporteIVA();
       // // RETENCIONES DE IVA
@@ -4126,7 +4139,9 @@ export default {
         this.dataAnticiposGastos,
         this.dataCuentasPagar,
         this.dataCuentasCobrar,
-        this.imagenBase64
+        this.imagenBase64,
+        datosListasNegras.proveedores,      // NUEVO
+    datosGastosDifRegimen  
       );
       this.$q.loading.hide();
     },
@@ -7895,6 +7910,18 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
         return ObjInicial;
       }
     },
+
+    async GetReporteGastosDifRegimenAsync(rfc, fechaI, fechaF) {
+  try {
+    const curl = `${this.rutaAxios}Gastos/GetReporteGastosDifRegimenAsync/erp_${rfc}/${fechaI}/${fechaF}`;
+    const response = await axios.get(curl);
+    return response.data;
+  } catch (error) {
+    console.log(error);
+    return [];
+  }
+},
+
     // ▶ Ejecutar una sola función
     async runTask(index) {
       if (!this.selectedAnio) {

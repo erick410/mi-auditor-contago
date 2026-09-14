@@ -5,6 +5,27 @@ import { PDFDocument } from 'pdf-lib'
 import axios from 'axios'
  
 const BASE_URL_DESCARGA = 'https://DescargaSat.contago.com.mx/api/Descarga'
+
+function extraerEstadoListaNegra(valor) {
+  if (!valor) return ''
+  return valor.split('|')[0].trim()
+}
+
+function evaluarRiesgoProveedorListaNegra(p) {
+  const estadoNegra = extraerEstadoListaNegra(p.listaNegra)
+  const estado69B = extraerEstadoListaNegra(p.lista69B)
+  const noLocalizado = !!p.noLocalizado
+  if (estadoNegra === 'Definitivo' || estado69B === 'Definitivo') return 'rojo'
+  if (estadoNegra === 'Presunto' || estado69B === 'Presunto' || noLocalizado) return 'amarillo'
+  return 'verde'
+}
+
+function colorFilaRiesgo(riesgo) {
+  if (riesgo === 'rojo') return { fill: [252, 235, 235], text: [121, 31, 31] }
+  if (riesgo === 'amarillo') return { fill: [250, 238, 218], text: [99, 56, 6] }
+  return null
+}
+
  
 // --- 1. Busca en el historial la última Opinión de Cumplimiento COMPLETADA ---
 async function obtenerUltimaOpinionCumplimiento(rfc) {
@@ -441,7 +462,9 @@ export async function generarReporte(
   dataAnticiposGastos,
   dataCuentasPagar,
   dataCuentasCobrar,
-  imagenBase64
+  imagenBase64,
+  datosListasNegras = [],      // NUEVO
+  datosGastosDifRegimen = [] 
 ) {
   const doc = new jsPDF({
     orientation: "portrait",
@@ -449,6 +472,9 @@ export async function generarReporte(
     format: "letter",
   });
   //                      ENCABEZADO
+
+  console.log(datosListasNegras)
+  console.log(datosGastosDifRegimen)
 
   // LOGO IZQUIERDA
   if (logoBase64) {
@@ -2652,6 +2678,135 @@ export async function generarReporte(
 
   y += 20;
 
+  // ===== LISTAS NEGRAS / 69-B / NO LOCALIZADOS =====
+const listaNegraArray = Array.isArray(datosListasNegras) ? datosListasNegras : [];
+
+if (listaNegraArray.length != 0) {
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "bold");
+  y = agregarTextoConSaltos(doc, "PROVEEDORES EN LISTA NEGRA / 69-B / NO LOCALIZADOS", 40, y, 520, 14);
+  y += 5;
+
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  y = agregarTextoConSaltos(
+    doc,
+    "Se relacionan los proveedores que aparecen en el listado de contribuyentes no localizados, en la lista negra del SAT, o en el listado del artículo 69-B del Código Fiscal de la Federación.",
+    40, y, 520, 14
+  );
+  y += 5;
+
+  const dataOrdenadaListaNegra = [...listaNegraArray].sort((a, b) => {
+    const orden = { rojo: 0, amarillo: 1, verde: 2 };
+    return orden[evaluarRiesgoProveedorListaNegra(a)] - orden[evaluarRiesgoProveedorListaNegra(b)];
+  });
+
+  autoTable(doc, {
+    startY: y,
+    head: [["RFC", "Nombre", "Lista Negra", "69-B", "No Localizado"]],
+    body: dataOrdenadaListaNegra.map((x) => [
+      x.rfc,
+      x.nombre,
+      x.listaNegra || "—",
+      x.lista69B || "—",
+      x.noLocalizado || "—",
+    ]),
+    headStyles: { fillColor: "#E74747", textColor: "#FFF", fontSize: 6, halign: "center", valign: "middle" },
+    styles: { fontSize: 6, cellPadding: 3 },
+    columnStyles: { 2: { halign: "center" }, 3: { halign: "center" }, 4: { halign: "left" } },
+    didParseCell: function (data) {
+      if (data.section === "body") {
+        const riesgo = evaluarRiesgoProveedorListaNegra(dataOrdenadaListaNegra[data.row.index]);
+        const c = colorFilaRiesgo(riesgo);
+        if (c) { data.cell.styles.fillColor = c.fill; data.cell.styles.textColor = c.text; }
+      }
+    },
+    didDrawPage: function (data) {
+      const page = doc.internal.getNumberOfPages();
+      doc.setFontSize(9);
+      doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, { align: "center" });
+    },
+  });
+  y = doc.lastAutoTable.finalY + 20;
+}
+
+  // ===== LISTA 69-B =====
+  const proveedores69B = (datosListasNegras || []).filter(p => extraerEstadoListaNegra(p.lista69B));
+  if (proveedores69B.length != 0) {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "PROVEEDORES EN LISTA 69-B", 40, y, 520, 14);
+    y += 5;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    y = agregarTextoConSaltos(
+      doc,
+      "Contribuyentes que se ubican en el supuesto del artículo 69-B del Código Fiscal de la Federación (operaciones inexistentes o simuladas).",
+      40, y, 520, 14
+    );
+    y += 5;
+
+    autoTable(doc, {
+      startY: y,
+      head: [["RFC", "Nombre", "69-B"]],
+      body: proveedores69B.map((x) => [x.rfc, x.nombre, x.lista69B || "—"]),
+      headStyles: { fillColor: "#E74747", textColor: "#FFF", fontSize: 6, halign: "center", valign: "middle" },
+      styles: { fontSize: 6, cellPadding: 3 },
+      columnStyles: { 2: { halign: "center" } },
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          const riesgo = evaluarRiesgoProveedorListaNegra(proveedores69B[data.row.index]);
+          const c = colorFilaRiesgo(riesgo);
+          if (c) { data.cell.styles.fillColor = c.fill; data.cell.styles.textColor = c.text; }
+        }
+      },
+      didDrawPage: function (data) {
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, { align: "center" });
+      },
+    });
+    y = doc.lastAutoTable.finalY + 20;
+  }
+
+  // ===== RÉGIMEN FISCAL DIFERENTE =====
+  if (datosGastosDifRegimen && datosGastosDifRegimen.length != 0) {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "COMPROBANTES CON RÉGIMEN FISCAL DISTINTO", 40, y, 520, 14);
+    y += 5;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    y = agregarTextoConSaltos(
+      doc,
+      "Comprobantes recibidos donde el régimen fiscal del receptor es distinto al régimen fiscal registrado del emisor.",
+      40, y, 520, 14
+    );
+    y += 5;
+
+    autoTable(doc, {
+      startY: y,
+      head: [["Serie", "Folio", "RFC", "Nombre", "Fecha", "Total", "Régimen Receptor"]],
+      body: datosGastosDifRegimen.map((x) => [
+        x.serie, x.folio, x.rfc, x.nombre,
+        x.fecha ? new Date(x.fecha).toLocaleDateString("es-MX") : "",
+        formatoPesos(x.total),
+        x.regimenFiscalReceptor || "—",
+      ]),
+      headStyles: { fillColor: "#E74747", textColor: "#FFF", fontSize: 6, halign: "center", valign: "middle" },
+      styles: { fontSize: 6, cellPadding: 3 },
+      columnStyles: { 5: { halign: "right" }, 6: { halign: "center" } },
+      didDrawPage: function (data) {
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, { align: "center" });
+      },
+    });
+    y = doc.lastAutoTable.finalY + 20;
+  }
+
   for (let tab of datosRiesgoFiscal) {
     if (tab.datos.length != 0) {
 
@@ -3053,7 +3208,7 @@ export async function generarReporte(
 
   }
 
-  const dataOrdenadaCuentasCobrar = dataCuentasPagar
+  const dataOrdenadaCuentasCobrar = dataCuentasCobrar
   .filter(x => x.porCobrar > 5 || x.porCobrar < - 5)
   .sort((a, b) => b.porCobrar - a.porCobrar) 
 

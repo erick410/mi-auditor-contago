@@ -1,12 +1,7 @@
 <template>
   <div class="q-pa-md">
     <!-- DIALOG DE LOADING -->
-    <q-dialog
-      v-model="dialog"
-      persistent
-      transition-show="scale"
-      transition-hide="scale"
-    >
+    <q-dialog v-model="dialog" persistent transition-show="scale" transition-hide="scale">
       <q-card style="width: 200px">
         <q-card-section>
           <div class="row justify-center">
@@ -18,106 +13,39 @@
     </q-dialog>
 
     <!-- DIALOG DE LOS DETALLES -->
-    <q-dialog
-      v-model="dialogDetalles"
-      persistent
-      transition-show="scale"
-      transition-hide="scale"
-      maximized
-    >
+    <q-dialog v-model="dialogDetalles" persistent transition-show="scale" transition-hide="scale" maximized>
       <detalles @CloseDialogDetalles="CloseDialogDetalles"></detalles>
     </q-dialog>
-    <q-dialog
-      v-model="dialogDetallesFlujo"
-      persistent
-      transition-show="scale"
-      transition-hide="scale"
-      maximized
-    >
-      <detalles-flujo
-        @CloseDialogDetalles="CloseDialogDetalles"
-      ></detalles-flujo>
+    <q-dialog v-model="dialogDetallesFlujo" persistent transition-show="scale" transition-hide="scale" maximized>
+      <detalles-flujo @CloseDialogDetalles="CloseDialogDetalles"></detalles-flujo>
     </q-dialog>
-    <q-dialog
-      v-model="dialogDetallesFlujoGastos"
-      persistent
-      transition-show="scale"
-      transition-hide="scale"
-      maximized
-    >
-      <detalles-flujo-gastos
-        @CloseDialogDetalles="CloseDialogDetalles"
-      ></detalles-flujo-gastos>
+    <q-dialog v-model="dialogDetallesFlujoGastos" persistent transition-show="scale" transition-hide="scale" maximized>
+      <detalles-flujo-gastos @CloseDialogDetalles="CloseDialogDetalles"></detalles-flujo-gastos>
     </q-dialog>
 
     <!-- DIALOG PARA GUARDAR EL COEFICIENTE Y LA PFEA -->
-    <q-dialog
-      v-model="dialogC_PFEA"
-      persistent
-      transition-show="scale"
-      transition-hide="scale"
-    >
+    <q-dialog v-model="dialogC_PFEA" persistent transition-show="scale" transition-hide="scale">
       <q-card>
         <q-toolbar>
-          <q-btn
-            flat
-            round
-            dense
-            icon="close"
-            v-close-popup
-            color="red-10"
-            size="18px"
-          >
-            <q-tooltip
-              transition-show="flip-right"
-              transition-hide="flip-left"
-              content-style="font-size: 14px"
-              :offset="[10, 10]"
-              >Cerrar</q-tooltip
-            >
+          <q-btn flat round dense icon="close" v-close-popup color="red-10" size="18px">
+            <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+              :offset="[10, 10]">Cerrar</q-tooltip>
           </q-btn>
 
-          <q-toolbar-title
-            ><span class="text-weight-bold"
-              >{{ c_pfea.tipo }} ({{ selectedAnio }})</span
-            ></q-toolbar-title
-          >
+          <q-toolbar-title><span class="text-weight-bold">{{ c_pfea.tipo }} ({{ selectedAnio
+              }})</span></q-toolbar-title>
           <template v-if="c_pfea.tipo === 'Coeficiente'">
-            <q-btn
-              flat
-              round
-              dense
-              icon="mdi-content-save-check-outline"
-              color="green-10"
-              size="18px"
-              @click="PostCoeficiente()"
-            >
-              <q-tooltip
-                transition-show="flip-right"
-                transition-hide="flip-left"
-                content-style="font-size: 14px"
-                :offset="[10, 10]"
-                >Guardar Coeficiente</q-tooltip
-              >
+            <q-btn flat round dense icon="mdi-content-save-check-outline" color="green-10" size="18px"
+              @click="PostCoeficiente()">
+              <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                :offset="[10, 10]">Guardar Coeficiente</q-tooltip>
             </q-btn>
           </template>
           <template v-if="c_pfea.tipo === 'Pérdida'">
-            <q-btn
-              flat
-              round
-              dense
-              icon="mdi-content-save-check-outline"
-              color="green-10"
-              size="18px"
-              @click="PostPerdida()"
-            >
-              <q-tooltip
-                transition-show="flip-right"
-                transition-hide="flip-left"
-                content-style="font-size: 14px"
-                :offset="[10, 10]"
-                >Guardar Pérdida</q-tooltip
-              >
+            <q-btn flat round dense icon="mdi-content-save-check-outline" color="green-10" size="18px"
+              @click="PostPerdida()">
+              <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                :offset="[10, 10]">Guardar Pérdida</q-tooltip>
             </q-btn>
           </template>
         </q-toolbar>
@@ -125,26 +53,14 @@
         <q-card-section>
           <q-field v-model="c_pfea.eneroFebrero" label="Enero - Febrero">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponent"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponent" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="c_pfea.marzoDiciembre" label="Marzo - Diciembre">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponent"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponent" v-show="floatingLabel" />
             </template>
           </q-field>
         </q-card-section>
@@ -152,53 +68,19 @@
     </q-dialog>
 
     <!-- DIALOG DE LOS IMPORTES REGISTRADOS -->
-    <q-dialog
-      v-model="dialogRegistrados"
-      persistent
-      transition-show="scale"
-      transition-hide="scale"
-    >
+    <q-dialog v-model="dialogRegistrados" persistent transition-show="scale" transition-hide="scale">
       <q-card>
         <q-toolbar>
-          <q-btn
-            flat
-            round
-            dense
-            icon="close"
-            v-close-popup
-            color="red-10"
-            size="18px"
-          >
-            <q-tooltip
-              transition-show="flip-right"
-              transition-hide="flip-left"
-              content-style="font-size: 14px"
-              :offset="[10, 10]"
-              >Cerrar</q-tooltip
-            >
+          <q-btn flat round dense icon="close" v-close-popup color="red-10" size="18px">
+            <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+              :offset="[10, 10]">Cerrar</q-tooltip>
           </q-btn>
 
-          <q-toolbar-title
-            ><span class="text-weight-bold"
-              >Importes Registrados</span
-            ></q-toolbar-title
-          >
-          <q-btn
-            flat
-            round
-            dense
-            icon="mdi-content-save-check-outline"
-            color="green-10"
-            size="18px"
-            @click="PostRegistrados()"
-          >
-            <q-tooltip
-              transition-show="flip-right"
-              transition-hide="flip-left"
-              content-style="font-size: 14px"
-              :offset="[10, 10]"
-              >Guardar Importes</q-tooltip
-            >
+          <q-toolbar-title><span class="text-weight-bold">Importes Registrados</span></q-toolbar-title>
+          <q-btn flat round dense icon="mdi-content-save-check-outline" color="green-10" size="18px"
+            @click="PostRegistrados()">
+            <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+              :offset="[10, 10]">Guardar Importes</q-tooltip>
           </q-btn>
         </q-toolbar>
         <q-separator color="primary" size="5px" />
@@ -206,146 +88,74 @@
         <q-card-section>
           <q-field v-model="registrados.enero" label="Enero">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="registrados.febrero" label="Febrero">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="registrados.marzo" label="Marzo">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="registrados.abril" label="Abril">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="registrados.mayo" label="Mayo">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="registrados.junio" label="Junio">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="registrados.julio" label="Julio">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="registrados.agosto" label="Agosto">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="registrados.septiembre" label="Septiembre">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="registrados.octubre" label="Octubre">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="registrados.noviembre" label="Noviembre">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
           <q-field v-model="registrados.diciembre" label="Diciembre">
             <template v-slot:control="{ id, floatingLabel, value, emitValue }">
-              <money
-                :id="id"
-                class="q-field__input text-right"
-                :value="value"
-                @input="emitValue"
-                v-bind="moneyFormatForComponentDos"
-                v-show="floatingLabel"
-              />
+              <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
             </template>
           </q-field>
         </q-card-section>
@@ -355,119 +165,42 @@
     <!-- SELECCIONA AÑO Y MES, BOTON DE BUSCAR Y EXPORTAR A EXCEL -->
     <div class="row no-wrap items-center q-mt-md q-pa-sm">
       <q-space />
-      <q-select
-        outlined
-        dense
-        v-model="selectedAnio"
-        :options="itemsAnios"
-        label="Año"
-        style="width: 80px"
-        class="q-mr-xs"
-      />
-      <q-select
-        outlined
-        dense
-        v-model="selectedMes"
-        :options="itemsMes"
-        label="Mes"
-        style="width: 136px"
-        class="q-mr-xs"
-      />
-      <q-btn
-        push
-        color="amber-9"
-        @click="GetReporte"
-        icon="mdi-text-box-search-outline"
-        rounded
-        flat
-        size="18px"
-        padding="xs"
-      >
-        <q-tooltip
-          transition-show="flip-right"
-          transition-hide="flip-left"
-          content-style="font-size: 14px"
-          :offset="[10, 10]"
-          >Consultar</q-tooltip
-        >
+      <q-select outlined dense v-model="selectedAnio" :options="itemsAnios" label="Año" style="width: 80px"
+        class="q-mr-xs" />
+      <q-select outlined dense v-model="selectedMes" :options="itemsMes" label="Mes" style="width: 136px"
+        class="q-mr-xs" />
+      <q-btn push color="amber-9" @click="GetReporte" icon="mdi-text-box-search-outline" rounded flat size="18px"
+        padding="xs">
+        <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+          :offset="[10, 10]">Consultar</q-tooltip>
       </q-btn>
-      <q-btn
-        push
-        color="green-10"
-        @click="ExportExcel"
-        icon="mdi-file-excel-box-outline"
-        rounded
-        flat
-        size="18px"
-        padding="xs"
-      >
-        <q-tooltip
-          transition-show="flip-right"
-          transition-hide="flip-left"
-          content-style="font-size: 14px"
-          :offset="[10, 10]"
-          >Exportar Excel</q-tooltip
-        >
+      <q-btn push color="green-10" @click="ExportExcel" icon="mdi-file-excel-box-outline" rounded flat size="18px"
+        padding="xs">
+        <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+          :offset="[10, 10]">Exportar Excel</q-tooltip>
       </q-btn>
       <q-space />
     </div>
-    <div
-      class="row no-wrap items-center q-mt-md q-pa-sm"
-      v-if="regimenSeleccionado"
-    >
+    <div class="row no-wrap items-center q-mt-md q-pa-sm" v-if="regimenSeleccionado">
       <q-space />
       {{ regimenSeleccionado }}
       <q-space />
     </div>
 
     <!-- DIALOG DEL REGIMEN DE LA EMPRESA -->
-    <q-dialog
-      v-model="dialogRegimen"
-      persistent
-      transition-show="scale"
-      transition-hide="scale"
-    >
+    <q-dialog v-model="dialogRegimen" persistent transition-show="scale" transition-hide="scale">
       <q-card>
         <q-toolbar>
-          <q-btn
-            flat
-            round
-            dense
-            icon="close"
-            v-close-popup
-            color="red-10"
-            size="18px"
-          >
-            <q-tooltip
-              transition-show="flip-right"
-              transition-hide="flip-left"
-              content-style="font-size: 14px"
-              :offset="[10, 10]"
-              >Cerrar</q-tooltip
-            >
+          <q-btn flat round dense icon="close" v-close-popup color="red-10" size="18px">
+            <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+              :offset="[10, 10]">Cerrar</q-tooltip>
           </q-btn>
 
-          <q-toolbar-title
-            ><span class="text-weight-bold"
-              >Régimen Fiscal</span
-            ></q-toolbar-title
-          >
-          <q-btn
-            flat
-            round
-            dense
-            icon="mdi-content-save-check-outline"
-            color="green-10"
-            size="18px"
-            @click="PostRegimen()"
-          >
-            <q-tooltip
-              transition-show="flip-right"
-              transition-hide="flip-left"
-              content-style="font-size: 14px"
-              :offset="[10, 10]"
-              >Guardar</q-tooltip
-            >
+          <q-toolbar-title><span class="text-weight-bold">Régimen Fiscal</span></q-toolbar-title>
+          <q-btn flat round dense icon="mdi-content-save-check-outline" color="green-10" size="18px"
+            @click="PostRegimen()">
+            <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+              :offset="[10, 10]">Guardar</q-tooltip>
           </q-btn>
         </q-toolbar>
         <q-separator color="primary" size="5px" />
@@ -476,28 +209,12 @@
             <div class="">
               <div class="row">
                 <div class="col-9">
-                  <q-select
-                    outlined
-                    dense
-                    v-model="item.tipoRegimen"
-                    :options="itemsRegimen"
-                    :label="item.año"
-                    class="q-mr-xs q-my-sm"
-                    use-input
-                    hide-selected
-                    fill-input
-                    option-label="tipoRegimen"
-                  />
+                  <q-select outlined dense v-model="item.tipoRegimen" :options="itemsRegimen" :label="item.año"
+                    class="q-mr-xs q-my-sm" use-input hide-selected fill-input option-label="tipoRegimen" />
                 </div>
                 <div class="col">
-                  <q-checkbox
-                    v-model="item.civiles"
-                    color="primary"
-                    label="AC / SC"
-                    true-value="SI"
-                    false-value="NO"
-                    dense
-                  />
+                  <q-checkbox v-model="item.civiles" color="primary" label="AC / SC" true-value="SI" false-value="NO"
+                    dense />
                 </div>
               </div>
             </div>
@@ -508,70 +225,29 @@
     </q-dialog>
 
     <!-- DIALOG PARA PRODUCTOS FINANCIEROS -->
-    <q-dialog
-      v-model="dialogProductosFinancieros"
-      persistent
-      transition-show="scale"
-      transition-hide="scale"
-    >
+    <q-dialog v-model="dialogProductosFinancieros" persistent transition-show="scale" transition-hide="scale">
       <q-card>
         <q-toolbar>
-          <q-btn
-            flat
-            round
-            dense
-            icon="close"
-            v-close-popup
-            color="red-10"
-            size="18px"
-          >
-            <q-tooltip
-              transition-show="flip-right"
-              transition-hide="flip-left"
-              content-style="font-size: 14px"
-              :offset="[10, 10]"
-              >Cerrar</q-tooltip
-            >
+          <q-btn flat round dense icon="close" v-close-popup color="red-10" size="18px">
+            <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+              :offset="[10, 10]">Cerrar</q-tooltip>
           </q-btn>
 
-          <q-toolbar-title
-            ><span class="text-weight-bold"
-              >Productos Financieros ({{ selectedAnio }})</span
-            ></q-toolbar-title
-          >
-          <q-btn
-            flat
-            round
-            dense
-            icon="mdi-content-save-check-outline"
-            color="green-10"
-            size="18px"
-            @click="PostProductosfinancieros()"
-          >
-            <q-tooltip
-              transition-show="flip-right"
-              transition-hide="flip-left"
-              content-style="font-size: 14px"
-              :offset="[10, 10]"
-              >Guardar</q-tooltip
-            >
+          <q-toolbar-title><span class="text-weight-bold">Productos Financieros ({{ selectedAnio
+              }})</span></q-toolbar-title>
+          <q-btn flat round dense icon="mdi-content-save-check-outline" color="green-10" size="18px"
+            @click="PostProductosfinancieros()">
+            <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+              :offset="[10, 10]">Guardar</q-tooltip>
           </q-btn>
         </q-toolbar>
         <q-separator color="primary" size="5px" />
         <q-card-section>
           <div v-for="item in itemsProductosFinancieros">
             <q-field v-model="item.importe" :label="item.mes" dense>
-              <template
-                v-slot:control="{ id, floatingLabel, value, emitValue }"
-              >
-                <money
-                  :id="id"
-                  class="q-field__input text-right"
-                  :value="value"
-                  @input="emitValue"
-                  v-bind="moneyFormatForComponentDos"
-                  v-show="floatingLabel"
-                />
+              <template v-slot:control="{ id, floatingLabel, value, emitValue }">
+                <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                  v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
               </template>
             </q-field>
           </div>
@@ -580,70 +256,29 @@
     </q-dialog>
 
     <!-- DIALOG PARA OTROS PRODUCTOS FINANCIEROS -->
-    <q-dialog
-      v-model="dialogOtrosProductosFinancieros"
-      persistent
-      transition-show="scale"
-      transition-hide="scale"
-    >
+    <q-dialog v-model="dialogOtrosProductosFinancieros" persistent transition-show="scale" transition-hide="scale">
       <q-card>
         <q-toolbar>
-          <q-btn
-            flat
-            round
-            dense
-            icon="close"
-            v-close-popup
-            color="red-10"
-            size="18px"
-          >
-            <q-tooltip
-              transition-show="flip-right"
-              transition-hide="flip-left"
-              content-style="font-size: 14px"
-              :offset="[10, 10]"
-              >Cerrar</q-tooltip
-            >
+          <q-btn flat round dense icon="close" v-close-popup color="red-10" size="18px">
+            <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+              :offset="[10, 10]">Cerrar</q-tooltip>
           </q-btn>
 
-          <q-toolbar-title
-            ><span class="text-weight-bold"
-              >Otros Productos Financieros ({{ selectedAnio }})</span
-            ></q-toolbar-title
-          >
-          <q-btn
-            flat
-            round
-            dense
-            icon="mdi-content-save-check-outline"
-            color="green-10"
-            size="18px"
-            @click="PostOtrosProductosFinancieros()"
-          >
-            <q-tooltip
-              transition-show="flip-right"
-              transition-hide="flip-left"
-              content-style="font-size: 14px"
-              :offset="[10, 10]"
-              >Guardar</q-tooltip
-            >
+          <q-toolbar-title><span class="text-weight-bold">Otros Productos Financieros ({{ selectedAnio
+              }})</span></q-toolbar-title>
+          <q-btn flat round dense icon="mdi-content-save-check-outline" color="green-10" size="18px"
+            @click="PostOtrosProductosFinancieros()">
+            <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+              :offset="[10, 10]">Guardar</q-tooltip>
           </q-btn>
         </q-toolbar>
         <q-separator color="primary" size="5px" />
         <q-card-section>
           <div v-for="item in itemsOtrosProductosFinancieros">
             <q-field v-model="item.importe" :label="item.mes" dense>
-              <template
-                v-slot:control="{ id, floatingLabel, value, emitValue }"
-              >
-                <money
-                  :id="id"
-                  class="q-field__input text-right"
-                  :value="value"
-                  @input="emitValue"
-                  v-bind="moneyFormatForComponentDos"
-                  v-show="floatingLabel"
-                />
+              <template v-slot:control="{ id, floatingLabel, value, emitValue }">
+                <money :id="id" class="q-field__input text-right" :value="value" @input="emitValue"
+                  v-bind="moneyFormatForComponentDos" v-show="floatingLabel" />
               </template>
             </q-field>
           </div>
@@ -651,82 +286,32 @@
       </q-card>
     </q-dialog>
     <!-- TABLA DE PAGOS PROVISIONALES -->
-    <q-table
-      title="Reporte ISR"
-      :data="dataComprobantes"
-      :columns="columns"
-      row-key="dia"
-      :rows-per-page-options="[13]"
-    >
+    <q-table title="Reporte ISR" :data="dataComprobantes" :columns="columns" row-key="dia"
+      :rows-per-page-options="[13]">
       <template v-slot:top>
-        <span class="text-body1" content-style="font-size: 20px"
-          >Pagos Provisionales</span
-        >
+        <span class="text-body1" content-style="font-size: 20px">Pagos Provisionales</span>
         <q-space />
-        <q-chip
-          clickable
-          @click="openDialogCoeficiente"
-          color="primary"
-          icon="mdi-calculator"
-          outline
-        >
+        <q-chip clickable @click="openDialogCoeficiente" color="primary" icon="mdi-calculator" outline>
           Coeficiente de Utilidad
         </q-chip>
-        <q-chip
-          clickable
-          @click="openDialogPedrdida"
-          color="primary"
-          icon="mdi-calendar-minus-outline"
-          outline
-        >
+        <q-chip clickable @click="openDialogPedrdida" color="primary" icon="mdi-calendar-minus-outline" outline>
           Perdida Fiscal de Ejercicios Anteriores
         </q-chip>
-        <q-chip
-          clickable
-          @click="openDialogRegistrados"
-          color="primary"
-          icon="mdi-select-compare"
-          outline
-        >
+        <q-chip clickable @click="openDialogRegistrados" color="primary" icon="mdi-select-compare" outline>
           Comparativa
         </q-chip>
-        <q-chip
-          clickable
-          @click="GetProductosFinancieros()"
-          color="primary"
-          icon="mdi-finance"
-          outline
-        >
+        <q-chip clickable @click="GetProductosFinancieros()" color="primary" icon="mdi-finance" outline>
           Productos Financieros
         </q-chip>
-        <q-chip
-          clickable
-          @click="GetOtrosProductosFinancieros()"
-          color="primary"
-          icon="mdi-finance"
-          outline
-        >
+        <q-chip clickable @click="GetOtrosProductosFinancieros()" color="primary" icon="mdi-finance" outline>
           Otros Productos Financieros
         </q-chip>
 
         <q-space />
-        <q-btn
-          push
-          color="blue-7"
-          @click="GetRegimen()"
-          icon="mdi-card-account-details-outline"
-          rounded
-          flat
-          size="18px"
-          padding="xs"
-        >
-          <q-tooltip
-            transition-show="flip-right"
-            transition-hide="flip-left"
-            content-style="font-size: 14px"
-            :offset="[10, 10]"
-            >Régimen</q-tooltip
-          >
+        <q-btn push color="blue-7" @click="GetRegimen()" icon="mdi-card-account-details-outline" rounded flat
+          size="18px" padding="xs">
+          <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+            :offset="[10, 10]">Régimen</q-tooltip>
         </q-btn>
       </template>
       <template v-slot:body="props">
@@ -739,23 +324,11 @@
                 FormatCurrency(props.row.ingresosPorMes)
               }}</q-td>
               <q-td auto-width>
-                <q-btn
-                  size="md"
-                  color="primary"
-                  rounded
-                  flat
-                  dense
-                  @click="VerDetalles(props.row, 'Ingresos Facturados')"
-                  icon="mdi-format-list-bulleted"
-                  v-if="props.row.detalles.length != 0"
-                >
-                  <q-tooltip
-                    transition-show="flip-right"
-                    transition-hide="flip-left"
-                    content-style="font-size: 14px"
-                    :offset="[10, 10]"
-                    >Detalles</q-tooltip
-                  >
+                <q-btn size="md" color="primary" rounded flat dense
+                  @click="VerDetalles(props.row, 'Ingresos Facturados')" icon="mdi-format-list-bulleted"
+                  v-if="props.row.detalles.length != 0">
+                  <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                    :offset="[10, 10]">Detalles</q-tooltip>
                 </q-btn>
               </q-td>
               <q-td key="ingresosAcumulados" :props="props">{{
@@ -775,28 +348,19 @@
               }}</q-td>
             </template>
             <!-- PERSONAS FISICAS ACTIVIDAD EMPRESARIAL -->
-            <template v-if="regimenSeleccionadoClave === '612' ||regimenSeleccionadoClave === '625' ">
+            <template v-if="
+              regimenSeleccionadoClave === '612' ||
+              regimenSeleccionadoClave === '625'
+            ">
               <q-td key="ingresosPorMes" :props="props">{{
                 FormatCurrency(props.row.ingresosPorMes)
               }}</q-td>
               <q-td auto-width>
-                <q-btn
-                  size="md"
-                  color="primary"
-                  rounded
-                  flat
-                  dense
-                  @click="VerDetallesFlujo(props.row, 'Ingresos Cobrados')"
-                  icon="mdi-format-list-bulleted"
-                  v-if="props.row.detalles.length != 0"
-                >
-                  <q-tooltip
-                    transition-show="flip-right"
-                    transition-hide="flip-left"
-                    content-style="font-size: 14px"
-                    :offset="[10, 10]"
-                    >Detalles</q-tooltip
-                  >
+                <q-btn size="md" color="primary" rounded flat dense
+                  @click="VerDetallesFlujo(props.row, 'Ingresos Cobrados')" icon="mdi-format-list-bulleted"
+                  v-if="props.row.detalles.length != 0">
+                  <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                    :offset="[10, 10]">Detalles</q-tooltip>
                 </q-btn>
               </q-td>
               <q-td key="ingresosAcumulados" :props="props">{{
@@ -806,22 +370,10 @@
                 FormatCurrency(props.row.gastosPorMes)
               }}</q-td>
               <q-td auto-width>
-                <q-btn
-                  size="md"
-                  color="primary"
-                  rounded
-                  flat
-                  dense
-                  @click="VerDetallesFlujoG(props.row, 'Gastos Pagados')"
-                  icon="mdi-format-list-bulleted"
-                >
-                  <q-tooltip
-                    transition-show="flip-right"
-                    transition-hide="flip-left"
-                    content-style="font-size: 14px"
-                    :offset="[10, 10]"
-                    >Detalles</q-tooltip
-                  >
+                <q-btn size="md" color="primary" rounded flat dense
+                  @click="VerDetallesFlujoG(props.row, 'Gastos Pagados')" icon="mdi-format-list-bulleted">
+                  <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                    :offset="[10, 10]">Detalles</q-tooltip>
                 </q-btn>
               </q-td>
               <q-td key="gastosAcumulados" :props="props">{{
@@ -863,33 +415,19 @@
               }}</q-td>
             </template>
             <!-- RESICO FISICA -->
-            <template
-              v-if="
-                regimenSeleccionadoClave === '626'  &
-                  (tipoPersona === 'FISICA')
-              "
-            >
+            <template v-if="
+              (regimenSeleccionadoClave === '626') &
+              (tipoPersona === 'FISICA')
+            ">
               <q-td key="ingresosPorMes" :props="props">{{
                 FormatCurrency(props.row.ingresosPorMes)
               }}</q-td>
               <q-td auto-width>
-                <q-btn
-                  size="md"
-                  color="primary"
-                  rounded
-                  flat
-                  dense
-                  @click="VerDetallesFlujo(props.row, 'Ingresos Cobrados')"
-                  icon="mdi-format-list-bulleted"
-                  v-if="props.row.detalles.length != 0"
-                >
-                  <q-tooltip
-                    transition-show="flip-right"
-                    transition-hide="flip-left"
-                    content-style="font-size: 14px"
-                    :offset="[10, 10]"
-                    >Detalles</q-tooltip
-                  >
+                <q-btn size="md" color="primary" rounded flat dense
+                  @click="VerDetallesFlujo(props.row, 'Ingresos Cobrados')" icon="mdi-format-list-bulleted"
+                  v-if="props.row.detalles.length != 0">
+                  <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                    :offset="[10, 10]">Detalles</q-tooltip>
                 </q-btn>
               </q-td>
               <q-td key="tasaAplicable" :props="props">{{
@@ -907,32 +445,18 @@
               }}</q-td>
             </template>
             <!-- RESICO MORAL -->
-            <template
-              v-if="
-                regimenSeleccionadoClave === '626'   & (tipoPersona === 'MORAL')
-              "
-            >
+            <template v-if="
+              (regimenSeleccionadoClave === '626') & (tipoPersona === 'MORAL')
+            ">
               <q-td key="ingresosPorMes" :props="props">{{
                 FormatCurrency(props.row.ingresosPorMes)
               }}</q-td>
               <q-td auto-width>
-                <q-btn
-                  size="md"
-                  color="primary"
-                  rounded
-                  flat
-                  dense
-                  @click="VerDetallesFlujo(props.row, 'Ingresos Cobrados')"
-                  icon="mdi-format-list-bulleted"
-                  v-if="props.row.detalles.length != 0"
-                >
-                  <q-tooltip
-                    transition-show="flip-right"
-                    transition-hide="flip-left"
-                    content-style="font-size: 14px"
-                    :offset="[10, 10]"
-                    >Detalles</q-tooltip
-                  >
+                <q-btn size="md" color="primary" rounded flat dense
+                  @click="VerDetallesFlujo(props.row, 'Ingresos Cobrados')" icon="mdi-format-list-bulleted"
+                  v-if="props.row.detalles.length != 0">
+                  <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                    :offset="[10, 10]">Detalles</q-tooltip>
                 </q-btn>
               </q-td>
               <q-td key="ingresosAcumulados" :props="props">{{
@@ -943,22 +467,10 @@
                 FormatCurrency(props.row.deduccionesPorMes)
               }}</q-td>
               <q-td auto-width>
-                <q-btn
-                  size="md"
-                  color="primary"
-                  rounded
-                  flat
-                  dense
-                  @click="VerDetallesFlujoG(props.row, 'Gastos Pagados')"
-                  icon="mdi-format-list-bulleted"
-                >
-                  <q-tooltip
-                    transition-show="flip-right"
-                    transition-hide="flip-left"
-                    content-style="font-size: 14px"
-                    :offset="[10, 10]"
-                    >Detalles</q-tooltip
-                  >
+                <q-btn size="md" color="primary" rounded flat dense
+                  @click="VerDetallesFlujoG(props.row, 'Gastos Pagados')" icon="mdi-format-list-bulleted">
+                  <q-tooltip transition-show="flip-right" transition-hide="flip-left" content-style="font-size: 14px"
+                    :offset="[10, 10]">Detalles</q-tooltip>
                 </q-btn>
               </q-td>
               <q-td key="deduccionesAcumuladas" :props="props">{{
@@ -973,16 +485,12 @@
               <q-td key="ptuPagada" :props="props">{{
                 FormatCurrency(props.row.ptuPagada)
               }}</q-td>
-              <q-td
-                key="utilidadFiscalAcumuladaPreviaAntesDePerdidasFiscales"
-                :props="props"
-                >{{
-                  FormatCurrency(
-                    props.row
-                      .utilidadFiscalAcumuladaPreviaAntesDePerdidasFiscales
-                  )
-                }}</q-td
-              >
+              <q-td key="utilidadFiscalAcumuladaPreviaAntesDePerdidasFiscales" :props="props">{{
+                FormatCurrency(
+                  props.row
+                    .utilidadFiscalAcumuladaPreviaAntesDePerdidasFiscales
+                )
+              }}</q-td>
               <q-td key="perdidasFiscalesPorAplicar" :props="props">{{
                 FormatCurrency(props.row.perdidasFiscalesPorAplicar)
               }}</q-td>
@@ -1073,10 +581,7 @@
 
     <!-- GRAFICA-->
     <q-card style="width: 100%" class="full-width q-mt-lg">
-      <chart-component
-        :chartData="chartData"
-        :chartTitle="charTitleE"
-      ></chart-component>
+      <chart-component :chartData="chartData" :chartTitle="charTitleE"></chart-component>
     </q-card>
   </div>
 </template>
@@ -1429,14 +934,19 @@ export default {
       this.regimenSeleccionado = regimen.tipoRegimen.tipoRegimen;
       this.civiles = "NO";
       this.columns = [];
+
       //VALIDAMOS QUE NO SEA UNA SC O AC
       if (regimen.civiles === "SI") {
+      
         this.civiles = "SI";
         await this.GetPagoIsrAcYScA();
+      
       } else {
+       
         this.regimenSeleccionadoClave = regimen.tipoRegimen.clave;
         const claveRegimen = regimen.tipoRegimen.clave;
         const rfc = this.token.rfc;
+        
         if (rfc.length == 12) {
           var tipoPersona = "MORAL";
         } else if (rfc.length == 13) {
@@ -1752,10 +1262,10 @@ export default {
         let registrados = await this.GetRegistrados();
         let isrEmitido = await this.GetReporteIsrEmitidoAsync();
 
-        console.log(ingresos)
-        console.log(gastos)
-        console.log(registrados)
-        console.log(isrEmitido)
+        console.log(ingresos);
+        console.log(gastos);
+        console.log(registrados);
+        console.log(isrEmitido);
 
         let ListComprobantes = [];
         let contador = 0;
@@ -1918,9 +1428,9 @@ export default {
           ),
         };
         this.dataComprobantes.push(objetoTotales);
-        console.log(objetoTotales)
+        console.log(objetoTotales);
       } catch (error) {
-        console.log(error)
+        console.log(error);
       }
     },
 
@@ -2267,11 +1777,11 @@ export default {
       let registrados = await this.GetRegistrados();
       let perdida = await this.GetPerdida();
 
-      console.log(ingresos)
-      console.log(gastos)
-      console.log(ptu)
-      console.log(registrados)
-      console.log(perdida)
+      console.log(ingresos);
+      console.log(gastos);
+      console.log(ptu);
+      console.log(registrados);
+      console.log(perdida);
 
       let ListComprobantes = [];
       let contador = 0;
@@ -2348,12 +1858,12 @@ export default {
 
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetReporteIngresosPPISRAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/GetReporteIngresosPPISRAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -2368,12 +1878,12 @@ export default {
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetCobradoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/GetCobradoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -2388,12 +1898,12 @@ export default {
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetCobradoResicoMoralAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/GetCobradoResicoMoralAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -2408,12 +1918,12 @@ export default {
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetPagadoResicoMoralAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetPagadoResicoMoralAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -2428,12 +1938,12 @@ export default {
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetPagadoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetPagadoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -2448,12 +1958,12 @@ export default {
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Nomina/GetReportePagoPtuAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Nomina/GetReportePagoPtuAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -2465,12 +1975,12 @@ export default {
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Empresa/GetTablas/" +
-            this.selectedAnio +
-            "/" +
-            tipo +
-            "/" +
-            periodicidad
+          "Empresa/GetTablas/" +
+          this.selectedAnio +
+          "/" +
+          tipo +
+          "/" +
+          periodicidad
         );
         return response.data;
       } catch (error) {
@@ -2498,13 +2008,13 @@ export default {
     },
 
     VerDetallesFlujoG(item, tipo) {
-      console.log(item.detallesG, "A");
+      console.log(item, "A");
       this.$store.state.detallesProvisionalesStore.cabecera =
         tipo + " " + item.mes + " " + this.selectedAnio;
-      this.$store.state.detallesProvisionalesStore.detalles = item.detallesG;
+      this.$store.state.detallesProvisionalesStore.detalles = item.detallesG ?? item.detallesD;
       this.$store.state.detallesProvisionalesStore.tipo = tipo;
       // console.log(this.$store.state.detallesProvisionalesStore)
-      this.dialogDetallesFlujo = true;
+      this.dialogDetallesFlujoGastos = true;
     },
 
     // ExportExcel() {
@@ -2571,11 +2081,11 @@ export default {
       xlsx.writeFile(
         workbook,
         rfc +
-          " - " +
-          empresa +
-          " - REPORTE DE INGRESOS DE PAGOS PROVISIONALES DE " +
-          periodo.toUpperCase() +
-          ".xlsx"
+        " - " +
+        empresa +
+        " - REPORTE DE INGRESOS DE PAGOS PROVISIONALES DE " +
+        periodo.toUpperCase() +
+        ".xlsx"
       );
     },
 
@@ -2692,11 +2202,11 @@ export default {
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Coeficiente"
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Coeficiente"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -2725,11 +2235,11 @@ export default {
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Perdida"
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Perdida"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -2758,11 +2268,11 @@ export default {
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/RegistradosPPIsr"
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/RegistradosPPIsr"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -2855,8 +2365,8 @@ export default {
         };
         let response = await axios.post(
           this.rutaAxios +
-            "Comparativa/PostComparativaAsync/erp_" +
-            this.token.rfc,
+          "Comparativa/PostComparativaAsync/erp_" +
+          this.token.rfc,
           ObjData
         );
         this.dialogC_PFEA = false;
@@ -2947,8 +2457,8 @@ export default {
         };
         let response = await axios.post(
           this.rutaAxios +
-            "Comparativa/PostComparativaAsync/erp_" +
-            this.token.rfc,
+          "Comparativa/PostComparativaAsync/erp_" +
+          this.token.rfc,
           ObjData
         );
         this.dialogC_PFEA = false;
@@ -3039,8 +2549,8 @@ export default {
         };
         let response = await axios.post(
           this.rutaAxios +
-            "Comparativa/PostComparativaAsync/erp_" +
-            this.token.rfc,
+          "Comparativa/PostComparativaAsync/erp_" +
+          this.token.rfc,
           ObjData
         );
       } catch (error) {
@@ -3083,11 +2593,11 @@ export default {
         });
         let response = await axios.get(
           this.rutaAxios +
-            "PagosProvisionales/GetRegistroManualAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            año +
-            "/Productos_financieros"
+          "PagosProvisionales/GetRegistroManualAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          año +
+          "/Productos_financieros"
         );
         this.dialogProductosFinancieros = true;
         let x = response.data.comparativa;
@@ -3117,8 +2627,8 @@ export default {
         };
         let response = await axios.post(
           this.rutaAxios +
-            "PagosProvisionales/PostRegistroManualAsync/erp_" +
-            this.token.rfc,
+          "PagosProvisionales/PostRegistroManualAsync/erp_" +
+          this.token.rfc,
           ObjProductos
         );
         this.$q.notify({
@@ -3167,11 +2677,11 @@ export default {
         });
         let response = await axios.get(
           this.rutaAxios +
-            "PagosProvisionales/GetRegistroManualAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            año +
-            "/Otros_productos_financieros"
+          "PagosProvisionales/GetRegistroManualAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          año +
+          "/Otros_productos_financieros"
         );
         this.dialogOtrosProductosFinancieros = true;
         let x = response.data.comparativa;
@@ -3201,8 +2711,8 @@ export default {
         };
         let response = await axios.post(
           this.rutaAxios +
-            "PagosProvisionales/PostRegistroManualAsync/erp_" +
-            this.token.rfc,
+          "PagosProvisionales/PostRegistroManualAsync/erp_" +
+          this.token.rfc,
           ObjProductos
         );
         this.$q.notify({
@@ -3380,12 +2890,12 @@ export default {
         const mes = this.selectedMes.value;
         let response = await axios.get(
           this.rutaAxios +
-            "PagosProvisionales/GetPagoIsrAcYScAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            año +
-            "/" +
-            mes
+          "PagosProvisionales/GetPagoIsrAcYScAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          año +
+          "/" +
+          mes
         );
         // console.log(response.data);
         this.dataComprobantes = [...response.data];
@@ -3408,8 +2918,8 @@ export default {
         this.añosRegimen = [];
         let response = await axios.get(
           this.rutaAxios +
-            "PagosProvisionales/GetRegimenEmpresaAsync/erp_" +
-            this.token.rfc
+          "PagosProvisionales/GetRegimenEmpresaAsync/erp_" +
+          this.token.rfc
         );
         console.log(response.data);
         let x = [...response.data];
@@ -3436,8 +2946,8 @@ export default {
           console.log(ObjRegimen);
           let response = await axios.post(
             this.rutaAxios +
-              "PagosProvisionales/PostRegimenEmpresaAsync/erp_" +
-              this.token.rfc,
+            "PagosProvisionales/PostRegimenEmpresaAsync/erp_" +
+            this.token.rfc,
             ObjRegimen
           );
         }
@@ -3450,7 +2960,6 @@ export default {
     },
 
     async GetReporteIsrEmitidoAsync() {
-        
       this.ShowLoadingGet();
       try {
         let fechaI = this.selectedAnio + "-01-01";
@@ -3458,15 +2967,15 @@ export default {
 
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/ReporteIsrEmitidoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/ReporteIsrEmitidoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         console.log("isr emitido", response);
-      
+
         return response.data;
       } catch (error) {
         console.log(error);
