@@ -109,7 +109,7 @@
               <div class="detalle-nombre">{{ p.nombre }}</div>
               <div class="detalle-rfc">{{ p.rfc }}</div>
               <div class="detalle-estados">
-                <span v-if="p.listaNegra">Lista Negra: {{ p.listaNegra }}</span>
+                <!-- <span v-if="p.listaNegra">Lista Negra: {{ p.listaNegra }}</span> -->
                 <span v-if="p.lista69B">69-B: {{ p.lista69B }}</span>
                 <span v-if="p.noLocalizado">{{ p.noLocalizado }}</span>
               </div>
@@ -282,7 +282,7 @@ export default {
         const { data } = await axios.get(
           this.rutaReportes + `ReporteGeneral/GetReporteListasNegrasDashboardAsync/${rfc}/${anio}`
         )
-
+        console.log('Listas negras', data)
         this.proveedoresListaNegra = data.proveedores || []
         this.semaforo.listasNegras = this.calcularSemaforoListas(this.proveedoresListaNegra)
       } catch (e) {
