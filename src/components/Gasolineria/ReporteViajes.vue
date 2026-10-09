@@ -213,7 +213,14 @@ export default {
       ],
     };
   },
-
+computed: {
+  token() {
+      return this.$store.state.usuario;
+    },
+    rutaAxios() {
+      return this.$store.state.rutaMongoStore;
+    },
+  },
   methods: {
     // ── Carga de datos ────────────────────────────────────────────────
     async cargarDatos() {
@@ -223,7 +230,7 @@ export default {
       this.resumen = [];
 
       try {
-        const { data } = await axios.get("https://localhost:44322/api/Gasolineros/anexo1");
+        const { data } = await axios.get(this.rutaAxios + "Gasolineros/anexo1/" + this.token.rfc );
         this.datos = data.datos || [];
         this.resumen = data.resumen || [];
       } catch (e) {
