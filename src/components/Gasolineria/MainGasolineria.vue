@@ -113,7 +113,7 @@
                         </q-item-section>
                     </q-item>
                     <q-separator />
-                    <q-item active clickable v-ripple @click="irReporteViajes">
+                    <!-- <q-item active clickable v-ripple @click="irReporteViajes">
                         <q-item-section avatar>
                             <q-icon name="mdi-file-document-plus" />
                         </q-item-section>
@@ -121,7 +121,7 @@
                             Reporte de Viajes
                         </q-item-section>
                     </q-item>
-                    <q-separator />
+                    <q-separator /> -->
 
                 </q-list>
             </q-scroll-area>
