@@ -477,14 +477,9 @@ export default {
                 let inicialD =  inicialDiesel.detalle.find(x=> x.mes == this.selectedMesI.label)
                 let inicialP =  inicialPremium.detalle.find(x=> x.mes == this.selectedMesI.label)
                
-                // let magnaInicial = inicialMagna.detalle[0].litros;
-                // let premiumInicial = inicialPremium.detalle[0].litros;
-                // let dieselInicial = inicialDiesel.detalle[0].litros;
-
-
                 let magnaInicial = inicialM.litros;
-                let premiumInicial = inicialD.litros;
-                let dieselInicial = inicialP.litros;
+                let premiumInicial = inicialP.litros;
+                let dieselInicial = inicialD.litros;
                 console.log(magnaInicial)
                 for (let a = this.selectedMesI.value; a <= this.selectedMesF.value; a++) {
                     //MAGNA
