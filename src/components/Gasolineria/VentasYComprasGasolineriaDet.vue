@@ -19,7 +19,7 @@
         </q-dialog>
 
         <!-- TABLA DE COMPROBANTES -->
-        <q-table title="Reporte ISR" :data="comprobante.detalles" :columns="columns" row-key="rfc"
+        <q-table title="Reporte ISR" :data="comprobante.detalles" :columns="columns" :row-key="r => r.folioFiscal + '|' + r.noIdentificacion"
             :rows-per-page-options="[10]" :filter="filter" class="my-sticky-column-table">
             <template v-slot:top>
                 <q-btn push color="red-12" v-close-popup icon="mdi-close" rounded flat size="18px" padding="xs">
@@ -304,88 +304,63 @@ export default {
             this.$q.loading.hide()
         },
 
-        Duplicados(){
-            let empresa = this.$store.state.empresaStore.nombre
-            let rfc = this.$store.state.empresaStore.rfc
-            
-            const foliosVistos = {};
-            const listaDuplicados = [];
-            const lista = [...this.comprobante.detalles]
+        Duplicados() {
+            const empresa = this.$store.state.empresaStore.nombre
+            const rfc = this.$store.state.empresaStore.rfc
 
-            for (const elemento of lista) {
-                const folio = elemento.noVenta;
-
-                // Si el folio ya fue visto, es un duplicado
-                if (foliosVistos[folio]) {
-                    listaDuplicados.push(foliosVistos[folio]);  // Agregar el original
-                    listaDuplicados.push(elemento);             // Agregar el duplicado
-                } else {
-                // Marcar el folio como visto y almacenar el elemento
-                foliosVistos[folio] = elemento;
-                }
+            const grupos = new Map()
+            for (const el of this.comprobante.detalles) {
+                if (!el.noVenta) continue
+                if (!grupos.has(el.noVenta)) grupos.set(el.noVenta, [])
+                grupos.get(el.noVenta).push(el)
             }
 
-            //LISTA DE LOS FOLIOS FISCALES UNICOS
-            const foliosUnicosSet = new Set(listaDuplicados.map(objeto => objeto.folioFiscal));
-            const foliosUnicos = Array.from(foliosUnicosSet);
-            console.log(foliosUnicos)
-
-
-            let combustible = this.comprobante.tipo.split(' ')[2]
-            let indice = 1;
-            const workbook = XLSX.utils.book_new();
-            for(let h of foliosUnicos){
-                const nueva = this.comprobante.detalles.filter(f => f.folioFiscal === h)
-                const sheetTrabajadores = XLSX.utils.json_to_sheet(nueva);
-                XLSX.utils.book_append_sheet(workbook, sheetTrabajadores, 'Hoja ' + indice);
-                indice++;
+            const foliosUnicos = new Set()
+            for (const lista of grupos.values()) {
+                if (lista.length > 1) lista.forEach(l => foliosUnicos.add(l.folioFiscal))
             }
 
-            XLSX.writeFile(workbook,   rfc + ' - ' + empresa +  ' -  REPORTE DE VENTAS DUPLICADAS '+ combustible +'.xlsx');
+            if (foliosUnicos.size === 0) {
+                this.$q.notify({ type: 'positive', message: 'No se encontraron ventas duplicadas' })
+                return
+            }
+
+            const combustible = this.comprobante.tipo.split(' ')[2]
+            const workbook = XLSX.utils.book_new()
+            let indice = 1
+            for (const uuid of foliosUnicos) {
+                const nueva = this.comprobante.detalles.filter(f => f.folioFiscal === uuid)
+                XLSX.utils.book_append_sheet(workbook, XLSX.utils.json_to_sheet(nueva), 'Hoja ' + indice++)
+            }
+            XLSX.writeFile(workbook, rfc + ' - ' + empresa + ' - REPORTE DE VENTAS DUPLICADAS ' + combustible + '.xlsx')
         },
     
-        Faltantes(){
-            console.log('Empieza')
-            this.$q.loading.show({
-                spinner: QSpinnerCube,
-                spinnerColor: 'red-8',
-                spinnerSize: 140,
-                message: 'Calculando, esprer..',
-            });
-
-            const lista = [...this.comprobante.detalles]
-            var listaNoEncontrados = [];
-            
-            let listaBusqueda = lista.map(m => parseInt(m.noVenta, 10));
-            // let min = 1304440;
-            // let max = 1329677;
-            let min = parseInt(this.minimo, 10)
-            let max = parseInt(this.maximo, 10)
-
-            console.log(min, max)
-
-            for(let i = min; i< max; i++){
-                const indice = listaBusqueda.indexOf(i);
-                if(indice == -1){
-                    listaNoEncontrados.push(i);
-                }
+        Faltantes() {
+            const min = parseInt(this.minimo, 10)
+            const max = parseInt(this.maximo, 10)
+            if (isNaN(min) || isNaN(max) || min > max) {
+                this.$q.notify({ type: 'warning', message: 'Rango inválido' })
+                return
             }
+
+            this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Calculando, espere..' })
+
+            const existentes = new Set(this.comprobante.detalles.map(m => parseInt(m.noVenta, 10)))
+            const listaNoEncontrados = []
+            for (let i = min; i <= max; i++) {
+                if (!existentes.has(i)) listaNoEncontrados.push(i)
+            }
+
             this.$q.loading.hide()
-            // console.log('Valores no encontrados',listaNoEncontrados)
 
-            const texto = listaNoEncontrados.join('\n');
-            const blob = new Blob([texto], { type: 'text/plain' });
-            // Crear un enlace de descarga
-            const enlaceDescarga = document.createElement('a');
-            enlaceDescarga.href = URL.createObjectURL(blob);
-            enlaceDescarga.download = 'No encontrados.txt';
-
-            // Agregar el enlace al documento y hacer clic para iniciar la descarga
-            document.body.appendChild(enlaceDescarga);
-            enlaceDescarga.click();
-
-            // Limpiar el enlace después de la descarga
-            document.body.removeChild(enlaceDescarga);
+            const blob = new Blob([listaNoEncontrados.join('\n')], { type: 'text/plain' })
+            const enlace = document.createElement('a')
+            enlace.href = URL.createObjectURL(blob)
+            enlace.download = 'No encontrados.txt'
+            document.body.appendChild(enlace)
+            enlace.click()
+            document.body.removeChild(enlace)
+            URL.revokeObjectURL(enlace.href)
         },
 
         ObtenerMaximoyMinimo(lista, propiedad){

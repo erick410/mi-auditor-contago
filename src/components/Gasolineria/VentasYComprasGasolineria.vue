@@ -468,8 +468,6 @@ export default {
 
         async GetReporteTodos() {
 
-            // let fI = moment(this.fechaIVentas).format('YYYY-MM-DD')
-            // let fF = moment(this.fechaFVentas).format('YYYY-MM-DD')
             if (!this.selectedAnio || !this.selectedMesI || !this.selectedMesF) {
                 this.$q.notify({ type: 'warning', message: 'Selecciona año y meses', position: 'top-right' })
                 return
@@ -531,6 +529,7 @@ export default {
                 this.$q.loading.hide()
             }
         },
+
         calcularComparativa(objComparativa, mesInicial, mesFinal) {
             if (!objComparativa?.detalle) return 0
             return objComparativa.detalle
@@ -540,6 +539,7 @@ export default {
                 })
                 .reduce((a, d) => a + parseFloat(d.litros), 0)
         },
+
         async GetReportePorSucursal() {
             if (!this.selectedAnio || !this.selectedMesI || !this.selectedMesF) {
                 this.$q.notify({ type: 'warning', message: 'Selecciona año y meses', position: 'top-right' })
@@ -780,26 +780,32 @@ export default {
             })
         },
 
-        OpenDialogDetalleV(item) {
-            console.log(item)
-            if (item.producto === 'Total') {
-                this.$store.state.detalleVentasGasolineria.tipo = "VENTAS GASOLINERIA CONCENTRADO";
-                var ventasConcentradas = [...this.dataVentas[0].detalles, ...this.dataVentas[1].detalles, ...this.dataVentas[2].detalles]
-                ventasConcentradas.sort((a, b) => {
-                    if (a.fecha < b.fecha) {
-                        return -1;
+        async OpenDialogDetalleV(item) {
+            const esTotal = item.producto === 'Total'
+            this.$q.loading.show({ message: 'Consultando detalle...' })
+            try {
+                // Ajusta la URL y los nombres de fechas/BD a como los manejas en este componente
+                const fI = new Date(this.selectedAnio, this.selectedMesI.value - 1, 1).toISOString().split('T')[0]
+                const fF = new Date(this.selectedAnio, this.selectedMesF.value, 0).toISOString().split('T')[0]
+                const { data } = await axios.get(this.rutaAxios + 'Gasolineros/GetVentasDetalle/erp_' + this.token.rfc, {
+                    params: {
+                        fechaI: fI,
+                        fechaF: fF,
+                        clave: esTotal ? '' : item.clave
                     }
-                    if (a.fecha > b.fecha) {
-                        return 1;
-                    }
-                    return 0;
                 })
-                this.$store.state.detalleVentasGasolineria.detalles = [...ventasConcentradas];
-                this.dialogDetallesV = true;
-            } else {
-                this.$store.state.detalleVentasGasolineria.tipo = "VENTAS GASOLINERIA " + item.producto;
-                this.$store.state.detalleVentasGasolineria.detalles = [...item.detalles];
-                this.dialogDetallesV = true;
+
+                this.$store.state.detalleVentasGasolineria.tipo = esTotal
+                    ? 'VENTAS GASOLINERIA CONCENTRADO'
+                    : 'VENTAS GASOLINERIA ' + item.producto
+
+                // Object.freeze: Vue 2 no vuelve reactivos los 48 mil objetos (ahorra segundos y memoria)
+                this.$store.state.detalleVentasGasolineria.detalles = Object.freeze(data)
+                this.dialogDetallesV = true
+            } catch (error) {
+                console.log(error)
+            } finally {
+                this.$q.loading.hide()
             }
         },
 
@@ -825,6 +831,7 @@ export default {
                 this.dialogDetallesV = true;
             }
         },
+
         async OpenDialogComparativa(tipo, item) {
             if (!this.selectedAnio) {
                 this.$q.notify({
@@ -930,7 +937,6 @@ export default {
             }
         },
 
-        
         async PostLitrosGasolineros() {
             try {
                 console.log(this.item)
@@ -960,7 +966,6 @@ export default {
                 this.dialogComparativa = false
             }
         },
-
      
     },
 }
