@@ -586,6 +586,7 @@ export async function generarReporte(
     formatoPesos(x.calculoE),
   ])
 
+  console.log(rfcEmpresa)
   if (rfcEmpresa.length == 12) {
     columnasIva = columnasMorales
     datosIva = datosMorales
@@ -598,6 +599,7 @@ export async function generarReporte(
     columnasIva.push("Calculo Exento");
   }
 
+  console.log('columnasIva', columnasIva)
   autoTable(doc, {
     startY: y,
     head: [[...columnasIva]],

@@ -1557,7 +1557,8 @@ export default {
       return this.$store.state.rutaMongoStore;
     },
     tasks() {
-      if (this.token.rol == "Administrador") {
+      console.log("this.token", this.token);
+      if (this.token.tipo == "Empresa") {
         return this.tasksUsuario;
       } else {
         return this.tasksGasolinero;
@@ -4065,6 +4066,7 @@ export default {
 
     // GENERAR REPORTE PAGOS MENSUALES
     async GetReportePMPDF() {
+      console.log("this.$store.state.empresaStore.rfc", this.$store.state.empresaStore);
       this.$q.loading.show({
         spinner: QSpinnerCube,
         spinnerColor: "red-8",

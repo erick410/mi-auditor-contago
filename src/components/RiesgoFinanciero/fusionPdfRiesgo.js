@@ -84,7 +84,7 @@ export function descargarPdfFinal(bytes, nombreArchivo) {
 //     "cargar" decide cómo obtener los bytes (endpoint directo, JSON+base64, etc). ---
 export async function construirReporteRiesgo(fuentes) {
   const pdfFinal = await PDFDocument.create()
-
+console.log('Fuentes a procesar:', fuentes)
   for (const fuente of fuentes) {
     try {
       const bytes = await fuente.cargar()
