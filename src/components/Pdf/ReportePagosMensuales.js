@@ -1933,6 +1933,8 @@ export async function generarReporte(
 
   if (dataVentas.length != 0) {
 
+    console.log('dataVentas', dataVentas)
+
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     y = agregarTextoConSaltos(doc, "VENTAS DE GASOLINA", 40, y, 520, 14);
@@ -1980,24 +1982,24 @@ export async function generarReporte(
         head: [
           [
             "Producto",
-            "Cantidad",
+            "Litros Control Volumetrico",
+            "Diferencia",
+            "Litros XML",
             "subTotal",
             "IVA",
             "IEPS",
             "Total",
-            "# Ventas",
-            "# Comprobantes",
           ],
         ],
         body: ventasMes.map((x) => [
           x.producto,
+          FormatoCantidad(x.comparativa),
+          FormatoCantidad(x.diferencia),
           FormatoCantidad(x.cantidad),
           formatoPesos(x.subTotal),
           formatoPesos(x.iva),
           formatoPesos(x.ieps),
-          formatoPesos(x.ieps),
-          FormatoCantidad(x.ventas),
-          FormatoCantidad(x.comprobantes),
+          formatoPesos(x.total),
         ]),
         headStyles: {
           fillColor: "#E74747",
@@ -2094,24 +2096,24 @@ export async function generarReporte(
         head: [
           [
             "Producto",
+            "Litros Control Volumetrico",
+            "Diferencia",
             "Cantidad",
             "subTotal",
             "IVA",
             "IEPS",
             "Total",
-            "# Compras",
-            "# Comprobantes",
           ],
         ],
         body: comprasMes.map((x) => [
           x.producto,
+           FormatoCantidad(x.comparativa),
+          FormatoCantidad(x.diferencia),
           FormatoCantidad(x.cantidad),
           formatoPesos(x.subTotal),
           formatoPesos(x.iva),
           formatoPesos(x.ieps),
-          formatoPesos(x.ieps),
-          FormatoCantidad(x.ventas),
-          FormatoCantidad(x.comprobantes),
+          formatoPesos(x.total),
         ]),
         headStyles: {
           fillColor: "#E74747",

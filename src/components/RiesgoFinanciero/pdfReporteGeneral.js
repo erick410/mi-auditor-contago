@@ -928,6 +928,7 @@ function seccionPld(doc, y, datos, ctx, indice, meta) {
 }
 
 function seccion69B(doc, y, datos, ctx, indice, meta) {
+    
     y = iniciarSeccion(doc, indice, "Listado 69-B (EFOS/EDOS)", y, meta);
 
     const l69b = datos.listado69b;

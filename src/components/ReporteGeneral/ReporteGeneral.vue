@@ -6,13 +6,7 @@
 
     <q-header v-if="logueado" style="background: #e74747">
       <q-toolbar style="min-height: 60px">
-        <q-btn
-          flat
-          dense
-          round
-          @click="irInicio"
-          style="background: rgba(255, 255, 255, 0.12)"
-        >
+        <q-btn flat dense round @click="irInicio" style="background: rgba(255, 255, 255, 0.12)">
           <q-icon name="mdi-home" color="white" size="23px" />
         </q-btn>
 
@@ -36,13 +30,7 @@
           </q-tooltip>
         </q-btn>
 
-        <q-btn
-          flat
-          round
-          dense
-          class="header-btn"
-          @click="drawerEmpresas = !drawerEmpresas"
-        >
+        <q-btn flat round dense class="header-btn" @click="drawerEmpresas = !drawerEmpresas">
           <q-icon name="mdi-domain" color="white" size="23px" />
           <q-tooltip content-style="font-size:13px">Empresas</q-tooltip>
         </q-btn>
@@ -60,22 +48,13 @@
     </q-drawer>
 
     <!-- DRAWER EMPRESAS -->
-    <q-drawer
-      :width="350"
-      v-model="drawerEmpresas"
-      behavior="mobile"
-      side="right"
-      bordered
-    >
+    <q-drawer :width="350" v-model="drawerEmpresas" behavior="mobile" side="right" bordered>
       <drawerEmpresas></drawerEmpresas>
     </q-drawer>
 
     <!-- TARJETA DE CONFIGURACIÓN CENTRADA -->
 
-    <div
-      class="row justify-center q-mt-md"
-      v-if="mostrarAdvertenciaDatosEmpresa === true"
-    >
+    <div class="row justify-center q-mt-md" v-if="mostrarAdvertenciaDatosEmpresa === true">
       <q-card class="col-xs-12 col-sm-10 col-md-8 col-lg-6 q-mt-md no-shadow">
         <q-card-section>
           <div class="text-h6">¡Información empresarial incompleta!</div>
@@ -95,13 +74,8 @@
         </q-card-section>
 
         <q-card-actions align="right">
-          <q-btn
-            color="primary"
-            label="Completar ahora"
-            icon="arrow_forward"
-            class="q-px-md"
-            @click="$router.push('/Configuracion')"
-          />
+          <q-btn color="primary" label="Completar ahora" icon="arrow_forward" class="q-px-md"
+            @click="$router.push('/Configuracion')" />
         </q-card-actions>
       </q-card>
     </div>
@@ -118,34 +92,15 @@
           <div class="text-bold q-mb-md">Fecha y rango</div>
           <div class="row q-col-gutter-md">
             <div class="col-12 col-sm-4">
-              <q-select
-                outlined
-                dense
-                v-model="selectedAnio"
-                :options="itemsAnios"
-                label="Año"
-                class="full-width"
-              />
+              <q-select outlined dense v-model="selectedAnio" :options="itemsAnios" label="Año" class="full-width" />
             </div>
             <div class="col-12 col-sm-4">
-              <q-select
-                outlined
-                dense
-                v-model="selectedMesI"
-                :options="itemsMes"
-                label="Mes Inicial"
-                class="full-width"
-              />
+              <q-select outlined dense v-model="selectedMesI" :options="itemsMes" label="Mes Inicial"
+                class="full-width" />
             </div>
             <div class="col-12 col-sm-4">
-              <q-select
-                outlined
-                dense
-                v-model="selectedMesF"
-                :options="itemsMes"
-                label="Mes Final"
-                class="full-width"
-              />
+              <q-select outlined dense v-model="selectedMesF" :options="itemsMes" label="Mes Final"
+                class="full-width" />
             </div>
           </div>
         </q-card-section>
@@ -154,16 +109,8 @@
 
     <div class="row justify-center q-mt-md">
       <q-card bordered class="col-xs-12 col-sm-10 col-md-10 col-lg-10 q-mt-md no-shadow">
-        <q-tabs
-          v-model="tab"
-          class="bg-grey-3"
-          active-color="primary"
-          indicator-color="primary"
-          dense
-          align="justify"
-          narrow-indicator
-          bordered
-        >
+        <q-tabs v-model="tab" class="bg-grey-3" active-color="primary" indicator-color="primary" dense align="justify"
+          narrow-indicator bordered>
           <q-tab name="mails" label="Reporte General" />
           <q-tab name="alarms" label="Reporte de Impuestos" />
           <!-- <q-tab name="razonFinanciera" label="Reporte Razones Financieras" /> -->
@@ -176,22 +123,13 @@
               <div class="text-bold q-mb-md col-12">Configuración del reporte</div>
               <div class="col-12">
                 <q-list bordered class="q-mt-md rounded-borders">
-                  <q-expansion-item
-                    expand-separator
-                    icon="mdi-clipboard-list-outline"
-                    label="Mostrar detalles de los reportes"
-                  >
+                  <q-expansion-item expand-separator icon="mdi-clipboard-list-outline"
+                    label="Mostrar detalles de los reportes">
                     <q-list separator>
                       <!-- Iteramos sobre cada sección de concentrados -->
-                      <q-expansion-item
-                        v-for="(section, sectionName) in sections"
-                        :key="sectionName"
-                        expand-separator
-                        icon="mdi-text-box-multiple"
-                        :label="sectionName"
-                        v-if="section && section.items"
-                        :header-inset-level="1"
-                      >
+                      <q-expansion-item v-for="(section, sectionName) in sections" :key="sectionName" expand-separator
+                        icon="mdi-text-box-multiple" :label="sectionName" v-if="section && section.items"
+                        :header-inset-level="1">
                         <q-list separator :content-inset-level="0.5">
                           <!-- Opción para seleccionar todos los elementos de la sección -->
                           <q-item tag="label" v-ripple :inset-level="2">
@@ -199,31 +137,18 @@
                               <q-item-label>Todos los elementos</q-item-label>
                             </q-item-section>
                             <q-item-section avatar>
-                              <q-toggle
-                                color="blue"
-                                :value="checkConcentradosSelected(sectionName)"
-                                @input="toggleAllConcentrados(sectionName, $event)"
-                              />
+                              <q-toggle color="blue" :value="checkConcentradosSelected(sectionName)"
+                                @input="toggleAllConcentrados(sectionName, $event)" />
                             </q-item-section>
                           </q-item>
 
                           <!-- Elementos individuales de la sección -->
-                          <q-item
-                            tag="label"
-                            v-ripple
-                            v-for="item in section.items"
-                            :key="item.key"
-                            :inset-level="2"
-                          >
+                          <q-item tag="label" v-ripple v-for="item in section.items" :key="item.key" :inset-level="2">
                             <q-item-section>
                               <q-item-label>{{ item.label }}</q-item-label>
                             </q-item-section>
                             <q-item-section avatar>
-                              <q-toggle
-                                color="blue"
-                                v-model="mostrarConcentradosReporte[item.key]"
-                                val="true"
-                              />
+                              <q-toggle color="blue" v-model="mostrarConcentradosReporte[item.key]" val="true" />
                             </q-item-section>
                           </q-item>
                         </q-list>
@@ -231,21 +156,12 @@
                     </q-list>
                   </q-expansion-item>
 
-                  <q-expansion-item
-                    expand-separator
-                    icon="mdi-clipboard-list-outline"
-                    label="Secciones a mostrar en el reporte"
-                  >
+                  <q-expansion-item expand-separator icon="mdi-clipboard-list-outline"
+                    label="Secciones a mostrar en el reporte">
                     <q-list separator>
-                      <q-expansion-item
-                        v-for="(section, sectionName) in sections"
-                        :key="sectionName"
-                        expand-separator
-                        icon="mdi-text-box-multiple"
-                        :label="sectionName"
-                        v-if="section && section.items"
-                        :header-inset-level="1"
-                      >
+                      <q-expansion-item v-for="(section, sectionName) in sections" :key="sectionName" expand-separator
+                        icon="mdi-text-box-multiple" :label="sectionName" v-if="section && section.items"
+                        :header-inset-level="1">
                         <q-list separator :content-inset-level="0.5">
                           <!-- Opción para seleccionar todos los elementos de la sección -->
                           <q-item tag="label" v-ripple :inset-level="2">
@@ -253,31 +169,18 @@
                               <q-item-label>Todos los elementos</q-item-label>
                             </q-item-section>
                             <q-item-section avatar>
-                              <q-toggle
-                                color="blue"
-                                @input="toggleAllSecciones(sectionName, $event)"
-                                :value="checkSeccionesSelected(sectionName)"
-                              />
+                              <q-toggle color="blue" @input="toggleAllSecciones(sectionName, $event)"
+                                :value="checkSeccionesSelected(sectionName)" />
                             </q-item-section>
                           </q-item>
 
                           <!-- Elementos individuales de la sección -->
-                          <q-item
-                            tag="label"
-                            v-ripple
-                            v-for="item in section.items"
-                            :key="item.key"
-                            :inset-level="2"
-                          >
+                          <q-item tag="label" v-ripple v-for="item in section.items" :key="item.key" :inset-level="2">
                             <q-item-section>
                               <q-item-label>{{ item.label }}</q-item-label>
                             </q-item-section>
                             <q-item-section avatar>
-                              <q-toggle
-                                color="blue"
-                                v-model="mostrarSeccionesReporte[item.key]"
-                                val="true"
-                              />
+                              <q-toggle color="blue" v-model="mostrarSeccionesReporte[item.key]" val="true" />
                             </q-item-section>
                           </q-item>
                         </q-list>
@@ -591,12 +494,8 @@
             Generar reporte impuestos
           </q-btn> -->
 
-                <q-btn
-                  @click="generarReporteEmpresarial"
-                  dense
-                  color="primary"
-                  class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5"
-                >
+                <q-btn @click="generarReporteEmpresarial" dense color="primary"
+                  class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5">
                   <q-icon name="download" left size="sm" />
                   Generar reporte
                 </q-btn>
@@ -616,12 +515,7 @@
               <div class="row no-wrap justify-between q-mb-md">
                 <div class="text-bold text-h5">Reporte de Impuestos</div>
 
-                <q-btn
-                  @click="runAll"
-                  dense
-                  color="primary"
-                  class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5"
-                >
+                <q-btn @click="runAll" dense color="primary" class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5">
                   <q-icon name="download" left size="sm" />
                   Consultar información
                 </q-btn>
@@ -631,36 +525,19 @@
                 <div class="text-subtitle1">
                   {{ task.title }}
                 </div>
-                <q-checkbox
-                  v-if="task.title == 'Reporte IVA'"
-                  v-model="ivaExento"
-                  label="Tiene IVA Exento?"
-                />
+                <q-checkbox v-if="task.title == 'Reporte IVA'" v-model="ivaExento" label="Tiene IVA Exento?" />
 
                 <div class="row items-center">
                   <div class="col-12 row no-wrap">
-                    <q-linear-progress
-                      class="q-mr-md"
-                      :value="task.progress"
-                      :color="
-                        task.status === 'success'
-                          ? 'green'
-                          : task.status === 'error'
+                    <q-linear-progress class="q-mr-md" :value="task.progress" :color="task.status === 'success'
+                        ? 'green'
+                        : task.status === 'error'
                           ? 'red'
                           : 'primary'
-                      "
-                      rounded
-                      striped
-                      size="20px"
-                    />
-                    <q-btn
-                      round
-                      v-if="task.status !== 'loading'"
-                      :icon="task.status === 'error' ? 'mdi-update' : 'mdi-update'"
-                      color="primary"
-                      @click="runTask(index)"
-                      style="margin-top: -10px"
-                    />
+                      " rounded striped size="20px" />
+                    <q-btn round v-if="task.status !== 'loading'"
+                      :icon="task.status === 'error' ? 'mdi-update' : 'mdi-update'" color="primary"
+                      @click="runTask(index)" style="margin-top: -10px" />
 
                     <q-spinner v-else color="primary" size="24px" />
                   </div>
@@ -668,20 +545,10 @@
               </div>
 
               <div class="row no-wrap justify-between q-mb-md">
-                <q-table
-                  class="full-width no-shadow"
-                  bordered
-                  title="Declaraciones Anuales"
-                  :data="dataAnual"
-                  :columns="columnsAnual"
-                  row-key="columna1"
-                >
+                <q-table class="full-width no-shadow" bordered title="Declaraciones Anuales" :data="dataAnual"
+                  :columns="columnsAnual" row-key="columna1">
                   <template v-slot:top-right>
-                    <q-btn
-                      color="primary"
-                      label="Guardar Declaraciones"
-                      @click="guardarDeclaraciones()"
-                    />
+                    <q-btn color="primary" label="Guardar Declaraciones" @click="guardarDeclaraciones()" />
                   </template>
                   <template v-slot:body="props">
                     <q-tr :props="props">
@@ -690,35 +557,15 @@
                       </q-td>
                       <q-td key="columna2" :props="props">
                         {{ formatCurrency(props.row.columna2) }}
-                        <q-popup-edit
-                          v-model="props.row.columna2"
-                          title="Determinado"
-                          auto-save
-                          v-slot="scope"
-                        >
-                          <q-input
-                            type="number"
-                            v-model.number="scope.value"
-                            dense
-                            autofocus
-                          />
+                        <q-popup-edit v-model="props.row.columna2" title="Determinado" auto-save v-slot="scope">
+                          <q-input type="number" v-model.number="scope.value" dense autofocus />
                         </q-popup-edit>
                       </q-td>
 
                       <q-td key="columna3" :props="props">
                         {{ formatCurrency(props.row.columna3) }}
-                        <q-popup-edit
-                          v-model="props.row.columna3"
-                          title="Declarado"
-                          auto-save
-                          v-slot="scope"
-                        >
-                          <q-input
-                            type="number"
-                            v-model.number="scope.value"
-                            dense
-                            autofocus
-                          />
+                        <q-popup-edit v-model="props.row.columna3" title="Declarado" auto-save v-slot="scope">
+                          <q-input type="number" v-model.number="scope.value" dense autofocus />
                         </q-popup-edit>
                       </q-td>
                       <q-td key="columna4" :props="props">{{
@@ -729,14 +576,8 @@
                 </q-table>
               </div>
               <div class="row no-wrap justify-between q-mb-md">
-                <q-file
-                  v-model="imagenFile"
-                  label="Seleccionar imagen"
-                  accept="image/*"
-                  filled
-                  class="full-width"
-                  @input="onFileChange"
-                >
+                <q-file v-model="imagenFile" label="Seleccionar imagen" accept="image/*" filled class="full-width"
+                  @input="onFileChange">
                   <template v-slot:prepend>
                     <q-icon name="image" />
                   </template>
@@ -748,23 +589,13 @@
                 <img :src="imagenBase64" style="max-width: 100%; border-radius: 10px" />
               </div>
               <div class="row no-wrap justify-between q-mb-md">
-                <q-input
-                  v-model="comentarios"
-                  filled
-                  autogrow
-                  label="Comentarios"
-                  class="full-width"
-                />
+                <q-input v-model="comentarios" filled autogrow label="Comentarios" class="full-width" />
               </div>
 
               <div class="row no-wrap justify-between q-mb-md">
                 <div class="text-bold text-h5"></div>
-                <q-btn
-                  @click="GetReportePMPDF()"
-                  dense
-                  color="primary"
-                  class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5"
-                >
+                <q-btn @click="GetReportePMPDF()" dense color="primary"
+                  class="q-ml-md q-px-xl q-py-xs btn-redondeado bg-red-5">
                   <q-icon name="download" left size="sm" />
                   Generar PDF
                 </q-btn>
@@ -843,13 +674,8 @@
           </q-tab-panel> -->
 
           <q-tab-panel bordered name="reporteFinanciero" class="full-width">
-            <ReporteGeneralPreview
-  ref="reporteGeneral"
-  :anio="selectedAnio"
-  :mesI="selectedMesI"
-  :mesF="selectedMesF"
-  :autoGenerar="false"
-/>
+            <ReporteGeneralPreview ref="reporteGeneral" :anio="selectedAnio" :mesI="selectedMesI" :mesF="selectedMesF"
+              :autoGenerar="false" />
           </q-tab-panel>
         </q-tab-panels>
       </q-card>
@@ -893,14 +719,15 @@ import { Notify } from "quasar";
 import { parseExcel } from "@/utils/parseExcel";
 import { calcularRazones, formatearValor } from "@/utils/razonesFinancieras";
 import { generarReportePDF } from "@/utils/generarReportePDF";
-import ReporteGeneralPreview from "../ReporteFinanciero/ReporteFinanciero.vue"
+import ReporteGeneralPreview from "../ReporteFinanciero/ReporteFinanciero.vue";
 export default {
   name: "MainLayout",
   components: {
     drawerPerfil,
     drawerEmpresas,
     ViewReporteGeneral,
-    Index,ReporteGeneralPreview
+    Index,
+    ReporteGeneralPreview,
   },
   data() {
     return {
@@ -3429,7 +3256,7 @@ export default {
       try {
         const curl = `${this.rutaAxios}ReporteGeneral/GetReporteListasNegrasDashboardAsync/${rfc}/${año}`;
         const response = await axios.get(curl);
-        console.log('GetReporteListasNegrasAsync',response);
+        console.log("GetReporteListasNegrasAsync", response);
 
         // TRATAMOS LOS DATOS
         const data = response.data;
@@ -4077,14 +3904,24 @@ export default {
 
       const rfc = this.token.rfc;
 
-  // Listas Negras (contiene lista negra Y 69-B en el mismo objeto por proveedor)
-  const datosListasNegras = await this.GetReporteListasNegrasAsync(rfc, this.selectedAnio);
+      // Listas Negras (contiene lista negra Y 69-B en el mismo objeto por proveedor)
+      const datosListasNegras = await this.GetReporteListasNegrasAsync(
+        rfc,
+        this.selectedAnio
+      );
 
-  // Régimen Diferente — necesita rango de fechas, igual que el resto de reportes de Gastos
-  const fI = `${this.selectedAnio}-01-01`;
-  const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
-  const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(2, "0")}-${String(ultimoDia).padStart(2, "0")}`;
-  const datosGastosDifRegimen = await this.GetReporteGastosDifRegimenAsync(rfc, fI, fF);
+      // Régimen Diferente — necesita rango de fechas, igual que el resto de reportes de Gastos
+      const fI = `${this.selectedAnio}-01-01`;
+      const ultimoDia = new Date(this.selectedAnio, this.selectedMesF.value, 0).getDate();
+      const fF = `${this.selectedAnio}-${String(this.selectedMesF.value).padStart(
+        2,
+        "0"
+      )}-${String(ultimoDia).padStart(2, "0")}`;
+      const datosGastosDifRegimen = await this.GetReporteGastosDifRegimenAsync(
+        rfc,
+        fI,
+        fF
+      );
 
       // REPORTE DE IVA
       // await this.GetReporteIVA();
@@ -4142,8 +3979,8 @@ export default {
         this.dataCuentasPagar,
         this.dataCuentasCobrar,
         this.imagenBase64,
-        datosListasNegras.proveedores,      // NUEVO
-    datosGastosDifRegimen  
+        datosListasNegras.proveedores, // NUEVO
+        datosGastosDifRegimen
       );
       this.$q.loading.hide();
     },
@@ -4595,10 +4432,13 @@ export default {
           .filter((item) => item.mes?.toUpperCase() === mes)
           .reduce((acc, item) => acc + (item.importeIva || 0), 0);
 
-          const ivaRetenidoE = ivaRetEmitido
-                    .filter(item =>  item.mes?.toUpperCase() === mes  && item.año === this.selectedAnio.toString())
-                    .reduce((acc, item) => acc + (item.importeIva || 0), 0);
-console.log(ivaRetenidoE, "ivaRetenidoE");
+        const ivaRetenidoE = ivaRetEmitido
+          .filter(
+            (item) =>
+              item.mes?.toUpperCase() === mes && item.año === this.selectedAnio.toString()
+          )
+          .reduce((acc, item) => acc + (item.importeIva || 0), 0);
+        console.log(ivaRetenidoE, "ivaRetenidoE");
         // const ivaRetenidoE = ivaRetEmitido
         //   .filter(
         //     (item) =>
@@ -4901,12 +4741,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
         let fechaF = this.selectedAnio + "-" + this.selectedMesF.value + "-01";
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetReporteIvaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF,
+          "Ingresos/GetReporteIvaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF,
           {
             timeout: 240000, // 120 segundos
           }
@@ -4925,12 +4765,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
 
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIvaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetReporteIvaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -4946,12 +4786,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
 
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIvaRetenidoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetReporteIvaRetenidoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -4967,12 +4807,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
 
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
 
         return response.data;
@@ -5003,7 +4843,7 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         const response = await axios.get(
           this.rutaAxios +
-            `Ingresos/GetReporteIvaCompletoAsync/${rfc}/${fechaI}/${fechaF}`
+          `Ingresos/GetReporteIvaCompletoAsync/${rfc}/${fechaI}/${fechaF}`
         );
         return response.data;
       } catch (error) {
@@ -5030,12 +4870,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
         let fechaF = this.selectedAnio + "-" + this.selectedMesF.value + "-01";
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetReporteIvaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF,
+          "Ingresos/GetReporteIvaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF,
           {
             timeout: 240000, // 120 segundos
           }
@@ -5064,12 +4904,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            año +
-            "/" +
-            tipo
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          año +
+          "/" +
+          tipo
         );
         respuesta = response.data.comparativa;
         return respuesta;
@@ -5109,12 +4949,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
         let fechaF = this.selectedAnio + "-" + this.selectedMesF.value + "-01";
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIvaRetenidoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetReporteIvaRetenidoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         ivaRetenido = response.data;
         let mesFin = this.selectedMesF.value;
@@ -5173,12 +5013,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            año +
-            "/" +
-            tipo
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          año +
+          "/" +
+          tipo
         );
         respuesta = response.data.comparativa;
         return respuesta;
@@ -5204,12 +5044,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
 
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/ReporteIsrEmitidoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/ReporteIsrEmitidoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
 
         console.log("isr emitido", response);
@@ -5302,12 +5142,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
         let fechaF = this.selectedAnio + "-" + this.selectedMesF.value + "-01";
         let response = await axios.get(
           this.rutaAxios +
-            "Nomina/GetReporteISrAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Nomina/GetReporteISrAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         let res = response.data;
         this.dataSueldos = res[0];
@@ -5414,12 +5254,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
         let fechaF = this.selectedAnio + "-" + this.selectedMesF.value + "-01";
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIsrAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetReporteIsrAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
 
         this.dataArrendamientos = response.data[0];
@@ -5498,12 +5338,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            año +
-            "/" +
-            tipo
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          año +
+          "/" +
+          tipo
         );
         respuesta = response.data.comparativa;
         return respuesta;
@@ -5637,8 +5477,8 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
         this.añosRegimen = [];
         let response = await axios.get(
           this.rutaAxios +
-            "PagosProvisionales/GetRegimenEmpresaAsync/erp_" +
-            this.token.rfc
+          "PagosProvisionales/GetRegimenEmpresaAsync/erp_" +
+          this.token.rfc
         );
         let x = [...response.data];
         this.añosRegimen = [...x];
@@ -5791,12 +5631,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
         const mes = this.selectedMesF.value;
         let response = await axios.get(
           this.rutaAxios +
-            "PagosProvisionales/GetPagoIsrAcYScAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            año +
-            "/" +
-            mes
+          "PagosProvisionales/GetPagoIsrAcYScAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          año +
+          "/" +
+          mes
         );
         // console.log(response.data);
         this.dataComprobantesP = [...response.data];
@@ -6244,12 +6084,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
 
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/ReporteIsrEmitidoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/ReporteIsrEmitidoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         console.log("isr emitido", response);
         return response.data;
@@ -6605,12 +6445,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
 
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetReporteIngresosPPISRAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/GetReporteIngresosPPISRAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6625,12 +6465,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetCobradoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/GetCobradoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6645,12 +6485,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetCobradoResicoMoralAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Ingresos/GetCobradoResicoMoralAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6665,12 +6505,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetPagadoResicoMoralAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetPagadoResicoMoralAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6685,12 +6525,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetPagadoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetPagadoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6705,12 +6545,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Nomina/GetReportePagoPtuAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Nomina/GetReportePagoPtuAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         return response.data;
       } catch (error) {
@@ -6722,12 +6562,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Empresa/GetTablas/" +
-            this.selectedAnio +
-            "/" +
-            tipo +
-            "/" +
-            periodicidad
+          "Empresa/GetTablas/" +
+          this.selectedAnio +
+          "/" +
+          tipo +
+          "/" +
+          periodicidad
         );
         return response.data;
       } catch (error) {
@@ -6753,11 +6593,11 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Coeficiente"
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Coeficiente"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -6786,11 +6626,11 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Perdida"
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Perdida"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -6819,11 +6659,11 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Comparativa/GetComparativaAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/RegistradosPPIsr"
+          "Comparativa/GetComparativaAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/RegistradosPPIsr"
         );
         let x = response.data.comparativa;
         respuesta = x;
@@ -6952,12 +6792,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
 
         let response = await axios.get(
           this.rutaAxios +
-            "Consultas/GetReporteUsoCfdiIngresosAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Consultas/GetReporteUsoCfdiIngresosAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         return response.data;
       } catch (error) {
@@ -6981,12 +6821,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
 
         let response = await axios.get(
           this.rutaAxios +
-            "Consultas/GetReporteUsoCfdiGastosAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Consultas/GetReporteUsoCfdiGastosAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         return response.data;
       } catch (error) {
@@ -7010,12 +6850,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
 
         let response = await axios.get(
           this.rutaAxios +
-            "Consultas/GetReporteUsoCfdiNomina/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Consultas/GetReporteUsoCfdiNomina/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         return response.data;
       } catch (error) {
@@ -7048,101 +6888,205 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       return rangos;
     },
 
-    async GetReporteTodos() {
-      const anio = this.selectedAnio;
-      const mesInicial = 1;
-      const mesFinal = this.selectedMesF.value;
-
-      const rangos = this.generarRangosPorMes(anio, mesInicial, mesFinal);
-
-      this.dataVentas = [];
-
-      for (const r of rangos) {
-        this.$q.loading.show({
-          spinner: QSpinnerCube,
-          spinnerColor: "red-8",
-          spinnerSize: 140,
-          message: "Gerando reporte de Ventas de " + r.inicio + " al " + r.fin + "...",
-        });
-
-        const response = await axios.get(
-          `${this.rutaAxios}Gasolineros/GetVentasGasolinasAsync/erp_${this.token.rfc}/${r.inicio}/${r.fin}`
-        );
-        this.$q.loading.hide();
-        let x = [];
-        x = response.data;
-        //VAMOS A CALCULAR LOS TOTALES
-        let objetoTotales = {
-          detalles: [],
-          producto: "Total",
-          cantidad: x.reduce((acumulador, objeto) => acumulador + objeto.cantidad, 0),
-          subTotal: x.reduce((acumulador, objeto) => acumulador + objeto.subTotal, 0),
-          descuento: x.reduce((acumulador, objeto) => acumulador + objeto.descuento, 0),
-          iva: x.reduce((acumulador, objeto) => acumulador + objeto.iva, 0),
-          ieps: x.reduce((acumulador, objeto) => acumulador + objeto.ieps, 0),
-          total: x.reduce((acumulador, objeto) => acumulador + objeto.total, 0),
-          ventas: x.reduce((acumulador, objeto) => acumulador + objeto.ventas, 0),
-          comprobantes: x.reduce(
-            (acumulador, objeto) => acumulador + objeto.comprobantes,
-            0
-          ),
-        };
-        x.push(objetoTotales);
-
-        this.dataVentas.push(x);
+    async GetComparativaGAS(año, tipo, item) {
+      console.log("GetComparativaGAS", año, tipo, item);
+      let noCre = "";
+      if (tipo == "COMPRAS") {
+        noCre = "Todos";
+      } else {
+        noCre = "Todos";
       }
-      this.$q.loading.hide();
 
-      console.log("Datos totales:", this.dataVentas);
+      let ObjInicial = {
+        año: año,
+        tipo: tipo,
+        combustible: item,
+        noCre: noCre,
+        detalle: [
+          { mes: "ENERO", litros: 0 },
+          { mes: "FEBRERO", litros: 0 },
+          { mes: "MARZO", litros: 0 },
+          { mes: "ABRIL", litros: 0 },
+          { mes: "MAYO", litros: 0 },
+          { mes: "JUNIO", litros: 0 },
+          { mes: "JULIO", litros: 0 },
+          { mes: "AGOSTO", litros: 0 },
+          { mes: "SEPTIEMBRE", litros: 0 },
+          { mes: "OCTUBRE", litros: 0 },
+          { mes: "NOVIEMBRE", litros: 0 },
+          { mes: "DICIEMBRE", litros: 0 },
+        ],
+      };
+      let objeto = {
+        databaseName: "erp_" + this.token.rfc,
+        año: año,
+        tipo: tipo,
+        combustible: item,
+        noCre: noCre,
+      };
+      console.log(objeto);
+      try {
+        let response = await axios.post(
+          this.rutaAxios + "Gasolineros/GetLitrosGasolinerosCVAsync",
+          objeto
+        );
+        let x = response.data;
+        console.log("GetComparativaGAS response", response.data);
+        return x;
+      } catch (error) {
+        return ObjInicial;
+      }
+    },
+   async GetReporteTodos() {
+  const anio = this.selectedAnio;
+  const rangos = this.generarRangosPorMes(anio, 1, this.selectedMesF.value);
+
+  this.dataVentas = [];
+
+  const sumar = (arr, campo) =>
+    arr.reduce((acc, o) => acc + (Number(o[campo]) || 0), 0);
+
+  const camposTotales = [
+    "cantidad", "comparativa", "diferencia", "subTotal", "descuento",
+    "iva", "ieps", "total", "ventas", "comprobantes",
+  ];
+
+  try {
+    this.$q.loading.show({
+      spinner: QSpinnerCube,
+      spinnerColor: "red-8",
+      spinnerSize: 140,
+      message: "Obteniendo comparativas...",
+    });
+
+    const [magna, premium, diesel] = await Promise.all([
+      this.GetComparativaGAS(anio.toString(), "VENTAS", "MAGNA"),
+      this.GetComparativaGAS(anio.toString(), "VENTAS", "PREMIUM"),
+      this.GetComparativaGAS(anio.toString(), "VENTAS", "DIESEL"),
+    ]);
+    const comparativas = { MAGNA: magna, PREMIUM: premium, DIESEL: diesel };
+
+    for (const r of rangos) {
+      this.$q.loading.show({
+        spinner: QSpinnerCube,
+        spinnerColor: "red-8",
+        spinnerSize: 140,
+        message: `Generando reporte de Ventas de ${r.inicio} al ${r.fin}...`,
+      });
+
+      const { data } = await axios.get(
+        `${this.rutaAxios}Gasolineros/GetVentasGasolinasAsync/erp_${this.token.rfc}/${r.inicio}/${r.fin}`
+      );
+
+      const mesInicio = new Date(r.inicio + "T12:00:00").getMonth() + 1;
+      const mesFin = new Date(r.fin + "T12:00:00").getMonth() + 1;
+
+      const filas = data.map((item) => {
+        const comparativa =
+          this.calcularComparativa(comparativas[item.producto] ?? null, mesInicio, mesFin) ?? 0;
+        return {
+          ...item,
+          comparativa,
+          diferencia: item.cantidad - comparativa,
+        };
+      });
+
+      const filaTotal = { detalles: [], producto: "Total" };
+      camposTotales.forEach((c) => (filaTotal[c] = sumar(filas, c)));
+
+      // Un arreglo por mes
+      this.dataVentas.push([...filas, filaTotal]);
+    }
+
+    console.log("Datos totales ventas:", this.dataVentas);
+  } catch (error) {
+    console.error("Error al generar reporte de ventas:", error);
+    this.$q.notify({ type: "negative", message: "Error al generar el reporte de ventas" });
+  } finally {
+    this.$q.loading.hide();
+  }
+},
+    calcularComparativa(objComparativa, mesInicial, mesFinal) {
+      console.log("calcularComparativa", objComparativa, mesInicial, mesFinal);
+      if (!objComparativa?.detalle) return 0;
+
+      return objComparativa.detalle
+        .filter((d) => {
+          const mesIndex = this.itemsMes.findIndex((m) => m.label === d.mes) + 1;
+          return mesIndex >= mesInicial && mesIndex <= mesFinal;
+        })
+        .reduce((a, d) => a + parseFloat(d.litros), 0);
     },
 
-    async GetReporteComprasTodos() {
-      const anio = this.selectedAnio;
-      const mesInicial = 1;
-      const mesFinal = this.selectedMesF.value;
+   async GetReporteComprasTodos() {
+  const anio = this.selectedAnio;
+  const rangos = this.generarRangosPorMes(anio, 1, this.selectedMesF.value);
 
-      const rangos = this.generarRangosPorMes(anio, mesInicial, mesFinal);
+  this.dataCompras = [];
 
-      this.dataCompras = [];
+  const sumar = (arr, campo) =>
+    arr.reduce((acc, o) => acc + (Number(o[campo]) || 0), 0);
 
-      for (const r of rangos) {
-        this.$q.loading.show({
-          spinner: QSpinnerCube,
-          spinnerColor: "red-8",
-          spinnerSize: 140,
-          message: "Gerando reporte de Compras de " + r.inicio + " al " + r.fin + "...",
-        });
+  const camposTotales = [
+    "cantidad", "comparativa", "diferencia", "subTotal", "descuento",
+    "iva", "ieps", "total", "ventas", "comprobantes",
+  ];
 
-        const response = await axios.get(
-          `${this.rutaAxios}Gasolineros/GetComprasGasolineriasAsync/erp_${this.token.rfc}/${r.inicio}/${r.fin}`
-        );
-        this.$q.loading.hide();
-        let x = [];
-        x = response.data;
-        //VAMOS A CALCULAR LOS TOTALES
-        let objetoTotales = {
-          detalles: [],
-          producto: "Total",
-          cantidad: x.reduce((acumulador, objeto) => acumulador + objeto.cantidad, 0),
-          subTotal: x.reduce((acumulador, objeto) => acumulador + objeto.subTotal, 0),
-          descuento: x.reduce((acumulador, objeto) => acumulador + objeto.descuento, 0),
-          iva: x.reduce((acumulador, objeto) => acumulador + objeto.iva, 0),
-          ieps: x.reduce((acumulador, objeto) => acumulador + objeto.ieps, 0),
-          total: x.reduce((acumulador, objeto) => acumulador + objeto.total, 0),
-          ventas: x.reduce((acumulador, objeto) => acumulador + objeto.ventas, 0),
-          comprobantes: x.reduce(
-            (acumulador, objeto) => acumulador + objeto.comprobantes,
-            0
-          ),
+  try {
+    this.$q.loading.show({
+      spinner: QSpinnerCube,
+      spinnerColor: "red-8",
+      spinnerSize: 140,
+      message: "Obteniendo comparativas...",
+    });
+
+    const [magna, premium, diesel] = await Promise.all([
+      this.GetComparativaGAS(anio.toString(), "COMPRAS", "MAGNA"),
+      this.GetComparativaGAS(anio.toString(), "COMPRAS", "PREMIUM"),
+      this.GetComparativaGAS(anio.toString(), "COMPRAS", "DIESEL"),
+    ]);
+    const comparativas = { MAGNA: magna, PREMIUM: premium, DIESEL: diesel };
+
+    for (const r of rangos) {
+      this.$q.loading.show({
+        spinner: QSpinnerCube,
+        spinnerColor: "red-8",
+        spinnerSize: 140,
+        message: `Generando reporte de Compras de ${r.inicio} al ${r.fin}...`,
+      });
+
+      const { data } = await axios.get(
+        `${this.rutaAxios}Gasolineros/GetComprasGasolineriasAsync/erp_${this.token.rfc}/${r.inicio}/${r.fin}`
+      );
+
+      const mesInicio = new Date(r.inicio + "T12:00:00").getMonth() + 1;
+      const mesFin = new Date(r.fin + "T12:00:00").getMonth() + 1;
+
+      const filas = data.map((item) => {
+        const comparativa =
+          this.calcularComparativa(comparativas[item.producto] ?? null, mesInicio, mesFin) ?? 0;
+        return {
+          ...item,
+          comparativa,
+          diferencia: item.cantidad - comparativa,
         };
-        x.push(objetoTotales);
+      });
 
-        this.dataCompras.push(x);
-      }
-      this.$q.loading.hide();
+      const filaTotal = { detalles: [], producto: "Total" };
+      camposTotales.forEach((c) => (filaTotal[c] = sumar(filas, c)));
 
-      console.log("Datos totales:", this.dataCompras);
-    },
+      // Un arreglo por mes
+      this.dataCompras.push([...filas, filaTotal]);
+    }
+
+    console.log("Datos totales compras:", this.dataCompras);
+  } catch (error) {
+    console.error("Error al generar reporte de compras:", error);
+    this.$q.notify({ type: "negative", message: "Error al generar el reporte de compras" });
+  } finally {
+    this.$q.loading.hide();
+  }
+},
 
     // GET REPORTE DE INVENTARIOS
     async GetReporteInventario() {
@@ -7397,12 +7341,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetVentasLitrosMesAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Gasolineros/GetVentasLitrosMesAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         return x;
@@ -7417,12 +7361,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetComprasLitrosMesAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Gasolineros/GetComprasLitrosMesAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         return x;
@@ -7441,12 +7385,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Inicial/" +
-            item
+          "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Inicial/" +
+          item
         );
         let x = response.data;
         return x;
@@ -7478,12 +7422,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Merma/" +
-            item
+          "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Merma/" +
+          item
         );
         let x = response.data;
         return x;
@@ -7841,12 +7785,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetVentasSubTotalMesAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Gasolineros/GetVentasSubTotalMesAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         console.log(x);
@@ -7862,12 +7806,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetComprasSubTotalMesAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Gasolineros/GetComprasSubTotalMesAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         return x;
@@ -7899,12 +7843,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/Comparativa/" +
-            item
+          "Gasolineros/GetLitrosGasolinerosAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/Comparativa/" +
+          item
         );
         let x = response.data;
         return x;
@@ -7914,15 +7858,15 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
     },
 
     async GetReporteGastosDifRegimenAsync(rfc, fechaI, fechaF) {
-  try {
-    const curl = `${this.rutaAxios}Gastos/GetReporteGastosDifRegimenAsync/erp_${rfc}/${fechaI}/${fechaF}`;
-    const response = await axios.get(curl);
-    return response.data;
-  } catch (error) {
-    console.log(error);
-    return [];
-  }
-},
+      try {
+        const curl = `${this.rutaAxios}Gastos/GetReporteGastosDifRegimenAsync/erp_${rfc}/${fechaI}/${fechaF}`;
+        const response = await axios.get(curl);
+        return response.data;
+      } catch (error) {
+        console.log(error);
+        return [];
+      }
+    },
 
     // ▶ Ejecutar una sola función
     async runTask(index) {
@@ -8214,12 +8158,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
 
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fechaI +
-            "/" +
-            fechaF
+          "Gastos/GetReporteIvaRetenidoNeteadoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fechaI +
+          "/" +
+          fechaF
         );
         ivaRetenido = response.data;
         let mesFin = this.selectedMesF.value;
@@ -8316,12 +8260,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/ReporteConceptoAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Ingresos/ReporteConceptoAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         this.dataComprobantesConceptos = [...x];
@@ -8373,12 +8317,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetReporteAnticiposAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Gastos/GetReporteAnticiposAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         this.dataAnticiposGastos = x.filter((x) => x.total != x.totalNc);
@@ -8408,12 +8352,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetReporteAnticiposAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Ingresos/GetReporteAnticiposAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         this.dataAnticiposIngresos = x.filter((x) => x.total != x.totalNc);
@@ -8442,12 +8386,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Gastos/GetCxPAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Gastos/GetCxPAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         this.dataCuentasPagar = x.filter((x) => x.porPagar < 0);
@@ -8486,12 +8430,12 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "Ingresos/GetCxCAsync/erp_" +
-            this.token.rfc +
-            "/" +
-            fI +
-            "/" +
-            fF
+          "Ingresos/GetCxCAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          fI +
+          "/" +
+          fF
         );
         let x = response.data;
         this.dataCuentasCobrar = x.filter((x) => x.porCobrar < 0);
@@ -8601,14 +8545,14 @@ console.log(ivaRetenidoE, "ivaRetenidoE");
       try {
         let response = await axios.get(
           this.rutaAxios +
-            "ReporteGeneral/GetDeclaracionesAnuelaes/" +
-            this.token.rfc +
-            "/" +
-            this.selectedAnio +
-            "/" +
-            this.selectedMesI.label +
-            "/" +
-            this.selectedMesF.label
+          "ReporteGeneral/GetDeclaracionesAnuelaes/" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio +
+          "/" +
+          this.selectedMesI.label +
+          "/" +
+          this.selectedMesF.label
         );
         let x = response.data;
         console.log("declaraciones", x);

@@ -531,6 +531,7 @@ export default {
         },
 
         calcularComparativa(objComparativa, mesInicial, mesFinal) {
+            console.log('objComparativa', objComparativa,  mesInicial, mesFinal)
             if (!objComparativa?.detalle) return 0
             return objComparativa.detalle
                 .filter(d => {
