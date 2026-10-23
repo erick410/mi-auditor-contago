@@ -2785,7 +2785,7 @@ if (listaNegraArray.length != 0) {
     doc.setFontSize(11);
     y = agregarTextoConSaltos(
       doc,
-      "Comprobantes recibidos donde el régimen fiscal del receptor es distinto al régimen fiscal registrado del emisor.",
+      "Comprobantes recibidos donde el régimen fiscal facturado es distinto al régimen fiscal registrado del receptor.",
       40, y, 520, 14
     );
     y += 5;
