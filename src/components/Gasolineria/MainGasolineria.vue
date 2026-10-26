@@ -113,6 +113,16 @@
                         </q-item-section>
                     </q-item>
                     <q-separator />
+
+                    <q-item active clickable v-ripple @click="irReporteJson">
+                        <q-item-section avatar>
+                            <q-icon name="mdi-file-document-plus" />
+                        </q-item-section>
+                        <q-item-section>
+                            Reporte Mensual JSON
+                        </q-item-section>
+                    </q-item>
+                    <q-separator />
                     <!-- <q-item active clickable v-ripple @click="irReporteViajes">
                         <q-item-section avatar>
                             <q-icon name="mdi-file-document-plus" />
@@ -203,6 +213,11 @@ export default {
         irReporteSubTotalGasolineria() {
             this.$router.push({ name: 'ReporteSubTotalGasolineria' })
         },
+
+        irReporteJson() {
+            this.$router.push({ name: 'VisorCovol' })
+        },
+
         irInicio() {
             this.$router.push({ name: 'Home' })
         },

@@ -84,6 +84,7 @@ import ReporteLitrosGasolineria from "../components/Gasolineria/ReporteLitrosGas
 import ReporteSubTotalGasolineria from "../components/Gasolineria/ReporteSubTotalGasolineria.vue";
 import MonederoElectronico from "../components/Gasolineria/MonederoElectronico.vue";
 import ReporteViajes from "../components/Gasolineria/ReporteViajes.vue";
+import VisorCovol from "../components/Gasolineria/VisorReporteMensual/VisorCovol.vue";
 
 import Lista69B from "../components/Lista69B/Lista69B.vue";
 import ReporteEmpresarial from "../components/ReporteEmpresarial/ReporteEmpresarial.vue";
@@ -661,6 +662,13 @@ const routes = [
         path: "ReporteViajes",
         component: ReporteViajes,
         name: "ReporteViajes",
+        meta: { Administrador: false, Gasolinero: true },
+      },
+
+      {
+        path: "VisorCovol",
+        component: VisorCovol,
+        name: "VisorCovol",
         meta: { Administrador: false, Gasolinero: true },
       },
     ],
