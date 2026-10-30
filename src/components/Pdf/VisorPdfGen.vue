@@ -187,7 +187,7 @@
                             // base64 = await ComprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
                             break;
                         case "NOTA CREDITO":
-                            base64 = await ComprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
+                            base64 = await pdfComprobante.comprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
                             break;
                         case "PAGO":
                             base64 = await Pago20Base64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
@@ -261,7 +261,7 @@
                             base64 = await ComercioExterior20(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
                             break;
                             case "NOTA CREDITO":
-                            base64 = await ComprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
+                            base64 = await pdfComprobante.comprobanteBase64(x, x.tipoComprobanteInterno, x.estatus, color, codigoQR, logo);
                             break;
                     }
                     this.pdfBase64 = 'data:application/pdf;base64,' + base64.split(',')[1];

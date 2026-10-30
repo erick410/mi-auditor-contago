@@ -188,8 +188,10 @@ const agregarPaginaFlujoComparativa = async (
 
   const agrupado = agruparPorMoneda(resumen)
 
+  console.log("agrupado", agrupado)
+
   Object.keys(agrupado).forEach(moneda => {
-console.log(moneda)
+    console.log(moneda)
     y = agregarTextoConSaltos(doc, "COMPARATIVA FLUJO EMITIDO - RECIBIDO (" + moneda.toUpperCase() + ")", 40, y, 520, 14);
     y += 5; // espacio entre secciones
 
@@ -272,8 +274,10 @@ console.log(moneda)
     y = doc.lastAutoTable.finalY + 20;
 
   })
+    y = doc.lastAutoTable.finalY + 20;
 
 };
+
 
 
 // --- JUSTIFICAR TEXTO ---
@@ -2663,7 +2667,9 @@ export async function generarReporte(
 
   }
 
+const listaNegraArray = Array.isArray(datosListasNegras) ? datosListasNegras : [];
 
+if (listaNegraArray.length != 0 && proveedores69B.length != 0 && datosGastosDifRegimen && datosGastosDifRegimen.length != 0) {
   doc.setFontSize(10);
   doc.setFont("helvetica", "bold");
   y = agregarTextoConSaltos(doc, "RIESGO FISCAL", 40, y, 520, 14);
@@ -2681,11 +2687,10 @@ export async function generarReporte(
   );
 
   y += 20;
-
+}
   // ===== LISTAS NEGRAS / 69-B / NO LOCALIZADOS =====
-const listaNegraArray = Array.isArray(datosListasNegras) ? datosListasNegras : [];
 
-if (listaNegraArray.length != 0) {
+if (listaNegraArray.length != 0 ) {
   doc.setFontSize(9);
   doc.setFont("helvetica", "bold");
   y = agregarTextoConSaltos(doc, "PROVEEDORES EN LISTA NEGRA / 69-B / NO LOCALIZADOS", 40, y, 520, 14);
@@ -3386,18 +3391,20 @@ if (listaNegraArray.length != 0) {
 
   y = doc.lastAutoTable.finalY + 20;
 
-  if (dataComprobantesConceptos.length != 0) {
+  console.log("dataComprobantesConceptos", dataComprobantesConceptos);
+
+ const dataOrdenada = dataComprobantesConceptos
+      .filter(x => x.diferencia > 20000 || x.diferencia < -20000)
+      .sort((a, b) => b.diferencia - a.diferencia)
+
+  console.log("dataOrdenada", dataOrdenada);
+
+  if (dataOrdenada.length != 0) {
 
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
     y = agregarTextoConSaltos(doc, "COMPARATIVA POR CONCEPTO", 40, y, 520, 14);
     y += 5; // espacio entre secciones
-
-
-
-    const dataOrdenada = dataComprobantesConceptos
-      .filter(x => x.diferencia > 20000 || x.diferencia < -20000)
-      .sort((a, b) => b.diferencia - a.diferencia)
 
     autoTable(doc, {
       startY: y,

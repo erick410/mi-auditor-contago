@@ -328,7 +328,7 @@ static _crearDocDefinition(f, opciones = {}) {
                     { text: f.receptor.nombre, bold: true, margin: [0, 5, 0, 2] },
                     { text: `RFC: ${f.receptor.rfc}`, style: 'mono' },
                     { text: `Régimen fiscal: ${f.receptor.regimenFiscalReceptor.regimenFiscal}`, margin: [0, 2, 0, 0], fontSize: 8.5 },
-                    { text: `Uso de CFDI: ${f.receptor.usoCfdi.usoCfdi}`, margin: [0, 2, 0, 0], fontSize: 8.5 },
+                    { text: `Uso de CFDI: ${f.receptor.usoCfdi?.usoCfdi ? f.receptor.usoCfdi.usoCfdi : ''}`, margin: [0, 2, 0, 0], fontSize: 8.5 },
                     { text: `Domicilio fiscal (C.P.): ${f.receptor.domicilioFiscalReceptor}`, margin: [0, 2, 0, 0], fontSize: 8.5 }
                 ],
                 margin: [10, 6, 10, 6]
