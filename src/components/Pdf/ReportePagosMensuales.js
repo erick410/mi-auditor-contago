@@ -2668,79 +2668,80 @@ export async function generarReporte(
   }
 
 const listaNegraArray = Array.isArray(datosListasNegras) ? datosListasNegras : [];
+const proveedores69B = (datosListasNegras || []).filter(p => extraerEstadoListaNegra(p.lista69B));
 
-if (listaNegraArray.length != 0 && proveedores69B.length != 0 && datosGastosDifRegimen && datosGastosDifRegimen.length != 0) {
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "bold");
-  y = agregarTextoConSaltos(doc, "RIESGO FISCAL", 40, y, 520, 14);
-  y += 5; // espacio entre secciones
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  y = agregarTextoConSaltos(
-    doc,
-    "A continuación se relacionan los comprobantes que no cumplan con el anexo 20 de la RMF por lo que puede la autoridad rechazarlos.",
-    40,
-    y,
-    520,
-    14
-  );
-
-  y += 20;
+if(listaNegraArray){
+  if (listaNegraArray.length != 0 && proveedores69B.length != 0 && datosGastosDifRegimen && datosGastosDifRegimen.length != 0) {
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "RIESGO FISCAL", 40, y, 520, 14);
+    y += 5; // espacio entre secciones
+  
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    y = agregarTextoConSaltos(
+      doc,
+      "A continuación se relacionan los comprobantes que no cumplan con el anexo 20 de la RMF por lo que puede la autoridad rechazarlos.",
+      40,
+      y,
+      520,
+      14
+    );
+  
+    y += 20;
+  }
+    // ===== LISTAS NEGRAS / 69-B / NO LOCALIZADOS =====
+  
+  if (listaNegraArray.length != 0 ) {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "bold");
+    y = agregarTextoConSaltos(doc, "PROVEEDORES EN LISTA NEGRA / 69-B / NO LOCALIZADOS", 40, y, 520, 14);
+    y += 5;
+  
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+    y = agregarTextoConSaltos(
+      doc,
+      "Se relacionan los proveedores que aparecen en el listado de contribuyentes no localizados, en la lista negra del SAT, o en el listado del artículo 69-B del Código Fiscal de la Federación.",
+      40, y, 520, 14
+    );
+    y += 5;
+  
+    const dataOrdenadaListaNegra = [...listaNegraArray].sort((a, b) => {
+      const orden = { rojo: 0, amarillo: 1, verde: 2 };
+      return orden[evaluarRiesgoProveedorListaNegra(a)] - orden[evaluarRiesgoProveedorListaNegra(b)];
+    });
+  
+    autoTable(doc, {
+      startY: y,
+      head: [["RFC", "Nombre", "Lista Negra", "69-B", "No Localizado"]],
+      body: dataOrdenadaListaNegra.map((x) => [
+        x.rfc,
+        x.nombre,
+        x.listaNegra || "—",
+        x.lista69B || "—",
+        x.noLocalizado || "—",
+      ]),
+      headStyles: { fillColor: "#E74747", textColor: "#FFF", fontSize: 6, halign: "center", valign: "middle" },
+      styles: { fontSize: 6, cellPadding: 3 },
+      columnStyles: { 2: { halign: "center" }, 3: { halign: "center" }, 4: { halign: "left" } },
+      didParseCell: function (data) {
+        if (data.section === "body") {
+          const riesgo = evaluarRiesgoProveedorListaNegra(dataOrdenadaListaNegra[data.row.index]);
+          const c = colorFilaRiesgo(riesgo);
+          if (c) { data.cell.styles.fillColor = c.fill; data.cell.styles.textColor = c.text; }
+        }
+      },
+      didDrawPage: function (data) {
+        const page = doc.internal.getNumberOfPages();
+        doc.setFontSize(9);
+        doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, { align: "center" });
+      },
+    });
+    y = doc.lastAutoTable.finalY + 20;
+  }
 }
-  // ===== LISTAS NEGRAS / 69-B / NO LOCALIZADOS =====
-
-if (listaNegraArray.length != 0 ) {
-  doc.setFontSize(9);
-  doc.setFont("helvetica", "bold");
-  y = agregarTextoConSaltos(doc, "PROVEEDORES EN LISTA NEGRA / 69-B / NO LOCALIZADOS", 40, y, 520, 14);
-  y += 5;
-
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(11);
-  y = agregarTextoConSaltos(
-    doc,
-    "Se relacionan los proveedores que aparecen en el listado de contribuyentes no localizados, en la lista negra del SAT, o en el listado del artículo 69-B del Código Fiscal de la Federación.",
-    40, y, 520, 14
-  );
-  y += 5;
-
-  const dataOrdenadaListaNegra = [...listaNegraArray].sort((a, b) => {
-    const orden = { rojo: 0, amarillo: 1, verde: 2 };
-    return orden[evaluarRiesgoProveedorListaNegra(a)] - orden[evaluarRiesgoProveedorListaNegra(b)];
-  });
-
-  autoTable(doc, {
-    startY: y,
-    head: [["RFC", "Nombre", "Lista Negra", "69-B", "No Localizado"]],
-    body: dataOrdenadaListaNegra.map((x) => [
-      x.rfc,
-      x.nombre,
-      x.listaNegra || "—",
-      x.lista69B || "—",
-      x.noLocalizado || "—",
-    ]),
-    headStyles: { fillColor: "#E74747", textColor: "#FFF", fontSize: 6, halign: "center", valign: "middle" },
-    styles: { fontSize: 6, cellPadding: 3 },
-    columnStyles: { 2: { halign: "center" }, 3: { halign: "center" }, 4: { halign: "left" } },
-    didParseCell: function (data) {
-      if (data.section === "body") {
-        const riesgo = evaluarRiesgoProveedorListaNegra(dataOrdenadaListaNegra[data.row.index]);
-        const c = colorFilaRiesgo(riesgo);
-        if (c) { data.cell.styles.fillColor = c.fill; data.cell.styles.textColor = c.text; }
-      }
-    },
-    didDrawPage: function (data) {
-      const page = doc.internal.getNumberOfPages();
-      doc.setFontSize(9);
-      doc.text(`Página ${page}`, 300, doc.internal.pageSize.height - 20, { align: "center" });
-    },
-  });
-  y = doc.lastAutoTable.finalY + 20;
-}
-
   // ===== LISTA 69-B =====
-  const proveedores69B = (datosListasNegras || []).filter(p => extraerEstadoListaNegra(p.lista69B));
   if (proveedores69B.length != 0) {
     doc.setFontSize(9);
     doc.setFont("helvetica", "bold");
