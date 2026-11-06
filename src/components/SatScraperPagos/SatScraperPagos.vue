@@ -43,7 +43,7 @@
             </q-card>
 
             <!-- Resultado -->
-            <q-card flat bordered v-if="resultado !== null" class="full-width">
+            <q-card flat bordered v-if="resultado !== null && resultado.data" class="full-width">
                 <q-card-section>
                     <div class="card-main full-width tabs-row">
                         <button class="tab-btn" :class="{ active: tab === 'isr' }" @click="tab = 'isr'">ISR</button>
@@ -61,17 +61,22 @@
                             label="Registrar">
                             <template v-slot:loading><q-spinner-dots color="white" /></template>
                         </q-btn>
-                        <button v-if="resultadoDataZip != ''" class="tab-btn active"
-                            @click="descargarZipGuardado(resultadoDataZip._id)">Descargar Zip
-                        </button>
+                        <q-btn v-if="resultadoDataZip && resultadoDataZip._id" :loading="loadingDescarga" unelevated
+                            rounded color="primary" @click="descargarZipGuardado(resultadoDataZip._id)"
+                            label="Descargar Zip">
+                            <template v-slot:loading><q-spinner-dots color="white" /></template>
+                        </q-btn>
                         <q-btn v-else :loading="loadingDescarga" unelevated rounded color="primary"
                             @click="descargarPDF()" label="Descargar Zip">
                             <template v-slot:loading><q-spinner-dots color="white" /></template>
                         </q-btn>
-                        <q-btn  :loading="loading" unelevated rounded color="primary"
+                        <q-btn :loading="loading" unelevated rounded color="primary"
                             @click="consultar()" label="VOLVER A CONSULTAR AL SAT">
                             <template v-slot:loading><q-spinner-dots color="white" /></template>
                         </q-btn>
+                    </div>
+                    <div v-if="resultado.cached" class="text-orange-9 text-caption q-mt-xs">
+                        El SAT no respondió; se muestran los últimos datos disponibles.
                     </div>
                 </q-card-section>
 
@@ -231,7 +236,6 @@
                                 <thead class="table-head">
                                     <tr>
                                         <th>Concepto</th>
-                                        <!-- Cada columna muestra el tipo_declaracion de ESE concepto específico -->
                                         <th v-for="d in datosOrdenados" :key="d.periodo" style="text-align:center">
                                             {{ d.periodo }}<br>{{ getTipoDeclaracion(d, concepto) }}
                                         </th>
@@ -318,13 +322,28 @@
 <script>
 import axios from "axios";
 
+const SCRAPER = 'https://satscraper.contago.com.mx';
+
 const ORDEN_MESES = {
     'Enero': 1, 'Febrero': 2, 'Marzo': 3, 'Abril': 4,
     'Mayo': 5, 'Junio': 6, 'Julio': 7, 'Agosto': 8,
     'Septiembre': 9, 'Octubre': 10, 'Noviembre': 11, 'Diciembre': 12,
 };
 
+const MESES = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+const ENE_FEB = ['Enero', 'Febrero'];
+const MAR_DIC = ['Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
 const capMes = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// ArrayBuffer → base64 sin recorrer byte por byte
+const bufferToBase64 = buf => new Promise((resolve, reject) => {
+    const fr = new FileReader();
+    fr.onload = () => resolve(fr.result.split(',')[1]);
+    fr.onerror = reject;
+    fr.readAsDataURL(new Blob([buf]));
+});
 
 export default {
     data() {
@@ -341,13 +360,9 @@ export default {
             loadingRegistrar: false,
             resultado: null,
             resultadoDataZip: null,
+            jobId: null,
             error: false,
-            mesesOpciones: [
-                'TODOS',
-                'ENERO', 'FEBRERO', 'MARZO', 'ABRIL',
-                'MAYO', 'JUNIO', 'JULIO', 'AGOSTO',
-                'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE',
-            ],
+            mesesOpciones: ['TODOS', ...MESES],
             anios: Array.from({ length: 6 }, (_, i) => String(anioActual - i)),
             tab: 'isr',
         };
@@ -356,22 +371,21 @@ export default {
     computed: {
         token() { return this.$store.state.usuario; },
         rutaAxios() { return this.$store.state.rutaMongoStore; },
+        headersScraper() { return { 'X-API-KEY': this.form.apiKey }; },
 
         datosOrdenados() {
-            if (!this.resultado?.data) return [];
+            if (!Array.isArray(this.resultado?.data)) return [];
             return [...this.resultado.data].sort(
                 (a, b) => (ORDEN_MESES[a.periodo] ?? 99) - (ORDEN_MESES[b.periodo] ?? 99)
             );
         },
 
-        // Concepto ISR principal detectado del primer periodo disponible
         conceptoISRPrincipal() {
             const d = this.datosOrdenados[0];
             if (!d) return 'ISRPERSONASMORALES';
             return this.getConceptoISR(d);
         },
 
-        // Concepto IVA principal detectado del primer periodo disponible
         conceptoIVAPrincipal() {
             const d = this.datosOrdenados[0];
             if (!d) return 'IVA.PERSONASMORALES';
@@ -380,11 +394,10 @@ export default {
 
         // Todos los conceptos que NO son ISR principal ni IVA principal
         conceptosISR() {
-            if (!this.resultado?.data) return [];
             const ISR_PRINCIPALES = new Set(['ISRPERSONASMORALES', 'ISRSIMPLIFICADODECONFIANZA.PERSONASMORALES']);
             const IVA_PRINCIPALES = new Set(['IVA.PERSONASMORALES', 'IVASIMPLIFICADODECONFIANZA']);
             const set = new Set();
-            this.resultado.data.forEach(d =>
+            this.datosOrdenados.forEach(d =>
                 d.analisis.impuestos
                     ?.filter(i => !ISR_PRINCIPALES.has(i.concepto) && !IVA_PRINCIPALES.has(i.concepto))
                     .forEach(i => set.add(i.concepto))
@@ -409,30 +422,24 @@ export default {
 
         // ── Acceso a impuestos ────────────────────────────────────────────────
 
-        // Busca un impuesto por concepto exacto; regresa {a_cargo:0,a_favor:0} si no existe
         getImpuesto(d, concepto) {
             return d.analisis.impuestos?.find(i => i.concepto === concepto) ?? { a_cargo: 0, a_favor: 0 };
         },
 
-        // ISR principal sin importar régimen
         getImpuestoISR(d) {
             return this.getImpuesto(d, this.getConceptoISR(d));
         },
 
-        // IVA principal sin importar régimen
         getImpuestoIVA(d) {
             return this.getImpuesto(d, this.getConceptoIVA(d));
         },
 
-        // Tipo de declaración de un concepto específico dentro del periodo
-        // (cada impuesto puede ser Normal o Complementaria de forma independiente)
         getTipoDeclaracion(d, concepto) {
             return d.analisis.impuestos?.find(i => i.concepto === concepto)?.tipo_declaracion ?? '—';
         },
 
         // ── Resaltado ISR ─────────────────────────────────────────────────────
 
-        // Complementaria si el ISR principal del periodo es Complementaria
         esComplementaria(d) {
             return this.getTipoDeclaracion(d, this.getConceptoISR(d)) === 'Complementaria';
         },
@@ -449,20 +456,17 @@ export default {
             return ganadorIdx;
         },
 
-        esMaxCoeficiente(d) {
-            const fn = x => x.analisis.determinacion_isr.coeficiente_utilidad;
-            const eneFeb = ['Enero', 'Febrero'];
-            const marDic = ['Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            const idx = this._idxMax(eneFeb.includes(d.periodo) ? eneFeb : marDic, fn);
+        _esMax(d, fn) {
+            const idx = this._idxMax(ENE_FEB.includes(d.periodo) ? ENE_FEB : MAR_DIC, fn);
             return idx !== null && this.datosOrdenados[idx] === d;
         },
 
+        esMaxCoeficiente(d) {
+            return this._esMax(d, x => x.analisis.determinacion_isr.coeficiente_utilidad);
+        },
+
         esMaxPerdida(d) {
-            const fn = x => x.analisis.determinacion_isr.perdida_ejercicios_anteriores_aplicables;
-            const eneFeb = ['Enero', 'Febrero'];
-            const marDic = ['Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            const idx = this._idxMax(eneFeb.includes(d.periodo) ? eneFeb : marDic, fn);
-            return idx !== null && this.datosOrdenados[idx] === d;
+            return this._esMax(d, x => x.analisis.determinacion_isr.perdida_ejercicios_anteriores_aplicables);
         },
 
         // ── Etiquetas legibles ────────────────────────────────────────────────
@@ -482,32 +486,32 @@ export default {
             return map[concepto] ?? concepto;
         },
 
-        // ── Helper periodo por nombre ─────────────────────────────────────────
-        // Un solo registro por periodo en la nueva estructura
         _getPeriodo(nombreMes) {
             const nombre = capMes(nombreMes);
-            return this.resultado.data.find(x => x.periodo === nombre);
+            return this.datosOrdenados.find(x => x.periodo === nombre);
         },
 
-        // ── API ───────────────────────────────────────────────────────────────
+        // ── Datos guardados en Mongo ──────────────────────────────────────────
 
         async getDescargaScraper() {
             this.loading = true;
             this.resultado = null;
+            this.resultadoDataZip = null;
+            this.jobId = null;
             this.getDescargaZipScraper();
             try {
                 const response = await axios.get(
                     `${this.rutaAxios}ScraperDescargasPagos/GetDescarpaScraper/${this.token.rfc}/${this.form.anio}/${this.form.meses}`
                 );
-                console.log('Respuesta del scraper:', response.data);
-                
-                if (response.data !== '') {
-                    try { this.resultado = JSON.parse(response.data.respuesta); } catch { /* sigue al scraper */ }
+                if (response.data && response.data.respuesta) {
+                    try {
+                        this.resultado = JSON.parse(response.data.respuesta);
+                        this.jobId = response.data.log_id || this.resultado?.job_id || null;
+                    } catch { /* sigue al scraper */ }
                 }
                 if (!this.resultado) await this.consultar();
             } catch (err) {
                 this.error = true;
-                this.resultado = err.response?.data || { message: err.message };
                 this.$q.notify({ type: 'negative', message: 'Error al consultar', position: 'top-right' });
             } finally {
                 this.loading = false;
@@ -519,7 +523,7 @@ export default {
                 const r = await axios.get(
                     `${this.rutaAxios}ScraperDescargasPagos/GetDescarpaZipScraper/${this.token.rfc}/${this.form.anio}/${this.form.meses}`
                 );
-                this.resultadoDataZip = r.data;
+                this.resultadoDataZip = r.data || null;
             } catch { /* silencioso */ }
         },
 
@@ -532,122 +536,182 @@ export default {
             }
         },
 
+        // ── API scraper (consulta asíncrona por job_id) ───────────────────────
+
+        // 1. POST /sat/consultas → { job_id, status: 'procesando' }
+        async iniciarConsulta() {
+            const { data } = await axios.post(
+                `${SCRAPER}/sat/consultas`,
+                new URLSearchParams({ rfc: this.form.rfc, anio: this.form.anio, meses: this.form.meses }),
+                { headers: { ...this.headersScraper, 'Content-Type': 'application/x-www-form-urlencoded' } }
+            );
+            if (!data?.job_id) throw new Error('El scraper no devolvió job_id');
+            return data.job_id;
+        },
+
+        // 2. GET /sat/consultas/{job_id} hasta que deje de estar 'procesando'
+        async esperarResultado(jobId, { intervalo = 6000, maxIntentos = 100 } = {}) {
+            for (let i = 0; i < maxIntentos; i++) {
+                const { data } = await axios.get(`${SCRAPER}/sat/consultas/${jobId}`, { headers: this.headersScraper });
+                if (data.status !== 'procesando') return data;
+                await sleep(intervalo);
+            }
+            throw new Error('La consulta al SAT tardó demasiado. Intenta de nuevo.');
+        },
+
         async consultar() {
             this.loading = true;
             this.resultado = null;
             this.error = false;
             try {
-                const { data } = await axios.post(
-                    'https://satscraper.contago.com.mx/sat/consultar-datos',
-                    new URLSearchParams({ rfc: this.form.rfc, anio: this.form.anio, meses: this.form.meses }),
-                    { headers: { 'X-API-KEY': this.form.apiKey, 'Content-Type': 'application/x-www-form-urlencoded' } }
-                );
-                console.log('Consulta SAT exitosa:', data);
-                this.resultado = data;
+                const jobId = await this.iniciarConsulta();
+                const res = await this.esperarResultado(jobId);
+
+                if (res.status === 'error' && !res.cached) {
+                    throw new Error(res.message || res.error || 'El SAT no respondió');
+                }
+
+                this.resultado = res;
+                this.jobId = jobId;
+
+                if (res.cached) {
+                    // Datos de respaldo: se muestran pero no reemplazan lo vigente
+                    this.$q.notify({ type: 'warning', message: 'El SAT falló; se muestran los últimos datos disponibles', position: 'top-right' });
+                    return;
+                }
+
                 await this.saveDescargaScraper({
                     _id: '', periodo: this.form.meses, anio: this.form.anio,
-                    respuesta: JSON.stringify(data, null, 2), log_id: data.log_id,
+                    respuesta: JSON.stringify(res, null, 2), log_id: jobId,
                     estatus: 'Vigente', fecha: new Date().toISOString().slice(0, 10),
                 });
+
+                // Mismo job → ZIP sin volver al SAT; se guarda en el servidor antes de que expire (7 días)
+                this.descargarZip(jobId, { abrir: false }).catch(() => { /* se puede descargar después */ });
+
                 this.$q.notify({ type: 'positive', message: 'Consulta exitosa', position: 'top-right' });
             } catch (err) {
                 this.error = true;
-                this.resultado = err.response?.data || { message: err.message };
-                this.$q.notify({ type: 'negative', message: 'Error al consultar', position: 'top-right' });
+                this.$q.notify({ type: 'negative', message: err.message || 'Error al consultar', position: 'top-right' });
             } finally {
                 this.loading = false;
             }
         },
 
-        async procesarDescargas() {
-            const { data } = await axios.post(
-                'https://satscraper.contago.com.mx/sat/procesar-descargas',
-                new URLSearchParams({ rfc: this.token.rfc, anio: this.form.anio, meses: this.form.meses }),
-                { headers: { 'X-API-KEY': this.form.apiKey, 'Content-Type': 'application/x-www-form-urlencoded' } }
-            );
-            return data.log_id;
-        },
-
-        async esperarDescarga(logId, { intentos = 10, intervalo = 3000 } = {}) {
-            for (let i = 0; i < intentos; i++) {
-                try {
-                    return await axios.get(
-                        `https://satscraper.contago.com.mx/sat/descargar/${logId}`,
-                        { responseType: 'arraybuffer', transformResponse: [d => d], headers: { 'X-API-KEY': this.form.apiKey } }
-                    );
-                } catch (err) {
-                    if ([410, 404].includes(err.response?.status)) await new Promise(r => setTimeout(r, intervalo));
-                    else throw err;
-                }
+        // 3. GET /sat/consultas/{job_id}/zip → ZIP, o PDF directo si solo hay uno
+        async descargarZip(jobId, { abrir = true } = {}) {
+            let r;
+            try {
+                r = await axios.get(`${SCRAPER}/sat/consultas/${jobId}/zip`, {
+                    responseType: 'arraybuffer',
+                    headers: this.headersScraper,
+                });
+            } catch (err) {
+                const msg = {
+                    409: 'La consulta aún está en proceso, intenta en unos segundos',
+                    404: 'No hubo declaraciones en ese periodo',
+                    410: 'Los archivos expiraron; vuelve a consultar al SAT',
+                }[err.response?.status];
+                throw new Error(msg || err.message || 'Error al descargar');
             }
-            throw new Error('Tiempo de espera agotado. El archivo no estuvo disponible.');
+
+            const tipo = r.headers['content-type'] || 'application/zip';
+            const ext = tipo.includes('pdf') ? 'pdf' : 'zip';
+
+            if (abrir) this.guardarBlob(r.data, tipo, `Declaraciones_${this.token.rfc}_${this.form.anio}.${ext}`);
+
+            await axios.post(`${this.rutaAxios}ScraperDescargasPagos/GuardarZip`, {
+                rfc: this.token.rfc, anio: this.form.anio, periodo: this.form.meses,
+                log_id: jobId, fecha: new Date().toISOString().slice(0, 10),
+                archivo: await bufferToBase64(r.data),
+            });
+            await this.getDescargaZipScraper();
         },
 
         async descargarPDF() {
+            const jobId = this.jobId || this.resultado?.job_id;
+            if (!jobId) {
+                this.$q.notify({ type: 'warning', message: 'Vuelve a consultar al SAT para generar los archivos', position: 'top-right' });
+                return;
+            }
             this.loadingDescarga = true;
             try {
-                const logId = await this.procesarDescargas();
-                const response = await this.esperarDescarga(logId);
-                const zipBlob = new Blob([response.data], { type: 'application/zip' });
-                const url = URL.createObjectURL(zipBlob);
-                const a = document.createElement('a');
-                a.href = url; a.download = `Declaraciones_${this.token.rfc}_${this.form.anio}.zip`;
-                a.click(); URL.revokeObjectURL(url);
-                await this.enviarZipBase64(response.data, logId);
+                await this.descargarZip(jobId);
                 this.$q.notify({ type: 'positive', message: 'Descarga iniciada', position: 'top-right' });
             } catch (err) {
-                this.$q.notify({ type: 'negative', message: err.message || 'Error al descargar', position: 'top-right' });
+                this.$q.notify({ type: 'negative', message: err.message, position: 'top-right' });
             } finally {
                 this.loadingDescarga = false;
             }
         },
 
-        async enviarZipBase64(arraybuffer, logId) {
-            const uint8 = new Uint8Array(arraybuffer);
-            let bin = ''; uint8.forEach(b => bin += String.fromCharCode(b));
-            await axios.post(`${this.rutaAxios}ScraperDescargasPagos/GuardarZip`, {
-                rfc: this.token.rfc, anio: this.form.anio, periodo: this.form.meses,
-                log_id: logId, fecha: new Date().toISOString().slice(0, 10), archivo: btoa(bin),
-            });
+        async descargarZipGuardado(_id) {
+            this.loadingDescarga = true;
+            try {
+                const { data } = await axios.get(`${this.rutaAxios}ScraperDescargasPagos/DescargarZip/${this.token.rfc}/${_id}`);
+                const ext = data.ext === 'pdf' ? 'pdf' : 'zip';
+                const tipo = ext === 'pdf' ? 'application/pdf' : 'application/zip';
+                const bytes = Uint8Array.from(atob(data.base64), c => c.charCodeAt(0));
+                this.guardarBlob(bytes, tipo, `Declaraciones_${this.token.rfc}_${this.form.anio}.${ext}`);
+            } catch (err) {
+                this.$q.notify({ type: 'negative', message: err.response?.data || 'Error al descargar', position: 'top-right' });
+            } finally {
+                this.loadingDescarga = false;
+            }
         },
 
-        async descargarZipGuardado(_id) {
-            const { data } = await axios.get(`${this.rutaAxios}ScraperDescargasPagos/DescargarZip/${this.token.rfc}/${_id}`);
-            const bytes = Uint8Array.from(atob(data.base64), c => c.charCodeAt(0));
-            const blob = new Blob([bytes], { type: 'application/zip' });
-            const url = URL.createObjectURL(blob);
+        guardarBlob(data, tipo, nombre) {
+            const url = URL.createObjectURL(new Blob([data], { type: tipo }));
             const a = document.createElement('a');
-            a.href = url; a.download = `Declaraciones_${this.token.rfc}_${this.form.anio}.zip`;
-            a.click(); URL.revokeObjectURL(url);
+            a.href = url; a.download = nombre;
+            a.click();
+            URL.revokeObjectURL(url);
         },
 
         // ── GuardarValores ────────────────────────────────────────────────────
 
         async GuardarValores() {
             this.loadingRegistrar = true;
-            await Promise.all([
-                this.PostCoeficiente(),
-                this.PostPerdida(),
-                this.PostRegistrados(),
-                this.PostIva(),
-                this.PostRetencionesAsimilados(),
-                this.PostRetencionesSueldos(),
-                this.PostRetencionesArrendamientos(),
-                this.PostRetencionesHonorarios(),
-                this.PostRetencionesIVA()
-            ]);
-            this.loadingRegistrar = false;
-            this.$q.notify({ type: 'positive', message: 'Comparativas registradas', position: 'top-right' });
+            try {
+                await Promise.all([
+                    this.PostCoeficiente(),
+                    this.PostPerdida(),
+                    this.PostRegistrados(),
+                    this.PostIva(),
+                    this.PostRetencionesAsimilados(),
+                    this.PostRetencionesSueldos(),
+                    this.PostRetencionesArrendamientos(),
+                    this.PostRetencionesHonorarios(),
+                    this.PostRetencionesIVA(),
+                ]);
+                this.$q.notify({ type: 'positive', message: 'Comparativas registradas', position: 'top-right' });
+            } catch {
+                this.$q.notify({ type: 'negative', message: 'Error al registrar comparativas', position: 'top-right' });
+            } finally {
+                this.loadingRegistrar = false;
+            }
         },
 
         _buildComparativa(tipo, fn) {
-            const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
             return {
                 tipo, anio: this.form.anio,
-                comparativa: meses.map(mes => {
+                comparativa: MESES.map(mes => {
                     const periodo = this._getPeriodo(mes);
                     return { mes, importe: periodo ? (fn(periodo) ?? 0) : 0, ivaCargo: 0, ivaFavor: 0 };
                 }),
+            };
+        },
+
+        // Coeficiente / pérdida: el máximo de Ene-Feb aplica a Ene-Feb y el de Mar-Dic a Mar-Dic
+        _buildComparativaPorBloque(tipo, fn) {
+            const idxEF = this._idxMax(ENE_FEB, fn);
+            const idxMD = this._idxMax(MAR_DIC, fn);
+            const valEF = idxEF !== null ? fn(this.datosOrdenados[idxEF]) : 0;
+            const valMD = idxMD !== null ? fn(this.datosOrdenados[idxMD]) : 0;
+            const ef = new Set(['ENERO', 'FEBRERO']);
+            return {
+                tipo, anio: this.form.anio,
+                comparativa: MESES.map(mes => ({ mes, importe: ef.has(mes) ? valEF : valMD, ivaCargo: 0, ivaFavor: 0 })),
             };
         },
 
@@ -656,48 +720,23 @@ export default {
         },
 
         async PostCoeficiente() {
-            const fn = d => d.analisis.determinacion_isr.coeficiente_utilidad;
-            const eneFeb = ['Enero', 'Febrero'];
-            const marDic = ['Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            const idxEF = this._idxMax(eneFeb, fn);
-            const idxMD = this._idxMax(marDic, fn);
-            const coefEF = idxEF !== null ? fn(this.datosOrdenados[idxEF]) : 0;
-            const coefMD = idxMD !== null ? fn(this.datosOrdenados[idxMD]) : 0;
-            const ef = new Set(['ENERO', 'FEBRERO']);
-            await this._post({
-                tipo: 'Coeficiente', anio: this.form.anio,
-                comparativa: ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
-                    .map(mes => ({ mes, importe: ef.has(mes) ? coefEF : coefMD, ivaCargo: 0, ivaFavor: 0 })),
-            });
+            await this._post(this._buildComparativaPorBloque('Coeficiente',
+                d => d.analisis.determinacion_isr.coeficiente_utilidad));
         },
 
         async PostPerdida() {
-            const fn = d => d.analisis.determinacion_isr.perdida_ejercicios_anteriores_aplicables;
-            const eneFeb = ['Enero', 'Febrero'];
-            const marDic = ['Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            const idxEF = this._idxMax(eneFeb, fn);
-            const idxMD = this._idxMax(marDic, fn);
-            const pfEF = idxEF !== null ? fn(this.datosOrdenados[idxEF]) : 0;
-            const pfMD = idxMD !== null ? fn(this.datosOrdenados[idxMD]) : 0;
-            const ef = new Set(['ENERO', 'FEBRERO']);
-            await this._post({
-                tipo: 'Perdida', anio: this.form.anio,
-                comparativa: ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
-                    .map(mes => ({ mes, importe: ef.has(mes) ? pfEF : pfMD, ivaCargo: 0, ivaFavor: 0 })),
-            });
+            await this._post(this._buildComparativaPorBloque('Perdida',
+                d => d.analisis.determinacion_isr.perdida_ejercicios_anteriores_aplicables));
         },
 
         async PostRegistrados() {
-            await this._post(this._buildComparativa('RegistradosPPIsr', d =>
-                this.getImpuestoISR(d).a_cargo
-            ));
+            await this._post(this._buildComparativa('RegistradosPPIsr', d => this.getImpuestoISR(d).a_cargo));
         },
 
         async PostIva() {
-            const meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
             await this._post({
                 tipo: 'IVA', anio: this.form.anio,
-                comparativa: meses.map(mes => {
+                comparativa: MESES.map(mes => {
                     const p = this._getPeriodo(mes);
                     return {
                         mes,
@@ -711,33 +750,29 @@ export default {
 
         async PostRetencionesAsimilados() {
             await this._post(this._buildComparativa('Asimilados', d =>
-                this.getImpuesto(d, 'ISRRETENCIONESPORASIMILADOSASALARIOS')?.a_cargo ?? 0
-            ));
+                this.getImpuesto(d, 'ISRRETENCIONESPORASIMILADOSASALARIOS').a_cargo ?? 0));
         },
 
         async PostRetencionesSueldos() {
             await this._post(this._buildComparativa('Sueldos', d =>
-                this.getImpuesto(d, 'ISRRETENCIONESPORSALARIOS')?.a_cargo ?? 0
-            ));
+                this.getImpuesto(d, 'ISRRETENCIONESPORSALARIOS').a_cargo ?? 0));
         },
 
         async PostRetencionesArrendamientos() {
             await this._post(this._buildComparativa('Arrendamientos', d =>
-                this.getImpuesto(d, 'R15ISRPORPAGOSPORCUENTADETERCEROSORETENCIONESPORARRENDAMIENTODEINMUEBLES')?.a_cargo ?? 0
-            ));
+                this.getImpuesto(d, 'R15ISRPORPAGOSPORCUENTADETERCEROSORETENCIONESPORARRENDAMIENTODEINMUEBLES').a_cargo ?? 0));
         },
 
         async PostRetencionesHonorarios() {
             await this._post(this._buildComparativa('Honorarios', d =>
-                this.getImpuesto(d, 'R14ISRRETENCIONESPORSERVICIOSPROFESIONALES')?.a_cargo ?? 0
-            ));
+                this.getImpuesto(d, 'R14ISRRETENCIONESPORSERVICIOSPROFESIONALES').a_cargo ?? 0));
         },
 
         async PostRetencionesIVA() {
             await this._post(this._buildComparativa('IVARetenido', d =>
-                this.getImpuesto(d, 'IVARETENCIONES')?.a_cargo ?? 0
-            ));
+                this.getImpuesto(d, 'IVARETENCIONES').a_cargo ?? 0));
         },
+
         // ── Formato ───────────────────────────────────────────────────────────
 
         fmt(n) {
