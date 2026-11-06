@@ -348,7 +348,7 @@ export default {
                 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO',
                 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE',
             ],
-            anios: Array.from({ length: 6 }, (_, i) => String(anioActual - i)),
+            anios: Array.from({ length: 9 }, (_, i) => String(anioActual - i)),
             tab: 'isr',
         };
     },
