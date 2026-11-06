@@ -362,8 +362,13 @@ export default {
             resultadoDataZip: null,
             jobId: null,
             error: false,
-            mesesOpciones: ['TODOS', ...MESES],
-            anios: Array.from({ length: 6 }, (_, i) => String(anioActual - i)),
+            mesesOpciones: [
+                'TODOS',
+                'ENERO', 'FEBRERO', 'MARZO', 'ABRIL',
+                'MAYO', 'JUNIO', 'JULIO', 'AGOSTO',
+                'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE',
+            ],
+            anios: Array.from({ length: 9 }, (_, i) => String(anioActual - i)),
             tab: 'isr',
         };
     },
