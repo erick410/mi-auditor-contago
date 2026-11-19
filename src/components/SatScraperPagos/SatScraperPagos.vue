@@ -334,6 +334,9 @@ const MESES = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', '
 const ENE_FEB = ['Enero', 'Febrero'];
 const MAR_DIC = ['Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
 
+const ISR_PRINCIPALES = ['ISRPERSONASMORALES', 'ISRSIMPLIFICADODECONFIANZA.PERSONASMORALES'];
+const IVA_PRINCIPALES = ['IVA.PERSONASMORALES', 'IVAPERSONASMORALES', 'IVASIMPLIFICADODECONFIANZA'];
+
 const capMes = s => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -363,7 +366,7 @@ export default {
             jobId: null,
             error: false,
             mesesOpciones: ['TODOS', ...MESES],
-            anios: Array.from({ length: 6 }, (_, i) => String(anioActual - i)),
+            anios: Array.from({ length: 10 }, (_, i) => String(anioActual - i)),
             tab: 'isr',
         };
     },
@@ -394,12 +397,11 @@ export default {
 
         // Todos los conceptos que NO son ISR principal ni IVA principal
         conceptosISR() {
-            const ISR_PRINCIPALES = new Set(['ISRPERSONASMORALES', 'ISRSIMPLIFICADODECONFIANZA.PERSONASMORALES']);
-            const IVA_PRINCIPALES = new Set(['IVA.PERSONASMORALES', 'IVASIMPLIFICADODECONFIANZA']);
+            const principales = new Set([...ISR_PRINCIPALES, ...IVA_PRINCIPALES]);
             const set = new Set();
             this.datosOrdenados.forEach(d =>
                 d.analisis.impuestos
-                    ?.filter(i => !ISR_PRINCIPALES.has(i.concepto) && !IVA_PRINCIPALES.has(i.concepto))
+                    ?.filter(i => !principales.has(i.concepto))
                     .forEach(i => set.add(i.concepto))
             );
             return [...set];
@@ -410,14 +412,12 @@ export default {
 
         // ── Detección de régimen ──────────────────────────────────────────────
 
-        getConceptoISR(d) {
-            const lista = ['ISRPERSONASMORALES', 'ISRSIMPLIFICADODECONFIANZA.PERSONASMORALES'];
-            return d.analisis.impuestos?.find(i => lista.includes(i.concepto))?.concepto ?? 'ISRPERSONASMORALES';
+       getConceptoISR(d) {
+            return d.analisis.impuestos?.find(i => ISR_PRINCIPALES.includes(i.concepto))?.concepto ?? 'ISRPERSONASMORALES';
         },
 
         getConceptoIVA(d) {
-            const lista = ['IVA.PERSONASMORALES', 'IVASIMPLIFICADODECONFIANZA'];
-            return d.analisis.impuestos?.find(i => lista.includes(i.concepto))?.concepto ?? 'IVA.PERSONASMORALES';
+            return d.analisis.impuestos?.find(i => IVA_PRINCIPALES.includes(i.concepto))?.concepto ?? 'IVA.PERSONASMORALES';
         },
 
         // ── Acceso a impuestos ────────────────────────────────────────────────
@@ -476,6 +476,7 @@ export default {
                 'ISRPERSONASMORALES': 'ISR Personas Morales',
                 'ISRSIMPLIFICADODECONFIANZA.PERSONASMORALES': 'ISR RESICO',
                 'IVA.PERSONASMORALES': 'IVA Personas Morales',
+                'IVAPERSONASMORALES': 'IVA Personas Morales',
                 'IVASIMPLIFICADODECONFIANZA': 'IVA RESICO',
                 'IVARETENCIONES': 'IVA Retenciones',
                 'ISRRETENCIONESPORSALARIOS': 'ISR Ret. Salarios',

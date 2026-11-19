@@ -60,6 +60,7 @@
 
                     <q-td key="porcentajeUtilidad" :props="props">{{ FormatoPorcentaje(props.row.porcentajeUtilidad)
                         }}%</q-td>
+                    <q-td key="promedioCostoVenta" :props="props">{{ FormatCurrency(props.row.promedioCostoVenta) }}</q-td>
                     <q-td key="utilidadPeriodo" :props="props">{{ FormatCurrency(props.row.utilidadPeriodo) }}</q-td>
                 </q-tr>
             </template>
@@ -99,6 +100,7 @@
 
                     <q-td key="porcentajeUtilidad" :props="props">{{ FormatoPorcentaje(props.row.porcentajeUtilidad)
                         }}%</q-td>
+                    <q-td key="promedioCostoVenta" :props="props">{{ FormatCurrency(props.row.promedioCostoVenta) }}</q-td>
                     <q-td key="utilidadPeriodo" :props="props">{{ FormatCurrency(props.row.utilidadPeriodo) }}</q-td>
                 </q-tr>
             </template>
@@ -137,6 +139,7 @@
 
                     <q-td key="porcentajeUtilidad" :props="props">{{ FormatoPorcentaje(props.row.porcentajeUtilidad)
                         }}%</q-td>
+                    <q-td key="promedioCostoVenta" :props="props">{{  FormatCurrency(props.row.promedioCostoVenta) }}</q-td>
                     <q-td key="utilidadPeriodo" :props="props">{{ FormatCurrency(props.row.utilidadPeriodo) }}</q-td>
                 </q-tr>
             </template>
@@ -294,6 +297,7 @@ export default {
                 { name: 'promedioCompras', align: 'right', label: 'Promedio Compras (Facturados)', field: 'promedioCompras' },
 
                 { name: 'porcentajeUtilidad', align: 'right', label: 'Porcentaje de Utilidad', field: 'porcentajeUtilidad' },
+                { name: 'promedioCostoVenta', align: 'right', label: 'Costos de Venta promedio', field: 'promedioCostoVenta' },
                 { name: 'utilidadPeriodo', align: 'right', label: 'Utilidad Estimada del Periodo', field: 'utilidadPeriodo' },
             ],
             dataMagna: [],
@@ -412,6 +416,7 @@ export default {
                         promedioCompras: 0,
 
                         porcentajeUtilidad: 0,
+                        promedioCostoVenta: 0,
                         utilidadPeriodo: 0,
                     }
                     if (BuscaMagnaV) {
@@ -440,6 +445,9 @@ export default {
                     }
 
                     //UTILIDAD DEL PERIODO
+                    ObjMagna.promedioCostoVenta = ObjMagna.litrosVentas * ObjMagna.promedioCompras;
+
+
                     let utilidadM = ObjMagna.subTotalVentas * ObjMagna.porcentajeUtilidad / 100;
                     ObjMagna.utilidadPeriodo = utilidadM;
                     this.dataMagna.push(ObjMagna)
@@ -463,6 +471,7 @@ export default {
                         promedioCompras: 0,
 
                         porcentajeUtilidad: 0,
+                        promedioCostoVenta: 0,
                         utilidadPeriodo: 0,
                     }
                     if (BuscaPremiumV) {
@@ -492,6 +501,8 @@ export default {
                     }
 
                     //UTILIDAD DEL PERIODO
+                    ObjPremium.promedioCostoVenta = ObjPremium.litrosVentas * ObjPremium.promedioCompras;
+
                     let utilidadP = ObjPremium.subTotalVentas * ObjPremium.porcentajeUtilidad / 100;
                     ObjPremium.utilidadPeriodo = utilidadP;
 
@@ -517,6 +528,7 @@ export default {
 
                         porcentajeUtilidad: 0,
                         utilidadPeriodo: 0,
+                        promedioCostoVenta: 0
                     }
                     if (BuscaDieselV) {
                         ObjDiesel.litrosVentas = BuscaDieselV.litros;
@@ -545,7 +557,9 @@ export default {
                     }
 
                     //UTILIDAD DEL PERIODO
-                    let utilidadD = ObjDiesel.subTotalVentas * ObjDiesel.porcentajeUtilidad / 100;
+                                       ObjDiesel.promedioCostoVenta = ObjDiesel.litrosVentas * ObjDiesel.promedioCompras;
+
+ let utilidadD = ObjDiesel.subTotalVentas * ObjDiesel.porcentajeUtilidad / 100;
                     ObjDiesel.utilidadPeriodo = utilidadD;
 
                     this.dataDiesel.push(ObjDiesel)
@@ -565,6 +579,7 @@ export default {
                     subTotalCompras: this.dataMagna.reduce((acumulador, objeto) => acumulador + objeto.subTotalCompras, 0),
                     promedioCompras: '---',
                     porcentajeUtilidad: '---',
+                    promedioCostoVenta: '---',
                     utilidadPeriodo: this.dataMagna.reduce((acumulador, objeto) => acumulador + objeto.utilidadPeriodo, 0),
                 }
                 this.dataMagna.push(SumMagna);
@@ -582,6 +597,7 @@ export default {
                     subTotalCompras: this.dataPremium.reduce((acumulador, objeto) => acumulador + objeto.subTotalCompras, 0),
                     promedioCompras: '---',
                     porcentajeUtilidad: '---',
+                    promedioCostoVenta: '---',
                     utilidadPeriodo: this.dataPremium.reduce((acumulador, objeto) => acumulador + objeto.utilidadPeriodo, 0),
                 }
                 this.dataPremium.push(SumPremium);
@@ -599,6 +615,7 @@ export default {
                     subTotalCompras: this.dataDiesel.reduce((acumulador, objeto) => acumulador + objeto.subTotalCompras, 0),
                     promedioCompras: '---',
                     porcentajeUtilidad: '---',
+                    promedioCostoVenta: '---',
                     utilidadPeriodo: this.dataDiesel.reduce((acumulador, objeto) => acumulador + objeto.utilidadPeriodo, 0),
                 }
                 this.dataDiesel.push(SumDiesel);
