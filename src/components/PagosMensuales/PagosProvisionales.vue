@@ -337,6 +337,15 @@
               <q-td key="utilidadFiscal" :props="props">{{
                 FormatCurrency(props.row.utilidadFiscal)
               }}</q-td>
+              <q-td key="ptuPendienteAnual" :props="props">{{
+                FormatCurrency(props.row.ptuPendienteAnual)
+              }}</q-td>
+              <q-td key="ptuDisminuir" :props="props">{{
+                FormatCurrency(props.row.ptuDisminuir)
+              }}</q-td>
+              <q-td key="perdidaAplicada" :props="props">{{
+                FormatCurrency(props.row.perdidaAplicada)
+              }}</q-td>
               <q-td key="basePagoProvisional" :props="props">{{
                 FormatCurrency(props.row.basePagoProvisional)
               }}</q-td>
@@ -1009,6 +1018,24 @@ export default {
             field: "utilidadFiscal",
           },
           {
+            name: "ptuPendienteAnual",
+            align: "right",
+            label: "PTU Pagada Después de Mayo (Anual)",
+            field: "ptuPendienteAnual",
+          },
+          {
+            name: "ptuDisminuir",
+            align: "right",
+            label: "PTU a Disminuir (Art. 14-II-a)",
+            field: "ptuDisminuir",
+          },
+          {
+            name: "perdidaAplicada",
+            align: "right",
+            label: "Pérdidas Fiscales",
+            field: "perdidaAplicada",
+          },
+          {
             name: "basePagoProvisional",
             align: "right",
             label: "Base Pago Provisional",
@@ -1046,21 +1073,51 @@ export default {
         let coeficiente = await this.GetCoeficiente();
         let perdida = await this.GetPerdida();
         let registrados = await this.GetRegistrados();
+        let ptu = await this.GetPtuPagadaMensual();
         // console.log(ingresos);
 
         let ObjPp = {};
         let acumulado = 0;
         let pagoAnterior = 0;
         let impuestoCargo = 0;
+        let ptuPagadaAcumulada = 0; // PTU PAGADA DE ENERO A MAYO (SE DISMINUYE EN PAGOS PROVISIONALES)
+        let ptuPendienteAnual = 0;  // PTU PAGADA DESPUES DE MAYO (SOLO EN LA DECLARACION ANUAL)
 
         for (let i = 0; i < this.selectedMes.value; i++) {
+          const numeroMes = i + 1;
           acumulado += ingresos[i].importe;
           ObjPp.mes = ingresos[i].mes;
           ObjPp.ingresosPorMes = ingresos[i].importe;
           ObjPp.detalles = ingresos[i].detalles;
           ObjPp.ingresosAcumulados = acumulado;
-          ObjPp.utilidadFiscal = acumulado * coeficiente[i].importe;
-          let base = acumulado * coeficiente[i].importe - perdida[i].importe;
+
+          const utilidadFiscal = acumulado * coeficiente[i].importe;
+          ObjPp.utilidadFiscal = utilidadFiscal;
+
+          // ART. 14, FRACC. II, INCISO A) LISR:
+          // LA PTU PAGADA HASTA MAYO SE DISMINUYE EN PARTES IGUALES DE MAYO A DICIEMBRE,
+          // DE FORMA ACUMULATIVA (1/8 EN MAYO, 2/8 EN JUNIO ... 8/8 EN DICIEMBRE),
+          // Y NO PUEDE SER MAYOR A LA UTILIDAD FISCAL (NO GENERA PERDIDA).
+          // LA PTU PAGADA DESPUES DE MAYO NO SE DISMINUYE EN PAGOS PROVISIONALES:
+          // SE APLICA EN LA ANUAL ("PTU PENDIENTE DE APLICAR DEL EJERCICIO QUE DECLARA").
+          const ptuMes = ptu[i] ? ptu[i].importe : 0;
+          if (numeroMes <= 5) {
+            ptuPagadaAcumulada += ptuMes;
+          } else {
+            ptuPendienteAnual += ptuMes;
+          }
+          let ptuDisminuir = 0;
+          if (numeroMes >= 5) {
+            ptuDisminuir = this.Redondear((ptuPagadaAcumulada / 8) * (numeroMes - 4));
+            if (ptuDisminuir > utilidadFiscal) {
+              ptuDisminuir = utilidadFiscal > 0 ? utilidadFiscal : 0;
+            }
+          }
+          ObjPp.ptuPendienteAnual = ptuPendienteAnual;
+          ObjPp.ptuDisminuir = ptuDisminuir;
+          ObjPp.perdidaAplicada = perdida[i].importe;
+
+          let base = utilidadFiscal - ptuDisminuir - perdida[i].importe;
           if (base < 0) {
             base = 0;
           }
@@ -1097,6 +1154,16 @@ export default {
             (acumulador, objeto) => acumulador + objeto.utilidadFiscal,
             0
           ),
+          // PTU: SON CIFRAS ACUMULADAS, EN EL TOTAL VA LA DEL ULTIMO MES
+          ptuPendienteAnual: this.dataComprobantes.length
+            ? this.dataComprobantes[this.dataComprobantes.length - 1].ptuPendienteAnual
+            : 0,
+          ptuDisminuir: this.dataComprobantes.length
+            ? this.dataComprobantes[this.dataComprobantes.length - 1].ptuDisminuir
+            : 0,
+          perdidaAplicada: this.dataComprobantes.length
+            ? this.dataComprobantes[this.dataComprobantes.length - 1].perdidaAplicada
+            : 0,
           basePagoProvisional: this.dataComprobantes.reduce(
             (acumulador, objeto) => acumulador + objeto.basePagoProvisional,
             0
@@ -1709,7 +1776,7 @@ export default {
         {
           name: "ptuPagada",
           align: "right",
-          label: "PTU Pagada",
+          label: "PTU Pagada Acumulada",
           field: "ptuPagada",
         },
         {
@@ -1773,7 +1840,7 @@ export default {
 
       let ingresos = await this.GetIngresosCobradosResicoM();
       let gastos = await this.GetGastosPagadosResicoM();
-      let ptu = await this.GetPagoPtu();
+      let ptu = await this.GetPtuPagadaMensual();
       let registrados = await this.GetRegistrados();
       let perdida = await this.GetPerdida();
 
@@ -1789,19 +1856,25 @@ export default {
       let deduccionesAcumuladas = 0;
       let utilidadFiscalPreviaAcumulada = 0;
       let isrPagosProvisionales = 0;
+      let ptuPagada = 0;
 
       for (let x of ingresos) {
         ingresosAcumulados += x.importe;
         deduccionesAcumuladas += gastos[contador].importe;
-        // let utilidadFiscalPrevia = x.importe - gastos[contador].importe;
-        let utilidadFiscalPrevia = ingresosAcumulados - deduccionesAcumuladas;
-        if (utilidadFiscalPrevia < 0) {
-          utilidadFiscalPrevia = 0;
+
+        // UTILIDAD DEL MES Y ACUMULADA (INGRESOS ACUMULADOS - DEDUCCIONES ACUMULADAS)
+        let utilidadFiscalPrevia = x.importe - gastos[contador].importe;
+        utilidadFiscalPreviaAcumulada = ingresosAcumulados - deduccionesAcumuladas;
+
+        // RESICO PM (ART. 210 LISR): LA PTU PAGADA SE DISMINUYE COMPLETA DESDE EL MES EN QUE SE PAGA
+        // Y DE FORMA ACUMULADA EN LOS MESES SIGUIENTES (SIN DIVIDIR ENTRE 8). NO GENERA PERDIDA.
+        ptuPagada += ptu[contador] ? ptu[contador].importe : 0;
+        let ptuDisminuida = ptuPagada;
+        if (ptuDisminuida > utilidadFiscalPreviaAcumulada) {
+          ptuDisminuida = utilidadFiscalPreviaAcumulada > 0 ? utilidadFiscalPreviaAcumulada : 0;
         }
-        utilidadFiscalPreviaAcumulada += utilidadFiscalPrevia;
-        let ptuPagada = ptu[contador].importe;
         let utilidadFiscalAcumuladaPreviaAntesDePerdidasFiscales =
-          utilidadFiscalPreviaAcumulada - ptuPagada;
+          utilidadFiscalPreviaAcumulada - ptuDisminuida;
         let perdidasFiscalesPorAplicar = perdida[contador].importe;
         let baseIsr =
           utilidadFiscalAcumuladaPreviaAntesDePerdidasFiscales -
@@ -1949,6 +2022,28 @@ export default {
       } catch (error) {
         console.log(error);
       }
+    },
+
+    // PTU PAGADA POR MES (PERCEPCION 003, GRAVADO + EXENTO) - REGIMEN GENERAL
+    async GetPtuPagadaMensual() {
+      let respuesta = Array.from({ length: 12 }, (_, i) => ({ mes: i + 1, importe: 0 }));
+      try {
+        let response = await axios.get(
+          this.rutaAxios +
+          "Nomina/GetPtuPagadaMensualAsync/erp_" +
+          this.token.rfc +
+          "/" +
+          this.selectedAnio
+        );
+        return response.data;
+      } catch (error) {
+        console.log(error);
+        return respuesta;
+      }
+    },
+
+    Redondear(valor) {
+      return Math.round((Number(valor) || 0) * 100) / 100;
     },
 
     async GetPagoPtu() {
