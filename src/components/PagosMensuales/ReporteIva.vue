@@ -133,6 +133,48 @@
             </q-card>
         </q-dialog>
 
+        <!-- DIALOG DE LOS PEDIMENTOS DEL MES -->
+        <q-dialog v-model="dialogPedimentos" transition-show="scale" transition-hide="scale">
+            <q-card style="width: 900px; max-width: 95vw;">
+                <q-toolbar>
+                    <q-toolbar-title>{{ tituloPedimentos }}</q-toolbar-title>
+                    <q-btn flat round dense icon="close" v-close-popup />
+                </q-toolbar>
+                <div style="width: 100%; height: 4px; background-color: red;"></div>
+                <q-table flat :data="pedimentosMes" :columns="columnsPedimentosDet" row-key="id"
+                    :rows-per-page-options="[0]" hide-bottom>
+                    <template v-slot:body="props">
+                        <q-tr :props="props">
+                            <q-td auto-width>
+                                <q-btn size="md" color="red-8" rounded flat dense @click="VerPdfPedimento(props.row)"
+                                    icon="mdi-file-pdf-box">
+                                    <q-tooltip transition-show="flip-right" transition-hide="flip-left"
+                                        content-style="font-size: 14px" :offset="[10, 10]">PDF</q-tooltip>
+                                </q-btn>
+                            </q-td>
+                            <q-td key="numPedimento" :props="props">{{ props.row.numPedimento }}</q-td>
+                            <q-td key="fechaPago" :props="props">{{ FormatoFechaPedimento(props.row.fechaPago) }}</q-td>
+                            <q-td key="baseIva" :props="props">{{ FormatCurrency(props.row.baseIva) }}</q-td>
+                            <q-td key="importeIva" :props="props">{{ FormatCurrency(props.row.importeIva) }}</q-td>
+                            <q-td key="ivaPrv" :props="props">{{ FormatCurrency(props.row.ivaPrv) }}</q-td>
+                        </q-tr>
+                    </template>
+                    <template v-slot:bottom-row>
+                        <q-tr>
+                            <q-td colspan="100%" class="text-center">
+                                <q-chip color="primary" text-color="white">
+                                    {{ 'Base IVA: ' + FormatCurrency(pedimentosMes.reduce((a, x) => a + x.baseIva, 0)) }}
+                                </q-chip>
+                                <q-chip color="primary" text-color="white">
+                                    {{ 'IVA acreditable: ' + FormatCurrency(pedimentosMes.reduce((a, x) => a + x.importeIva + x.ivaPrv, 0)) }}
+                                </q-chip>
+                            </q-td>
+                        </q-tr>
+                    </template>
+                </q-table>
+            </q-card>
+        </q-dialog>
+
         <!-- DIALOG PARA VER LOS PDF -->
         <q-dialog v-model="dialogPdf" persistent transition-show="scale" transition-hide="scale" maximized>
             <visor-pdf @CloseDialogPdf="dialogPdf = false"></visor-pdf>
@@ -220,6 +262,21 @@
                                 content-style="font-size: 14px" :offset="[10, 10]">Detalles</q-tooltip>
                         </q-btn>
                     </q-td>
+
+                    <!-- PEDIMENTOS: solo si algun mes tiene IVA de importacion -->
+                    <template v-if="mostrarPedimentos">
+                        <q-td key="baseIvaPedimentos" :props="props">{{ FormatCurrency(props.row.baseIvaPedimentos || 0)
+                        }}</q-td>
+                        <q-td key="importeIvaPedimentos" :props="props">{{
+                            FormatCurrency(props.row.importeIvaPedimentos || 0) }}</q-td>
+                        <q-td auto-width>
+                            <q-btn v-if="props.row.pedimentos && props.row.pedimentos.length" size="md" color="primary"
+                                rounded flat dense @click="VerPedimentos(props.row)" icon="mdi-ferry">
+                                <q-tooltip transition-show="flip-right" transition-hide="flip-left"
+                                    content-style="font-size: 14px" :offset="[10, 10]">Pedimentos</q-tooltip>
+                            </q-btn>
+                        </q-td>
+                    </template>
 
                     <q-td key="ivaRetenido" :props="props">{{ FormatCurrency(props.row.ivaRetenido)
                     }}</q-td>
@@ -462,6 +519,25 @@ export default {
 
             //PARA EL IVA EXENTO
             ivaExento: false,
+
+            //PEDIMENTOS (IVA DE IMPORTACION, SE SUMA AL ACREDITABLE)
+            mostrarPedimentos: false,
+            dialogPedimentos: false,
+            tituloPedimentos: '',
+            pedimentosMes: [],
+            columnsPedimentos: [
+                { name: 'baseIvaPedimentos', align: 'right', label: 'Base IVA Pedimentos', field: 'baseIvaPedimentos' },
+                { name: 'importeIvaPedimentos', align: 'right', label: 'IVA Pedimentos', field: 'importeIvaPedimentos' },
+                { name: 'accionesP', align: 'left', label: 'Acciones', field: 'accionesP' },
+            ],
+            columnsPedimentosDet: [
+                { name: 'acciones', align: 'left', label: '', field: 'acciones' },
+                { name: 'numPedimento', align: 'left', label: 'Pedimento', field: 'numPedimento' },
+                { name: 'fechaPago', align: 'left', label: 'Fecha de pago', field: 'fechaPago' },
+                { name: 'baseIva', align: 'right', label: 'Base IVA', field: 'baseIva' },
+                { name: 'importeIva', align: 'right', label: 'IVA', field: 'importeIva' },
+                { name: 'ivaPrv', align: 'right', label: 'IVA/PRV', field: 'ivaPrv' },
+            ],
         }
     },
     computed: {
@@ -511,6 +587,7 @@ export default {
             this.ivaSat8 = respuesta8;
             this.ivaSat0 = respuesta0;
             this.ivaSatExento = respuestaExento;
+            this.mostrarPedimentos = false;
             const rfc = this.token.rfc
 
             if (rfc.length == 12) {
@@ -542,6 +619,9 @@ export default {
             //     await this.GetReporteIva2024();
             // }
 
+            //SUMAMOS EL IVA DE LOS PEDIMENTOS COMO ACREDITABLE
+            await this.AplicarPedimentos();
+
             await this.GetReporteIvaPagosImpuestos();
 
             //CONSULTAMOS LO DE LOS EXENTOS
@@ -571,7 +651,8 @@ export default {
                     // const ivaRetenidoAnterior_ = this.dataComprobantes[contE].ivaRetenidoAnterior;
                     const ivaRetenidoAnterior_ = 0;
 
-                    const calculo_ = parseFloat((ivaCargo_ - ivaAcreditado_ - ivaRetenido_ + ivaRetenidoAnterior_).toFixed(2));
+                    const ivaPedimentos_ = this.dataComprobantes[contE].importeIvaPedimentos || 0;
+                    const calculo_ = parseFloat((ivaCargo_ - ivaAcreditado_ - ivaPedimentos_ - ivaRetenido_ + ivaRetenidoAnterior_).toFixed(2));
                     if (calculo_ > 0) {
                         this.dataComprobantes[contE].ivaCargo = calculo_
                         this.dataComprobantes[contE].ivaFavor = 0
@@ -782,6 +863,11 @@ export default {
 
         async GenerarGrafica(data) {
             data.pop();
+            this.ConstruirGrafica(data);
+        },
+
+        ConstruirGrafica(data) {
+            data = data.filter(item => item.año !== 'Total');
             const meses = data.map((item) => item.mes);
             const cargo = data.map((item) => item.ivaCargo);
             const favor = data.map((item) => item.ivaFavor);
@@ -1802,6 +1888,114 @@ export default {
             this.$store.state.vistaPreviaStore.tipo = "R"
             this.$store.state.vistaPreviaStore.rfc = this.token.rfc
             this.dialogPdf = true;
+        },
+
+        //PEDIMENTOS
+        async GetPedimentosMensual() {
+            try {
+                const url = this.rutaAxios + 'Pedimentos/' + this.token.rfc + '/resumen/' + this.selectedAnio;
+                console.log('PEDIMENTOS URL', url);
+                const response = await axios.get(url);
+                console.log('PEDIMENTOS RESUMEN', response.data);
+                return response.data || [];
+            } catch (error) {
+                console.log('PEDIMENTOS ERROR', error);
+                return [];
+            }
+        },
+
+        // El IVA pagado en pedimentos se trata como acreditable: reduce el cargo o aumenta el saldo a favor
+        async AplicarPedimentos() {
+            const resumen = await this.GetPedimentosMensual();
+            const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+            let hayPedimentos = false;
+
+            const filas = this.dataComprobantes.map((row, i) => {
+                if (row.año === 'Total') return row;
+
+                let idx = meses.indexOf(String(row.mes || '').toUpperCase());
+                if (idx < 0) idx = i;
+                const p = resumen.find(r => r.mes === idx + 1);
+                const base = p ? p.baseIva : 0;
+                const iva = p ? p.ivaTotal : 0;
+
+                const nueva = {
+                    ...row,
+                    baseIvaPedimentos: base,
+                    importeIvaPedimentos: iva,
+                    pedimentos: p ? p.pedimentos : [],
+                };
+
+                if (iva !== 0) {
+                    hayPedimentos = true;
+                    // Neto del mes (+ cargo / - favor) menos el IVA de importacion
+                    const neto = this.Redondear((row.ivaCargo || 0) - (row.ivaFavor || 0) - iva);
+                    nueva.ivaCargo = neto > 0 ? neto : 0;
+                    nueva.ivaFavor = neto < 0 ? Math.abs(neto) : 0;
+                    nueva.comparativa = nueva.ivaCargo - nueva.ivaFavor - (row.cargoRegistrado || 0) + (row.favorRegistrado || 0);
+                }
+                return nueva;
+            });
+
+            // Si existe renglon de totales, lo recalculamos
+            const total = filas.find(r => r.año === 'Total');
+            if (total) {
+                const meses_ = filas.filter(r => r.año !== 'Total');
+                const sumar = campo => meses_.reduce((a, r) => a + (r[campo] || 0), 0);
+                ['baseIvaPedimentos', 'importeIvaPedimentos', 'ivaCargo', 'ivaFavor', 'comparativa']
+                    .forEach(campo => { total[campo] = sumar(campo); });
+            }
+
+            this.dataComprobantes = filas;
+            this.mostrarPedimentos = hayPedimentos;
+
+            // Agregamos las columnas despues de las acciones del IVA acreditado
+            if (hayPedimentos && !this.columns.some(c => c.name === 'importeIvaPedimentos')) {
+                const pos = this.columns.findIndex(c => c.name === 'accionesA') + 1;
+                this.columns.splice(pos, 0, ...this.columnsPedimentos);
+            }
+
+            if (hayPedimentos) this.ConstruirGrafica(this.dataComprobantes);
+        },
+
+        VerPedimentos(row) {
+            this.tituloPedimentos = 'Pedimentos de ' + String(row.mes).toLowerCase() + ' ' + row.año;
+            this.pedimentosMes = [...row.pedimentos];
+            this.dialogPedimentos = true;
+        },
+
+        async VerPdfPedimento(item) {
+            this.$q.loading.show({ spinner: QSpinnerCube, spinnerColor: 'red-8', spinnerSize: 140, message: 'Cargando PDF...' })
+            try {
+                const response = await axios.get(this.rutaAxios + 'Pedimentos/' + this.token.rfc + '/' + item.id + '/pdf', { responseType: 'arraybuffer' });
+                this.$store.state.comprobanteStore.nombre = item.nombreArchivo ? item.nombreArchivo.replace(/\.pdf$/i, '') : item.numPedimento;
+                this.$store.state.comprobanteStore.base64 = this.ArrayBufferToBase64(response.data);
+                this.$store.state.comprobanteStore.fecha = item.fechaPago;
+                this.dialogPdf = true;
+            } catch (error) {
+                console.log(error);
+                this.ShowNotifsWarning('No se encontró el PDF del pedimento');
+            }
+            this.$q.loading.hide()
+        },
+
+        ArrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const chunk = 0x8000;
+            for (let i = 0; i < bytes.length; i += chunk) {
+                binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+            }
+            return window.btoa(binary);
+        },
+
+        // fechaPago se guarda sin hora (medianoche UTC)
+        FormatoFechaPedimento(fecha) {
+            return fecha ? moment.utc(fecha).format('DD/MM/YYYY') : '';
+        },
+
+        Redondear(valor) {
+            return Math.round((Number(valor) || 0) * 100) / 100;
         },
 
         //PARA EL IVA EXENTO

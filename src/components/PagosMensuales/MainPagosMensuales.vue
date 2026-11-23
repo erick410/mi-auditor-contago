@@ -126,6 +126,15 @@
                     </q-item>
                     <q-separator />
 
+                    <q-item active clickable v-ripple @click="irPedimentos">
+                        <q-item-section avatar>
+                            <q-icon name="mdi-file-document-check" />
+                        </q-item-section>
+                        <q-item-section>
+                            Pedimentos
+                        </q-item-section>
+                    </q-item>
+                    <q-separator />
                 </q-list>
             </q-scroll-area>
         </q-drawer>
@@ -215,6 +224,9 @@ export default {
 
         irReporteUsoCfdi() {
             this.$router.push({ name: 'ReporteUsoCfdi' })
+        },
+        irPedimentos() {
+            this.$router.push({ name: 'Pedimentos' })
         },
         irInicio() {
             this.$router.push({ name: 'Home' })

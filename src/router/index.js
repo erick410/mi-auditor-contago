@@ -69,6 +69,7 @@ import PagosProvisionales from "../components/PagosMensuales/PagosProvisionales.
 import RetencionesIva from "../components/PagosMensuales/RetencionesIva.vue";
 import ReporteUsoCfdi from "../components/PagosMensuales/ReporteUsoCfdi.vue";
 import ReporteIeps from "../components/PagosMensuales/ReporteIeps.vue";
+import Pedimentos from "../components/Pedimentos/Pedimentos.vue";
 
 import MainCancelados from "../components/Cancelados/MainCancelados.vue";
 import Cancelados from "../components/Cancelados/Cancelados.vue";
@@ -548,6 +549,12 @@ const routes = [
         path: "ReporteIeps",
         component: ReporteIeps,
         name: "ReporteIeps",
+        meta: { Administrador: true, Gasolinero: true },
+      },
+      {
+        path: "Pedimentos",
+        component: Pedimentos,
+        name: "Pedimentos",
         meta: { Administrador: true, Gasolinero: true },
       },
     ],
